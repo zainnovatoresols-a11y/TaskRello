@@ -9,16 +9,16 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="h-full bg-gray-100 dark:bg-gray-900 font-sans antialiased">
+<body class="h-full bg-gray-100 font-sans antialiased">
 
     {{-- ── Navbar ──────────────────────────────────────────── --}}
-    <nav class="bg-blue-700 dark:bg-blue-900 sticky top-0 z-40 shadow-md">
+    <nav class="bg-blue-700 sticky top-0 z-40 shadow-md">
         <div class="max-w-screen-xl mx-auto px-4 flex items-center justify-between h-14">
 
             {{-- Logo --}}
             <a href="{{ route('boards.index') }}"
                 class="text-white font-bold text-lg tracking-tight hover:opacity-90 transition">
-                {{ config('app.name', 'TaskRello') }}
+                {{ config('app.name', 'Trello Clone') }}
             </a>
 
             {{-- Right side --}}
@@ -108,7 +108,7 @@
     {{-- ── Flash messages ───────────────────────────────────── --}}
     @if(session('success'))
     <div class="max-w-screen-xl mx-auto px-4 mt-4" id="flash-success">
-        <div class="flex items-center justify-between bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-300 rounded-xl px-4 py-3 text-sm">
+        <div class="flex items-center justify-between bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 text-sm">
             <div class="flex items-center gap-2">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -116,7 +116,7 @@
                 {{ session('success') }}
             </div>
             <button onclick="document.getElementById('flash-success').remove()"
-                class="text-green-600 dark:text-green-400 hover:text-green-800 font-bold ml-4 text-lg leading-none">
+                class="text-green-600 hover:text-green-800 font-bold ml-4 text-lg leading-none">
                 &times;
             </button>
         </div>
@@ -125,7 +125,7 @@
 
     @if(session('error'))
     <div class="max-w-screen-xl mx-auto px-4 mt-4" id="flash-error">
-        <div class="flex items-center justify-between bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-300 rounded-xl px-4 py-3 text-sm">
+        <div class="flex items-center justify-between bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-sm">
             <div class="flex items-center gap-2">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -133,20 +133,27 @@
                 {{ session('error') }}
             </div>
             <button onclick="document.getElementById('flash-error').remove()"
-                class="text-red-600 dark:text-red-400 hover:text-red-800 font-bold ml-4 text-lg leading-none">
+                class="text-red-600 hover:text-red-800 font-bold ml-4 text-lg leading-none">
                 &times;
             </button>
         </div>
     </div>
     @endif
 
+    {{-- ── Header slot (for x-app-layout compatibility) ───────── --}}
+    @hasSection('header')
+    <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+            @yield('header')
+        </div>
+    </header>
+    @endif
+
     {{-- ── Page content ─────────────────────────────────────── --}}
     <main>
+        {{ $slot ?? '' }}
         @yield('content')
     </main>
-
-    {{-- ── Alpine.js (already included by Breeze — skip if duplicate) ── --}}
-    {{-- Alpine is already loaded by Breeze's app.js via npm --}}
 
     {{-- ── Page-specific scripts ────────────────────────────── --}}
     @yield('scripts')

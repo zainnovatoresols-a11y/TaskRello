@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\Board;
 use App\Models\Card;
 use App\Models\Label;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class LabelController extends Controller
 {
+    use AuthorizesRequests;
     // POST /boards/{board}/labels
     public function store(Request $request, Board $board)
     {
@@ -16,7 +19,7 @@ class LabelController extends Controller
 
         $request->validate([
             'name'  => 'required|string|max:100',
-            'color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            'color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/|',
         ]);
 
         $label = $board->labels()->create([

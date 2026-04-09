@@ -2,14 +2,13 @@
 
 namespace App\Policies;
 
+use App\Models\Board;
 use App\Models\Card;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class CardPolicy
 {
-    // Helper: get the board from the card (through its list)
-    private function getBoard(Card $card)
+    private function getBoard(Card $card): Board
     {
         return $card->list->board;
     }
@@ -19,9 +18,9 @@ class CardPolicy
         return $this->getBoard($card)->isMember($user);
     }
 
-    public function create(User $user, Card $card): bool
+    public function create(User $user, Board $board): bool
     {
-        return $this->getBoard($card)->isMember($user);
+        return $board->isMember($user);
     }
 
     public function update(User $user, Card $card): bool
@@ -29,7 +28,6 @@ class CardPolicy
         return $this->getBoard($card)->isMember($user);
     }
 
-    // Card creator OR board owner can delete
     public function delete(User $user, Card $card): bool
     {
         $board = $this->getBoard($card);
@@ -38,15 +36,14 @@ class CardPolicy
             || $board->isOwner($user);
     }
 
-    // Any board member can move (drag-drop) a card
     public function move(User $user, Card $card): bool
     {
         return $this->getBoard($card)->isMember($user);
     }
 
-    // Any board member can assign users to a card
     public function assign(User $user, Card $card): bool
     {
         return $this->getBoard($card)->isMember($user);
     }
+
 }

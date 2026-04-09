@@ -6,9 +6,11 @@ use App\Models\Board;
 use App\Models\BoardList;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class ListController extends Controller
 {
+    use AuthorizesRequests;
     // POST /boards/{board}/lists
     public function store(Request $request, Board $board)
     {
@@ -45,9 +47,12 @@ class ListController extends Controller
     {
         $this->authorize('update', $board);
 
-        $request->validate(['name' => 'required|string|max:255']);
+        $request->validate([
+            'name'        => 'sometimes|required|string|max:255',
+            'is_archived' => 'sometimes|boolean',
+        ]);
 
-        $list->update(['name' => $request->name]);
+        $list->update($request->only(['name', 'is_archived']));
 
         return response()->json(['success' => true, 'list' => $list]);
     }

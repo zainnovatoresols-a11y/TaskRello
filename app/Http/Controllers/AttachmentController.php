@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\Card;
 use App\Models\Attachment;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class AttachmentController extends Controller
 {
+    use AuthorizesRequests;
     // POST /cards/{card}/attachments
     public function store(Request $request, Card $card)
     {

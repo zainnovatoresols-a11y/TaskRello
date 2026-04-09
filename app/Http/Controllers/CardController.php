@@ -8,9 +8,11 @@ use App\Models\BoardList;
 use App\Models\Card;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class CardController extends Controller
 {
+    use AuthorizesRequests;
     // POST /lists/{list}/cards
     public function store(StoreCardRequest $request, BoardList $list)
     {

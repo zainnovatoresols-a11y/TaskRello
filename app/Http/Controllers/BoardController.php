@@ -7,9 +7,11 @@ use App\Http\Requests\UpdateBoardRequest;
 use App\Models\Board;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class BoardController extends Controller
 {
+    use AuthorizesRequests;
     // GET /boards — dashboard listing
     public function index(Request $request)
     {
@@ -99,5 +101,13 @@ class BoardController extends Controller
         return redirect()
             ->route('boards.index')
             ->with('success', 'Board deleted.');
+    }
+
+    public function removeMember(Request $request, Board $board, User $user)
+    {
+        $this->authorize('addMember', $board);
+        $board->members()->detach($user->id);
+        return redirect()->route('boards.edit', $board)
+            ->with('success', $user->name . ' removed from board.');
     }
 }
