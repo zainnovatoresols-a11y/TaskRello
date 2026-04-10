@@ -88,40 +88,40 @@
     <div class="bg-gray-200 dark:bg-gray-700 rounded-b-xl px-2 pb-2 pt-1">
 
         {{-- Inline add card form (hidden by default) --}}
-        <div id="add-card-form-{{ $list->id }}" class="hidden mb-1">
-            <textarea id="new-card-title-{{ $list->id }}"
-                placeholder="Enter a title for this card..."
-                rows="3"
-                maxlength="255"
-                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg
-                             p-2.5 text-sm resize-none
-                             bg-white dark:bg-gray-800
-                             text-gray-900 dark:text-gray-100
-                             placeholder-gray-400
-                             focus:outline-none focus:ring-2 focus:ring-blue-500
-                             focus:border-transparent mb-2"
-                onkeydown="if(event.key==='Enter' && !event.shiftKey){
-                                     event.preventDefault();
-                                     storeCard({{ $list->id }});
-                                 }
-                                 if(event.key==='Escape'){
-                                     hideAddCardForm({{ $list->id }});
-                                 }">
-            </textarea>
-            <div class="flex items-center gap-2">
-                <button onclick="storeCard({{ $list->id }})"
-                    class="bg-blue-700 hover:bg-blue-800 text-white text-xs
-                               font-medium px-3 py-1.5 rounded-lg transition">
-                    Add card
-                </button>
-                <button onclick="hideAddCardForm({{ $list->id }})"
-                    class="text-gray-500 dark:text-gray-400
-                               hover:text-gray-700 dark:hover:text-gray-200
-                               text-xl leading-none px-1 transition">
-                    &times;
-                </button>
-            </div>
-        </div>
+<div id="add-card-form-{{ $list->id }}" class="hidden mb-1" onclick="event.stopPropagation()">
+    <textarea id="new-card-title-{{ $list->id }}"
+        placeholder="Enter a title for this card..."
+        rows="3"
+        maxlength="255"
+        onclick="event.stopPropagation()"
+        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg
+                     p-2.5 text-sm resize-none
+                     bg-white dark:bg-gray-800
+                     text-gray-900 dark:text-gray-100
+                     placeholder-gray-400
+                     focus:outline-none focus:ring-2 focus:ring-blue-500
+                     focus:border-transparent mb-2"
+        onkeydown="if(event.key==='Enter' && !event.shiftKey){
+                             event.preventDefault();
+                             storeCard({{ $list->id }});
+                         }
+                         if(event.key==='Escape'){
+                             hideAddCardForm({{ $list->id }});
+                         }"></textarea>
+    <div class="flex items-center gap-2">
+        <button onclick="storeCard({{ $list->id }})"
+            class="bg-blue-700 hover:bg-blue-800 text-white text-xs
+                       font-medium px-3 py-1.5 rounded-lg transition">
+            Add card
+        </button>
+        <button onclick="hideAddCardForm({{ $list->id }})"
+            class="text-gray-500 dark:text-gray-400
+                       hover:text-gray-700 dark:hover:text-gray-200
+                       text-xl leading-none px-1 transition">
+            &times;
+        </button>
+    </div>
+</div>
 
         {{-- Collapsed add card button --}}
         <button id="add-card-btn-{{ $list->id }}"

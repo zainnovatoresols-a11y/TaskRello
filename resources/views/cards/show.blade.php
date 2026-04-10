@@ -146,8 +146,7 @@ Returns HTML that is injected into #card-modal-body
                                          placeholder-gray-400
                                          focus:outline-none focus:ring-2 focus:ring-blue-500
                                          focus:border-transparent focus:bg-white
-                                         dark:focus:bg-gray-700 transition mb-2">
-                        </textarea>
+                                         dark:focus:bg-gray-700 transition mb-2"></textarea>
                         <button onclick="postComment({{ $card->id }})"
                             class="bg-blue-700 hover:bg-blue-800 text-white text-xs
                                        font-medium px-3 py-1.5 rounded-lg transition">

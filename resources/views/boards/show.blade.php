@@ -120,7 +120,7 @@
     style="background-color: rgba(0,0,0,0.55);">
 
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl
-                max-h-[85vh] overflow-y-auto relative">
+                max-h-[85vh] overflow-y-auto relative" onclick="event.stopPropagation()">
 
         {{-- Close button --}}
         <button onclick="closeCardModal()"

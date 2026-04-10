@@ -78,6 +78,16 @@ async function openCardModal(cardId) {
         if (!response.ok) throw new Error('Failed to load card.');
         body.innerHTML = await response.text();
 
+        setTimeout(() => {
+            body.querySelectorAll('textarea, input').forEach(el => {
+                el.addEventListener('mousedown', e => e.stopPropagation());
+                el.addEventListener('click', e => {
+                    e.stopPropagation();
+                    el.focus();
+                });
+            });
+        }, 50);
+
     } catch (err) {
         body.innerHTML = `<p class="text-center text-red-500 py-12 text-sm">
                               Failed to load card. Please try again.
@@ -97,8 +107,8 @@ function closeCardModal() {
 }
 
 // Close modal when clicking the dark backdrop
-document.getElementById('card-modal').addEventListener('click', function (e) {
-    if (e.target === this) closeCardModal();
+document.getElementById('card-modal').addEventListener('mousedown', function (e) {
+    if (e.target === document.getElementById('card-modal')) closeCardModal();
 });
 
 // Close modal on Escape key
@@ -687,7 +697,11 @@ async function deleteList(listId, boardId) {
 function showAddCardForm(listId) {
     document.getElementById(`add-card-btn-${listId}`).classList.add('hidden');
     document.getElementById(`add-card-form-${listId}`).classList.remove('hidden');
-    document.getElementById(`new-card-title-${listId}`).focus();
+    setTimeout(() => {
+        const textarea = document.getElementById(`new-card-title-${listId}`);
+        textarea.value = '';   // ← clear first
+        textarea.focus();      // ← then focus
+    }, 50);
 }
 
 function hideAddCardForm(listId) {
@@ -884,8 +898,7 @@ function buildListHTML(list, boardId) {
                                      }
                                      if(event.key==='Escape'){
                                          hideAddCardForm(${list.id});
-                                     }">
-                </textarea>
+                                     }"></textarea>
                 <div class="flex items-center gap-2">
                     <button onclick="storeCard(${list.id})"
                             class="bg-blue-700 hover:bg-blue-800 text-white text-xs
