@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBoardRequest extends FormRequest
 {
-    // Allow any authenticated user to create a board
+
     public function authorize(): bool
     {
         return true;
@@ -28,12 +28,11 @@ class StoreBoardRequest extends FormRequest
             'background_color' => [
                 'nullable',
                 'string',
-                'regex:/^#[0-9A-Fa-f]{6}$/', // valid hex color
+                'regex:/^#[0-9A-Fa-f]{6}$/',
             ],
         ];
     }
 
-    // Custom error messages (optional but professional)
     public function messages(): array
     {
         return [

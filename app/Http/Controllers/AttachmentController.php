@@ -13,7 +13,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class AttachmentController extends Controller
 {
     use AuthorizesRequests;
-    // POST /cards/{card}/attachments
+
     public function store(Request $request, Card $card)
     {
         $board = $card->list->board;
@@ -23,7 +23,7 @@ class AttachmentController extends Controller
             'file' => [
                 'required',
                 'file',
-                'max:10240', // 10 MB max
+                'max:10240',
                 'mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,txt,zip',
             ],
         ]);
@@ -49,19 +49,15 @@ class AttachmentController extends Controller
 
         return response()->json([
             'success'    => true,
-            'attachment' => $attachment, // includes url and is_image via $appends
+            'attachment' => $attachment,
         ], 201);
     }
 
-    // DELETE /attachments/{attachment}
     public function destroy(Request $request, Attachment $attachment)
     {
         $this->authorize('delete', $attachment);
 
-        // Delete physical file from disk
         Storage::disk('public')->delete($attachment->file_path);
-
-        // Delete DB record
         $attachment->delete();
 
         return response()->json(['success' => true]);

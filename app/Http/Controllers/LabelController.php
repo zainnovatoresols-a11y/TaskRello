@@ -12,7 +12,6 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class LabelController extends Controller
 {
     use AuthorizesRequests;
-    // POST /boards/{board}/labels
     public function store(Request $request, Board $board)
     {
         $this->authorize('update', $board);
@@ -33,18 +32,15 @@ class LabelController extends Controller
         ], 201);
     }
 
-    // POST /cards/{card}/labels/{label}
     public function attach(Request $request, Card $card, Label $label)
     {
         $board = $card->list->board;
         $this->authorize('update', $card);
 
-        // Ensure label belongs to the same board
         if ($label->board_id !== $board->id) {
             return response()->json(['error' => 'Label does not belong to this board.'], 422);
         }
 
-        // syncWithoutDetaching = add if not already attached
         $card->labels()->syncWithoutDetaching([$label->id]);
 
         return response()->json([
@@ -53,7 +49,6 @@ class LabelController extends Controller
         ]);
     }
 
-    // DELETE /cards/{card}/labels/{label}
     public function detach(Request $request, Card $card, Label $label)
     {
         $this->authorize('update', $card);

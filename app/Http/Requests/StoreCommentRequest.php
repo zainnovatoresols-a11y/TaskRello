@@ -8,7 +8,6 @@ class StoreCommentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Board member check is handled in CommentController
         return auth()->check();
     }
 
@@ -18,13 +17,12 @@ class StoreCommentRequest extends FormRequest
             'body' => [
                 'required',
                 'string',
-                'min:1',   // no empty comments
+                'min:1',
                 'max:5000',
             ],
         ];
     }
 
-    // Strip whitespace from the start/end of comment body
     protected function prepareForValidation(): void
     {
         $this->merge([

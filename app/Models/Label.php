@@ -18,14 +18,11 @@ class Label extends Model
         'color',
     ];
 
-    // ─── Relationships ───────────────────────────────
-
     public function board()
     {
         return $this->belongsTo(Board::class);
     }
 
-    // Cards that have this label applied
     public function cards()
     {
         return $this->belongsToMany(Card::class, 'card_label');

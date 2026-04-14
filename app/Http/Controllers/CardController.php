@@ -13,7 +13,6 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class CardController extends Controller
 {
     use AuthorizesRequests;
-    // POST /lists/{list}/cards
     public function store(StoreCardRequest $request, BoardList $list)
     {
         $board = $list->board;
@@ -41,7 +40,6 @@ class CardController extends Controller
         ]);
     }
 
-    // GET /cards/{card} — returns HTML partial for the modal
     public function show(Card $card)
     {
         $this->authorize('view', $card);
@@ -56,11 +54,10 @@ class CardController extends Controller
             'list.board.members',
         ]);
 
-        // Returns a Blade partial that JS loads into the modal
+       
         return view('cards.show', compact('card'));
     }
 
-    // PUT /cards/{card}
     public function update(UpdateCardRequest $request, Card $card)
     {
         $card->update($request->validated());
@@ -79,7 +76,7 @@ class CardController extends Controller
         ]);
     }
 
-    // DELETE /cards/{card}
+   
     public function destroy(Request $request, Card $card)
     {
         $this->authorize('delete', $card);
@@ -99,60 +96,106 @@ class CardController extends Controller
         return response()->json(['success' => true]);
     }
 
-    // POST /cards/{card}/move — drag and drop handler
-    // Body: { "list_id": 5, "position": 2 }
-    public function move(Request $request, Card $card)
-    {
-        $this->authorize('move', $card);
+   public function move(Request $request, Card $card)
+{
+    $this->authorize('move', $card);
 
-        $request->validate([
-            'list_id'  => 'required|exists:lists,id',
-            'position' => 'required|integer|min:0',
-        ]);
+    $request->validate([
+        'list_id'  => 'required|exists:lists,id',
+        'position' => 'required|integer|min:0',
+    ]);
 
-        $oldList   = $card->list;
-        $newListId = $request->list_id;
-        $newPos    = $request->position;
+    $oldListId = $card->list_id;
+    $oldPos    = $card->position;
+    $newListId = (int) $request->list_id;
+    $newPos    = (int) $request->position;
 
-        // Update the card itself
+    if ($oldListId === $newListId) {
+       
+        if ($oldPos === $newPos) {
+            return response()->json(['success' => true]);
+        }
+
+        if ($newPos > $oldPos) {
+          
+            Card::where('list_id', $newListId)
+                ->where('id', '!=', $card->id)
+                ->whereBetween('position', [$oldPos + 1, $newPos])
+                ->decrement('position');
+        } else {
+            Card::where('list_id', $newListId)
+                ->where('id', '!=', $card->id)
+                ->whereBetween('position', [$newPos, $oldPos - 1])
+                ->increment('position');
+        }
+
+        $card->update(['position' => $newPos]);
+
+    } else {
+    
+        Card::where('list_id', $oldListId)
+            ->where('position', '>', $oldPos)
+            ->decrement('position');
+
+        // Make space in the new list
+        Card::where('list_id', $newListId)
+            ->where('position', '>=', $newPos)
+            ->increment('position');
+
         $card->update([
             'list_id'  => $newListId,
             'position' => $newPos,
         ]);
-
-        // Reorder siblings in the new list (push others down)
-        Card::where('list_id', $newListId)
-            ->where('id', '!=', $card->id)
-            ->where('position', '>=', $newPos)
-            ->increment('position');
-
-        $newList = BoardList::find($newListId);
-
-        ActivityLog::log(
-            $request->user(),
-            'moved_card',
-            "{$request->user()->name} moved '{$card->title}' to '{$newList->name}'",
-            $card->list->board_id,
-            $card->id
-        );
-
-        return response()->json(['success' => true]);
     }
 
-    // POST /cards/{card}/assign
-    // Body: { "user_id": 3 } — toggles assignment on/off
+    $newList = BoardList::find($newListId);
+
+    ActivityLog::log(
+        $request->user(),
+        'moved_card',
+        "{$request->user()->name} moved '{$card->title}' to '{$newList->name}'",
+        $newList->board_id,
+        $card->id
+    );
+
+    return response()->json(['success' => true]);
+}
+
     public function assign(Request $request, Card $card)
     {
         $this->authorize('assign', $card);
 
         $request->validate(['user_id' => 'required|exists:users,id']);
 
-        // Toggle: if already assigned, remove; otherwise add
         $card->assignees()->toggle($request->user_id);
 
         return response()->json([
             'success'   => true,
             'assignees' => $card->fresh()->assignees,
+        ]);
+    }
+
+    public function toggleComplete(Request $request, Card $card)
+    {
+        $this->authorize('update', $card);
+
+        $card->update([
+            'is_completed' => ! $card->is_completed,
+        ]);
+
+        ActivityLog::log(
+            $request->user(),
+            $card->is_completed ? 'completed_card' : 'reopened_card',
+            $request->user()->name
+                . ($card->is_completed ? ' completed ' : ' reopened ')
+                . "'{$card->title}'",
+            $card->list->board_id,
+            $card->id
+        );
+
+        return response()->json([
+            'success'      => true,
+            'is_completed' => $card->is_completed,
         ]);
     }
 }

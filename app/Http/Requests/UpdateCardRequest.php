@@ -30,7 +30,6 @@ class UpdateCardRequest extends FormRequest
                 'nullable',
                 'date',
                 'date_format:Y-m-d',
-                // No after_or_equal — existing cards may be overdue
             ],
             'cover_color' => [
                 'sometimes',
@@ -42,7 +41,6 @@ class UpdateCardRequest extends FormRequest
                 'sometimes',
                 'boolean',
             ],
-            // For drag-and-drop card moves
             'list_id' => [
                 'sometimes',
                 'exists:lists,id',

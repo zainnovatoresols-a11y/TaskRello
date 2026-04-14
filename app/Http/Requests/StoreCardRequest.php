@@ -8,8 +8,6 @@ class StoreCardRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Any board member can create a card
-        // Full check happens in the controller via policy
         return auth()->check();
     }
 
@@ -23,13 +21,13 @@ class StoreCardRequest extends FormRequest
             ],
             'description' => [
                 'nullable',
-                'string', // no max — it is a rich text area
+                'string',
             ],
             'due_date' => [
                 'nullable',
                 'date',
                 'date_format:Y-m-d',
-                'after_or_equal:today', // no past due dates on creation
+                'after_or_equal:today',
             ],
             'cover_color' => [
                 'nullable',

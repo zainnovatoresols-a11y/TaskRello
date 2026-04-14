@@ -14,7 +14,6 @@ class ActivityLog extends Model
 {
     use HasFactory;
 
-    // Logs are immutable — only created_at, never updated_at
     public $timestamps    = false;
     const CREATED_AT      = 'created_at';
 
@@ -30,32 +29,22 @@ class ActivityLog extends Model
         'created_at' => 'datetime',
     ];
 
-    // ─── Relationships ───────────────────────────────
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // Nullable — some logs are board-level only
     public function board()
     {
         return $this->belongsTo(Board::class);
     }
 
-    // Nullable — some logs are board-level only
     public function card()
     {
         return $this->belongsTo(Card::class);
     }
 
-    // ─── Static Helper ───────────────────────────────
-
-    // Call from any controller: ActivityLog::log(...)
-    // Example:
-    //   ActivityLog::log($user, 'moved_card',
-    //       "{$user->name} moved '{$card->title}' to '{$list->name}'",
-    //       $board->id, $card->id);
     public static function log(
         User   $user,
         string $action,

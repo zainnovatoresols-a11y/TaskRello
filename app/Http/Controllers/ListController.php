@@ -11,7 +11,6 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class ListController extends Controller
 {
     use AuthorizesRequests;
-    // POST /boards/{board}/lists
     public function store(Request $request, Board $board)
     {
         $this->authorize('update', $board);
@@ -20,7 +19,6 @@ class ListController extends Controller
             'name' => 'required|string|max:255',
         ]);
 
-        // Position = count of existing lists (append at end)
         $position = $board->lists()->count();
 
         $list = $board->lists()->create([
@@ -35,14 +33,12 @@ class ListController extends Controller
             $board->id
         );
 
-        // Return JSON — JS will inject the new list column into DOM
         return response()->json([
             'success' => true,
             'list'    => $list,
         ]);
     }
 
-    // PUT /boards/{board}/lists/{list}
     public function update(Request $request, Board $board, BoardList $list)
     {
         $this->authorize('update', $board);
@@ -57,7 +53,6 @@ class ListController extends Controller
         return response()->json(['success' => true, 'list' => $list]);
     }
 
-    // DELETE /boards/{board}/lists/{list}
     public function destroy(Request $request, Board $board, BoardList $list)
     {
         $this->authorize('update', $board);
@@ -67,8 +62,6 @@ class ListController extends Controller
         return response()->json(['success' => true]);
     }
 
-    // POST /boards/{board}/lists/reorder
-    // Body: { "lists": [{"id":3,"position":0},{"id":1,"position":1}] }
     public function reorder(Request $request, Board $board)
     {
         $this->authorize('update', $board);

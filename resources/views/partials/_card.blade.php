@@ -6,20 +6,59 @@
 <div class="card-item bg-white dark:bg-gray-800 rounded-lg shadow-sm
             border border-gray-200 dark:border-gray-600
             cursor-pointer hover:shadow-md hover:border-gray-300
-            dark:hover:border-gray-500 transition-all group"
+            dark:hover:border-gray-500 transition-all group relative"
     data-id="{{ $card->id }}"
-    id="card-{{ $card->id }}"
-    onclick="openCardModal({{ $card->id }})">
+    data-title="{{ strtolower($card->title) }}"
+    data-description="{{ strtolower($card->description ?? '') }}"
+    data-completed="{{ $card->is_completed ? 'true' : 'false' }}"
+    id="card-{{ $card->id }}">
+
+    {{-- ── Completion checkbox (visible on hover) ──────────── --}}
+    <div class="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100
+                transition-opacity duration-150"
+        onclick="event.stopPropagation(); toggleCardComplete({{ $card->id }}, this)">
+        <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center
+                    transition-all cursor-pointer
+                    {{ $card->is_completed
+                        ? 'bg-green-500 border-green-500'
+                        : 'bg-white/80 dark:bg-gray-700/80 border-gray-400
+                           dark:border-gray-500 hover:border-green-400' }}"
+            id="complete-circle-{{ $card->id }}">
+            <svg class="w-3 h-3 text-white {{ $card->is_completed ? '' : 'hidden' }}"
+                id="complete-tick-{{ $card->id }}"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    stroke-width="3" d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+    </div>
 
     {{-- ── Cover color strip ────────────────────────────────── --}}
     @if($card->cover_color)
     <div class="h-8 rounded-t-lg w-full"
-        style="background-color: {{ $card->cover_color }}">
+        style="background-color: {{ $card->cover_color }}"
+        onclick="openCardModal({{ $card->id }})">
     </div>
     @endif
 
     {{-- ── Card body ────────────────────────────────────────── --}}
-    <div class="p-3">
+    <div class="p-3" onclick="openCardModal({{ $card->id }})">
+
+        {{-- Completed badge --}}
+        @if($card->is_completed)
+        <div class="flex items-center gap-1.5 mb-2">
+            <span class="inline-flex items-center gap-1 text-xs font-medium
+                             text-green-600 dark:text-green-400
+                             bg-green-50 dark:bg-green-900/30
+                             px-2 py-0.5 rounded-full">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2.5" d="M5 13l4 4L19 7" />
+                </svg>
+                Completed
+            </span>
+        </div>
+        @endif
 
         {{-- Labels row --}}
         @if($card->labels->isNotEmpty())
@@ -34,9 +73,11 @@
         @endif
 
         {{-- Card title --}}
-        <p class="text-sm font-medium text-gray-800 dark:text-gray-100
-                  leading-snug mb-3 group-hover:text-blue-700
-                  dark:group-hover:text-blue-400 transition-colors">
+        <p class="text-sm font-medium leading-snug mb-3 transition-colors
+                  group-hover:text-blue-700 dark:group-hover:text-blue-400
+                  {{ $card->is_completed
+                      ? 'line-through text-gray-400 dark:text-gray-500'
+                      : 'text-gray-800 dark:text-gray-100' }}">
             {{ $card->title }}
         </p>
 

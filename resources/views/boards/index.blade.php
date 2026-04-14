@@ -21,6 +21,45 @@
         </a>
     </div>
 
+
+    {{-- ── Search bar ───────────────────────────────────────────── --}}
+    <div class="mb-6">
+        <div class="relative max-w-sm">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <input type="text"
+                id="board-search"
+                placeholder="Search boards..."
+                autocomplete="off"
+                class="w-full bg-white dark:bg-gray-800 border border-gray-300
+                      dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm
+                      text-gray-900 dark:text-gray-100 placeholder-gray-400
+                      focus:outline-none focus:ring-2 focus:ring-blue-500
+                      focus:border-transparent transition">
+
+            {{-- Clear button --}}
+            <button id="board-search-clear"
+                onclick="clearBoardSearch()"
+                class="hidden absolute inset-y-0 right-0 pr-3.5 flex items-center
+                       text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        {{-- No results message --}}
+        <p id="board-no-results"
+            class="hidden text-sm text-gray-400 dark:text-gray-500 mt-3 pl-1">
+            No boards match your search.
+        </p>
+    </div>
+
     {{-- ── Empty state ──────────────────────────────────────── --}}
     @if($boards->isEmpty())
     <div class="flex flex-col items-center justify-center py-28 text-center">
@@ -51,8 +90,10 @@
 
         @foreach($boards as $board)
         <a href="{{ route('boards.show', $board) }}"
-            class="group relative rounded-xl p-5 min-h-[130px] flex flex-col justify-between
-                          hover:opacity-90 hover:shadow-lg transition-all shadow-sm overflow-hidden"
+            class="group relative rounded-xl p-5 min-h-[130px] flex flex-col
+          justify-between hover:opacity-90 hover:shadow-lg transition-all
+          shadow-sm overflow-hidden board-tile"
+            data-name="{{ strtolower($board->name) }}"
             style="background-color: {{ $board->background_color }}">
 
             {{-- Subtle overlay on hover --}}
@@ -115,4 +156,37 @@
     @endif
 
 </div>
+@endsection
+
+@section('scripts')
+<script>
+    const boardSearchInput = document.getElementById('board-search');
+    const boardClearBtn = document.getElementById('board-search-clear');
+    const noResults = document.getElementById('board-no-results');
+
+    boardSearchInput.addEventListener('input', function() {
+        const query = this.value.trim().toLowerCase();
+        const tiles = document.querySelectorAll('.board-tile');
+        let visible = 0;
+
+        tiles.forEach(tile => {
+            const name = tile.dataset.name || '';
+            const show = name.includes(query);
+            tile.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        // Toggle clear button
+        boardClearBtn.classList.toggle('hidden', query === '');
+
+        // Toggle no results message
+        noResults.classList.toggle('hidden', visible > 0 || query === '');
+    });
+
+    function clearBoardSearch() {
+        boardSearchInput.value = '';
+        boardSearchInput.dispatchEvent(new Event('input'));
+        boardSearchInput.focus();
+    }
+</script>
 @endsection

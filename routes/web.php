@@ -10,25 +10,25 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\LabelController;
 
-// Public landing page
+
 Route::get('/', fn() => redirect()->route('boards.index'));
 
-// ── Profile Routes ──────────────────────────────────────
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// ── All routes require authentication ──────────────────
+
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // ── Board index and create — no membership needed ───
+    Route::post('/cards/{card}/complete', [CardController::class, 'toggleComplete'])
+        ->name('cards.complete');
+
     Route::get('/boards', [BoardController::class, 'index'])->name('boards.index');
     Route::get('/boards/create', [BoardController::class, 'create'])->name('boards.create');
     Route::post('/boards', [BoardController::class, 'store'])->name('boards.store');
 
-    // ── Board routes that require membership ────────────
     Route::middleware('board.member')->group(function () {
         Route::get('/boards/{board}', [BoardController::class, 'show'])->name('boards.show');
         Route::get('/boards/{board}/edit', [BoardController::class, 'edit'])->name('boards.edit');
@@ -46,7 +46,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/boards/{board}/labels', [LabelController::class, 'store'])->name('labels.store');
     });
 
-    // ── Card Routes — membership checked in controller ──
     Route::post('/lists/{list}/cards', [CardController::class, 'store'])->name('cards.store');
     Route::get('/cards/{card}', [CardController::class, 'show'])->name('cards.show');
     Route::put('/cards/{card}', [CardController::class, 'update'])->name('cards.update');
@@ -54,16 +53,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/cards/{card}/move', [CardController::class, 'move'])->name('cards.move');
     Route::post('/cards/{card}/assign', [CardController::class, 'assign'])->name('cards.assign');
 
-    // ── Comment Routes ──────────────────────────────────
     Route::post('/cards/{card}/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::put('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
 
-    // ── Attachment Routes ───────────────────────────────
+
     Route::post('/cards/{card}/attachments', [AttachmentController::class, 'store'])->name('attachments.store');
     Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])->name('attachments.destroy');
 
-    // ── Label Routes ────────────────────────────────────
     Route::post('/cards/{card}/labels/{label}', [LabelController::class, 'attach'])->name('labels.attach');
     Route::delete('/cards/{card}/labels/{label}', [LabelController::class, 'detach'])->name('labels.detach');
 });

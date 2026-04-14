@@ -32,6 +32,76 @@
         @endif
     </div>
 
+
+
+
+    {{-- ── Search + filter row ─────────────────────────────────── --}}
+    <div class="flex items-center gap-2 ml-auto">
+
+        {{-- Search input --}}
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="w-3.5 h-3.5 text-white/60" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <input type="text"
+                id="board-card-search"
+                placeholder="Search cards..."
+                autocomplete="off"
+                class="bg-white/20 hover:bg-white/25 focus:bg-white/30
+                      border border-white/20 rounded-lg
+                      pl-9 pr-8 py-1.5 text-sm text-white
+                      placeholder-white/50
+                      focus:outline-none focus:ring-2 focus:ring-white/30
+                      ">
+
+            {{-- Clear button --}}
+            <button id="card-search-clear"
+                onclick="clearCardSearch()"
+                class="hidden absolute inset-y-0 right-0 pr-2.5
+                       flex items-center text-white/60 hover:text-white transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        {{-- Completed filter button --}}
+        <button id="filter-completed"
+            onclick="toggleFilter('completed')"
+            data-active="false"
+            class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
+                   text-white/80 hover:text-white text-xs font-medium
+                   px-3 py-1.5 rounded-lg transition border border-white/20
+                   whitespace-nowrap">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Completed
+        </button>
+
+        {{-- Incomplete filter button --}}
+        <button id="filter-incomplete"
+            onclick="toggleFilter('incomplete')"
+            data-active="false"
+            class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
+                   text-white/80 hover:text-white text-xs font-medium
+                   px-3 py-1.5 rounded-lg transition border border-white/20
+                   whitespace-nowrap">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Incomplete
+        </button>
+
+    </div>
+
     {{-- Right side actions --}}
     <div class="ml-auto flex items-center gap-3">
 

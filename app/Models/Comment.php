@@ -18,22 +18,16 @@ class Comment extends Model
         'body',
     ];
 
-    // ─── Relationships ───────────────────────────────
-
     public function card()
     {
         return $this->belongsTo(Card::class);
     }
 
-    // Use 'author' instead of 'user' for semantic clarity
     public function author()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // ─── Helper Methods ──────────────────────────────
-
-    // Used by CommentPolicy
     public function isAuthor(User $user): bool
     {
         return $this->user_id === $user->id;

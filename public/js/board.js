@@ -1,14 +1,4 @@
-// ============================================================
-// BOARD.JS — Complete board interactivity
-// Place at: public/js/board.js
-// ============================================================
-
-// ── CSRF token (read from meta tag in app.blade.php) ────────
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-
-// ── Central fetch helper ─────────────────────────────────────
-// All JSON API calls go through this function.
-// Automatically attaches CSRF token and correct headers.
 async function fetchJSON(url, method = 'GET', body = null) {
     const options = {
         method,
@@ -31,9 +21,9 @@ async function fetchJSON(url, method = 'GET', body = null) {
     return data;
 }
 
-// ── Toast notification ────────────────────────────────────────
+
 function showToast(message, type = 'success') {
-    // Remove any existing toast
+    
     document.querySelectorAll('.js-toast').forEach(t => t.remove());
 
     const toast = document.createElement('div');
@@ -43,7 +33,7 @@ function showToast(message, type = 'success') {
     toast.textContent = message;
     document.body.appendChild(toast);
 
-    // Fade out and remove after 3 seconds
+    
     setTimeout(() => {
         toast.style.opacity = '0';
         toast.style.transform = 'translateY(8px)';
@@ -51,16 +41,12 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-// ============================================================
-// MODAL — Card detail
-// ============================================================
-
 async function openCardModal(cardId) {
     cardModalDirty = false;
     const modal = document.getElementById('card-modal');
     const body = document.getElementById('card-modal-body');
 
-    // Show spinner
+
     body.innerHTML = `
         <div class="flex items-center justify-center py-16">
             <div class="w-8 h-8 border-2 border-blue-600 border-t-transparent
@@ -99,19 +85,19 @@ function closeCardModal() {
     document.getElementById('card-modal').classList.add('hidden');
     document.body.style.overflow = '';
 
-    // If anything changed, reload the page to show fresh data
+   
     if (cardModalDirty) {
         cardModalDirty = false;
         window.location.reload();
     }
 }
 
-// Close modal when clicking the dark backdrop
+
 document.getElementById('card-modal').addEventListener('mousedown', function (e) {
     if (e.target === document.getElementById('card-modal')) closeCardModal();
 });
 
-// Close modal on Escape key
+
 document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
         closeCardModal();
@@ -119,9 +105,6 @@ document.addEventListener('keydown', function (e) {
     }
 });
 
-// ============================================================
-// LABELS MANAGER MODAL
-// ============================================================
 
 function openLabelsManager() {
     document.getElementById('labels-modal').classList.remove('hidden');
@@ -154,11 +137,11 @@ async function createLabel(boardId) {
         const data = await fetchJSON(`/boards/${boardId}/labels`, 'POST', { name, color });
 
         if (data.success) {
-            // Remove "no labels" message if present
+           
             const noMsg = document.getElementById('no-labels-msg');
             if (noMsg) noMsg.remove();
 
-            // Append new label row to the list
+          
             const list = document.getElementById('labels-list');
             const row = document.createElement('div');
             row.id = `label-row-${data.label.id}`;
@@ -178,13 +161,9 @@ async function createLabel(boardId) {
             showToast('Label created.');
         }
     } catch (err) {
-        // Error toast already shown by fetchJSON
+       
     }
 }
-
-// ============================================================
-// CARD — Inline title edit
-// ============================================================
 
 function startEditTitle(cardId, el) {
     const current = el.textContent.trim();
@@ -219,7 +198,7 @@ function startEditTitle(cardId, el) {
             await fetchJSON(`/cards/${cardId}`, 'PUT', { title: newTitle });
             el.textContent = newTitle;
 
-            // Also update title on the board card tile
+           
             const boardCard = document.querySelector(`[data-id="${cardId}"] p`);
             if (boardCard) boardCard.textContent = newTitle;
             cardModalDirty = true;
@@ -238,9 +217,6 @@ function startEditTitle(cardId, el) {
     });
 }
 
-// ============================================================
-// CARD — Save any single field (description, due_date, cover_color)
-// ============================================================
 
 async function saveCardField(cardId, field, value) {
     try {
@@ -251,7 +227,7 @@ async function saveCardField(cardId, field, value) {
         if (field === 'due_date') showToast('Due date saved.');
         if (field === 'cover_color') {
             showToast('Cover updated.');
-            // Update cover strip on board card tile
+           
             const tile = document.getElementById(`card-${cardId}`);
             if (tile) {
                 let strip = tile.querySelector('.cover-strip');
@@ -268,13 +244,10 @@ async function saveCardField(cardId, field, value) {
             }
         }
     } catch {
-        // Error toast shown by fetchJSON
+        
     }
 }
 
-// ============================================================
-// CARD — Delete
-// ============================================================
 
 async function deleteCard(cardId) {
     if (!confirm('Delete this card permanently? This cannot be undone.')) return;
@@ -282,20 +255,17 @@ async function deleteCard(cardId) {
     try {
         await fetchJSON(`/cards/${cardId}`, 'DELETE');
 
-        // Remove from board
+ 
         const tile = document.getElementById(`card-${cardId}`);
         if (tile) tile.remove();
 
         closeCardModal();
         showToast('Card deleted.');
     } catch {
-        // Error toast shown by fetchJSON
+       
     }
 }
 
-// ============================================================
-// COMMENTS
-// ============================================================
 
 async function postComment(cardId) {
     const textarea = document.getElementById(`new-comment-${cardId}`);
@@ -314,11 +284,11 @@ async function postComment(cardId) {
             const c = data.comment;
             const list = document.getElementById(`comments-list-${cardId}`);
 
-            // Remove "no comments" placeholder if present
+            
             const placeholder = list.querySelector('p.italic');
             if (placeholder) placeholder.remove();
 
-            // Build comment HTML
+           
             const div = document.createElement('div');
             div.id = `comment-${c.id}`;
             div.className = 'flex gap-3';
@@ -351,7 +321,7 @@ async function postComment(cardId) {
             showToast('Comment posted.');
         }
     } catch {
-        // Error toast shown by fetchJSON
+      
     }
 }
 
@@ -364,13 +334,9 @@ async function deleteComment(commentId) {
         cardModalDirty = true;
         showToast('Comment deleted.');
     } catch {
-        // Error toast shown by fetchJSON
+       
     }
 }
-
-// ============================================================
-// ASSIGNEES
-// ============================================================
 
 async function assignUser(cardId, userId) {
     if (!userId) return;
@@ -381,10 +347,13 @@ async function assignUser(cardId, userId) {
         });
 
         if (data.success) {
-            // Rebuild assignee avatars in the modal sidebar
+           
             const container = document.getElementById(`assignees-${cardId}`);
             if (container) {
-                container.innerHTML = data.assignees.map(u => `
+                const visible = data.assignees.slice(0, 4);
+                const overflow = data.assignees.length - 4;
+
+                container.innerHTML = visible.map(u => `
                     <div class="w-7 h-7 rounded-full bg-blue-700
                                 flex items-center justify-center
                                 text-white text-xs font-bold"
@@ -392,14 +361,26 @@ async function assignUser(cardId, userId) {
                          id="assignee-avatar-${u.id}">
                         ${u.name.charAt(0).toUpperCase()}
                     </div>`).join('');
+
+                if (overflow > 0) {
+                    container.innerHTML += `
+                        <div class="w-7 h-7 rounded-full bg-gray-300 dark:bg-gray-600
+                                    flex items-center justify-center
+                                    text-gray-700 dark:text-gray-200 text-xs font-bold">
+                            +${overflow}
+                        </div>`;
+                }
             }
 
-            // Update assignee avatars on the board card tile
+        
             const tileAvatars = document.querySelector(
                 `[data-id="${cardId}"] .assignee-avatars`
             );
-            if (tileAvatars && data.assignees.length > 0) {
-                tileAvatars.innerHTML = data.assignees.slice(0, 3).map(u => `
+            if (tileAvatars) {
+                const visibleTile = data.assignees.slice(0, 4);
+                const overflowTile = data.assignees.length - 4;
+
+                tileAvatars.innerHTML = visibleTile.map(u => `
                     <div class="w-6 h-6 rounded-full bg-blue-700 ring-2
                                 ring-white dark:ring-gray-800
                                 flex items-center justify-center
@@ -407,18 +388,37 @@ async function assignUser(cardId, userId) {
                          title="${u.name}">
                         ${u.name.charAt(0).toUpperCase()}
                     </div>`).join('');
+
+                if (overflowTile > 0) {
+                    tileAvatars.innerHTML += `
+                        <div class="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-600
+                                    ring-2 ring-white dark:ring-gray-800
+                                    flex items-center justify-center
+                                    text-gray-600 dark:text-gray-300 text-xs font-bold">
+                            +${overflowTile}
+                        </div>`;
+                }
             }
+
+           
+            const select = document.querySelector(`select[onchange*="assignUser(${cardId}"]`);
+            if (select) {
+                [...select.options].forEach(opt => {
+                    if (!opt.value) return;
+                    const isAssigned = data.assignees.some(u => u.id == opt.value);
+                    opt.text = opt.text.replace(' ✓', '');
+                    if (isAssigned) opt.text += ' ✓';
+                });
+            }
+
             cardModalDirty = true;
             showToast('Member assignment updated.');
         }
     } catch {
-        // Error toast shown by fetchJSON
+    
     }
 }
 
-// ============================================================
-// LABELS — Attach / Detach
-// ============================================================
 
 async function attachLabel(cardId, labelId) {
     if (!labelId) return;
@@ -435,7 +435,6 @@ async function attachLabel(cardId, labelId) {
             showToast('Label added.');
         }
     } catch {
-        // Error toast shown by fetchJSON
     }
 }
 
@@ -451,7 +450,7 @@ async function detachLabel(cardId, labelId) {
             showToast('Label removed.');
         }
     } catch {
-        // Error toast shown by fetchJSON
+      
     }
 }
 
@@ -470,10 +469,6 @@ function rebuildLabelChips(cardId, labels) {
             ${escapeHtml(l.name)}
         </span>`).join('');
 }
-
-// ============================================================
-// ATTACHMENTS — Upload / Delete
-// ============================================================
 
 async function uploadAttachment(cardId, input) {
     const file = input.files[0];
@@ -551,13 +546,9 @@ async function deleteAttachment(attId) {
         cardModalDirty = true;
         showToast('Attachment removed.');
     } catch {
-        // Error toast shown by fetchJSON
+    
     }
 }
-
-// ============================================================
-// LIST — Show / Hide add form
-// ============================================================
 
 function showAddListForm() {
     document.getElementById('add-list-btn').classList.add('hidden');
@@ -570,10 +561,6 @@ function hideAddListForm() {
     document.getElementById('add-list-form').classList.add('hidden');
     document.getElementById('new-list-name').value = '';
 }
-
-// ============================================================
-// LIST — Create
-// ============================================================
 
 async function storeList(boardId) {
     const input = document.getElementById('new-list-name');
@@ -593,20 +580,16 @@ async function storeList(boardId) {
             const container = document.getElementById('add-list-container');
             container.insertAdjacentHTML('beforebegin', html);
 
-            // Init SortableJS on the new cards container
+           
             initCardsSortable(data.list.id);
 
             hideAddListForm();
             showToast('List added.');
         }
     } catch {
-        // Error toast shown by fetchJSON
+
     }
 }
-
-// ============================================================
-// LIST — Inline rename (double click)
-// ============================================================
 
 function inlineEditList(listId, el) {
     const original = el.textContent.trim();
@@ -656,10 +639,6 @@ function inlineEditList(listId, el) {
     });
 }
 
-// ============================================================
-// LIST — Archive
-// ============================================================
-
 async function archiveList(listId, boardId) {
     if (!confirm('Archive this list? Cards will be preserved.')) return;
 
@@ -670,13 +649,8 @@ async function archiveList(listId, boardId) {
         document.getElementById(`list-${listId}`)?.remove();
         showToast('List archived.');
     } catch {
-        // Error toast shown by fetchJSON
     }
 }
-
-// ============================================================
-// LIST — Delete
-// ============================================================
 
 async function deleteList(listId, boardId) {
     if (!confirm('Delete this list and ALL its cards? This cannot be undone.')) return;
@@ -686,21 +660,16 @@ async function deleteList(listId, boardId) {
         document.getElementById(`list-${listId}`)?.remove();
         showToast('List deleted.');
     } catch {
-        // Error toast shown by fetchJSON
     }
 }
-
-// ============================================================
-// CARD — Show / Hide add form
-// ============================================================
 
 function showAddCardForm(listId) {
     document.getElementById(`add-card-btn-${listId}`).classList.add('hidden');
     document.getElementById(`add-card-form-${listId}`).classList.remove('hidden');
     setTimeout(() => {
         const textarea = document.getElementById(`new-card-title-${listId}`);
-        textarea.value = '';   // ← clear first
-        textarea.focus();      // ← then focus
+        textarea.value = '';
+        textarea.focus();
     }, 50);
 }
 
@@ -709,10 +678,6 @@ function hideAddCardForm(listId) {
     document.getElementById(`add-card-form-${listId}`).classList.add('hidden');
     document.getElementById(`new-card-title-${listId}`).value = '';
 }
-
-// ============================================================
-// CARD — Create
-// ============================================================
 
 async function storeCard(listId) {
     const textarea = document.getElementById(`new-card-title-${listId}`);
@@ -728,7 +693,6 @@ async function storeCard(listId) {
         const data = await fetchJSON(`/lists/${listId}/cards`, 'POST', { title });
 
         if (data.success) {
-            // Build minimal card HTML and append to the list
             const container = document.getElementById(`cards-${listId}`);
             const div = document.createElement('div');
 
@@ -753,13 +717,8 @@ async function storeCard(listId) {
             showToast('Card added.');
         }
     } catch {
-        // Error toast shown by fetchJSON
     }
 }
-
-// ============================================================
-// SORTABLEJS — Cards drag and drop
-// ============================================================
 
 function initCardsSortable(listId) {
     const el = document.getElementById(`cards-${listId}`);
@@ -779,7 +738,6 @@ function initCardsSortable(listId) {
             const newListId = evt.to.dataset.listId;
             const newPos = evt.newIndex;
 
-            // No change — skip API call
             if (evt.from === evt.to && evt.oldIndex === evt.newIndex) return;
 
             try {
@@ -788,7 +746,7 @@ function initCardsSortable(listId) {
                     position: newPos,
                 });
             } catch {
-                // Revert the DOM move on failure
+              
                 evt.from.insertBefore(
                     evt.item,
                     evt.from.children[evt.oldIndex] || null
@@ -798,10 +756,6 @@ function initCardsSortable(listId) {
         },
     });
 }
-
-// ============================================================
-// SORTABLEJS — Lists (columns) drag and drop
-// ============================================================
 
 function initListsSortable(boardId) {
     const board = document.getElementById('board-columns');
@@ -831,23 +785,17 @@ function initListsSortable(boardId) {
     });
 }
 
-// ============================================================
-// HELPERS
-// ============================================================
 
-// Get board ID from the current URL: /boards/{id}
 function getBoardIdFromUrl() {
     return window.location.pathname.split('/')[2];
 }
 
-// Safely escape HTML to prevent XSS when injecting user content
 function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
 }
 
-// Build a full list column HTML string (used when creating a new list)
 function buildListHTML(list, boardId) {
     return `
     <div class="list-column flex-shrink-0 w-72 rounded-xl flex flex-col"
@@ -930,18 +878,168 @@ function buildListHTML(list, boardId) {
     </div>`;
 }
 
-// ============================================================
-// BOOT — Run when DOM is ready
-// ============================================================
-
 document.addEventListener('DOMContentLoaded', function () {
     const boardId = getBoardIdFromUrl();
 
-    // Init SortableJS on every existing cards container
     document.querySelectorAll('.cards-container').forEach(function (el) {
         initCardsSortable(el.dataset.listId);
     });
 
-    // Init SortableJS on the board columns
     initListsSortable(boardId);
 });
+
+async function toggleCardComplete(cardId, checkboxWrapper) {
+    try {
+        const data = await fetchJSON(`/cards/${cardId}/complete`, 'POST');
+
+        if (data.success) {
+            const tile = document.getElementById(`card-${cardId}`);
+            const circle = document.getElementById(`complete-circle-${cardId}`);
+            const tick = document.getElementById(`complete-tick-${cardId}`);
+            const title = tile?.querySelector('p.text-sm.font-medium');
+
+            if (data.is_completed) {
+
+                circle?.classList.remove(
+                    'bg-white/80', 'dark:bg-gray-700/80',
+                    'border-gray-400', 'dark:border-gray-500',
+                    'hover:border-green-400'
+                );
+                circle?.classList.add('bg-green-500', 'border-green-500');
+                tick?.classList.remove('hidden');
+
+                title?.classList.add('line-through', 'text-gray-400', 'dark:text-gray-500');
+                title?.classList.remove('text-gray-800', 'dark:text-gray-100');
+
+                tile?.setAttribute('data-completed', 'true');
+
+                showToast('Card marked as complete.');
+
+            } else {
+                circle?.classList.add(
+                    'bg-white/80', 'dark:bg-gray-700/80',
+                    'border-gray-400', 'dark:border-gray-500',
+                    'hover:border-green-400'
+                );
+                circle?.classList.remove('bg-green-500', 'border-green-500');
+                tick?.classList.add('hidden');
+
+                title?.classList.remove('line-through', 'text-gray-400', 'dark:text-gray-500');
+                title?.classList.add('text-gray-800', 'dark:text-gray-100');
+
+                tile?.setAttribute('data-completed', 'false');
+
+                showToast('Card marked as incomplete.');
+            }
+            applyBoardFilters();
+            cardModalDirty = true;
+        }
+    } catch {
+    }
+}
+
+let activeFilter = null;
+let currentSearch = '';
+
+function applyBoardFilters() {
+    const cards = document.querySelectorAll('.card-item');
+    const listColumns = document.querySelectorAll('.list-column');
+
+    cards.forEach(card => {
+        const title = card.dataset.title || '';
+        const description = card.dataset.description || '';
+        const completed = card.dataset.completed === 'true';
+
+        const searchMatch = currentSearch === ''
+            || title.includes(currentSearch)
+            || description.includes(currentSearch);
+
+        let filterMatch = true;
+        if (activeFilter === 'completed') filterMatch = completed;
+        if (activeFilter === 'incomplete') filterMatch = !completed;
+
+        card.style.display = (searchMatch && filterMatch) ? '' : 'none';
+    });
+
+    listColumns.forEach(col => {
+        const visibleCards = col.querySelectorAll('.card-item:not([style*="display: none"])');
+        let emptyMsg = col.querySelector('.list-empty-search-msg');
+
+        if (visibleCards.length === 0 && (currentSearch !== '' || activeFilter)) {
+            if (!emptyMsg) {
+                emptyMsg = document.createElement('div');
+                emptyMsg.className = 'list-empty-search-msg text-xs text-center '
+                    + 'text-gray-400 dark:text-gray-600 py-4 italic';
+                emptyMsg.textContent = 'No cards match';
+                const container = col.querySelector('.cards-container');
+                if (container) container.appendChild(emptyMsg);
+            }
+            emptyMsg.style.display = '';
+        } else if (emptyMsg) {
+            emptyMsg.style.display = 'none';
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const boardId = getBoardIdFromUrl();
+
+    document.querySelectorAll('.cards-container').forEach(function (el) {
+        initCardsSortable(el.dataset.listId);
+    });
+
+    initListsSortable(boardId);
+
+    const searchInput = document.getElementById('board-card-search');
+    const clearBtn = document.getElementById('card-search-clear');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            currentSearch = this.value.trim().toLowerCase();
+            clearBtn?.classList.toggle('hidden', currentSearch === '');
+            applyBoardFilters();
+        });
+    }
+});
+function clearCardSearch() {
+    const searchInput = document.getElementById('board-card-search');
+    if (searchInput) {
+        searchInput.value = '';
+        currentSearch = '';
+        document.getElementById('card-search-clear')?.classList.add('hidden');
+        applyBoardFilters();
+        searchInput.focus();
+    }
+}
+
+
+function toggleFilter(type) {
+    const completedBtn = document.getElementById('filter-completed');
+    const incompleteBtn = document.getElementById('filter-incomplete');
+
+    if (activeFilter === type) {
+        activeFilter = null;
+        completedBtn?.classList.remove('bg-white/40', 'text-white', 'font-semibold');
+        incompleteBtn?.classList.remove('bg-white/40', 'text-white', 'font-semibold');
+        completedBtn?.classList.add('bg-white/20', 'text-white/80');
+        incompleteBtn?.classList.add('bg-white/20', 'text-white/80');
+    } else {
+        activeFilter = type;
+
+        completedBtn?.classList.remove('bg-white/40', 'text-white', 'font-semibold');
+        incompleteBtn?.classList.remove('bg-white/40', 'text-white', 'font-semibold');
+        completedBtn?.classList.add('bg-white/20', 'text-white/80');
+        incompleteBtn?.classList.add('bg-white/20', 'text-white/80');
+
+        if (type === 'completed') {
+            completedBtn?.classList.remove('bg-white/20', 'text-white/80');
+            completedBtn?.classList.add('bg-white/40', 'text-white', 'font-semibold');
+        } else {
+            incompleteBtn?.classList.remove('bg-white/20', 'text-white/80');
+            incompleteBtn?.classList.add('bg-white/40', 'text-white', 'font-semibold');
+        }
+    }
+
+    applyBoardFilters();
+}
+    

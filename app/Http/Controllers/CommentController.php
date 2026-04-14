@@ -7,10 +7,11 @@ use App\Models\Card;
 use App\Models\Comment;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class CommentController extends Controller
 {
-    // POST /cards/{card}/comments
+    use AuthorizesRequests;
     public function store(StoreCommentRequest $request, Card $card)
     {
         $board = $card->list->board;
@@ -32,14 +33,12 @@ class CommentController extends Controller
             $card->id
         );
 
-        // Return the new comment with author so JS renders it
         return response()->json([
             'success' => true,
             'comment' => $comment->load('author'),
         ], 201);
     }
 
-    // PUT /comments/{comment}
     public function update(Request $request, Comment $comment)
     {
         $this->authorize('update', $comment);
@@ -56,7 +55,6 @@ class CommentController extends Controller
         ]);
     }
 
-    // DELETE /comments/{comment}
     public function destroy(Request $request, Comment $comment)
     {
         $this->authorize('delete', $comment);

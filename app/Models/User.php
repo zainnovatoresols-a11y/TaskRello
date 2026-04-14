@@ -9,7 +9,6 @@ use App\Models\Attachment;
 use App\Models\ActivityLog;
 
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -54,13 +53,11 @@ class User extends Authenticatable
         ];
     }
 
-    // Boards this user OWNS (created)
     public function ownedBoards()
     {
         return $this->hasMany(Board::class);
     }
 
-    // Boards this user is a MEMBER of (many-to-many)
     public function boards()
     {
         return $this->belongsToMany(Board::class)
@@ -68,7 +65,6 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    // Cards assigned to this user
     public function assignedCards()
     {
         return $this->belongsToMany(Card::class, 'card_user')

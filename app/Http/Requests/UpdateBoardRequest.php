@@ -8,14 +8,12 @@ class UpdateBoardRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Policy check: only board members can update
         return $this->user()->can('update', $this->route('board'));
     }
 
     public function rules(): array
     {
         return [
-            // 'sometimes' = only validate if this field is present
             'name' => [
                 'sometimes',
                 'required',

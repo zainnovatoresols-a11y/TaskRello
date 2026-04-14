@@ -4,18 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBoardRequest;
 use App\Http\Requests\UpdateBoardRequest;
-use App\Models\Board;
 use App\Models\ActivityLog;
+use App\Models\Board;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class BoardController extends Controller
 {
     use AuthorizesRequests;
-    // GET /boards — dashboard listing
     public function index(Request $request)
     {
-        // Get all boards the user is a member of
         $boards = $request->user()
             ->boards()
             ->with('owner')
@@ -26,13 +25,11 @@ class BoardController extends Controller
         return view('boards.index', compact('boards'));
     }
 
-    // GET /boards/create
     public function create()
     {
         return view('boards.create');
     }
 
-    // POST /boards
     public function store(StoreBoardRequest $request)
     {
         $board = Board::create([
@@ -42,7 +39,6 @@ class BoardController extends Controller
             'background_color' => $request->validated()['background_color'] ?? '#0052CC',
         ]);
 
-        // Add creator as owner in pivot table
         $board->members()->attach($request->user()->id, ['role' => 'owner']);
 
         ActivityLog::log(
@@ -57,12 +53,10 @@ class BoardController extends Controller
             ->with('success', 'Board created successfully!');
     }
 
-    // GET /boards/{board} — the Kanban view
     public function show(Board $board)
     {
         $this->authorize('view', $board);
 
-        // Eager-load everything the board view needs
         $board->load([
             'lists.cards.assignees',
             'lists.cards.labels',
@@ -73,7 +67,6 @@ class BoardController extends Controller
         return view('boards.show', compact('board'));
     }
 
-    // GET /boards/{board}/edit
     public function edit(Board $board)
     {
         $this->authorize('update', $board);
@@ -81,7 +74,6 @@ class BoardController extends Controller
         return view('boards.edit', compact('board'));
     }
 
-    // PUT /boards/{board}
     public function update(UpdateBoardRequest $request, Board $board)
     {
         $board->update($request->validated());
@@ -91,7 +83,6 @@ class BoardController extends Controller
             ->with('success', 'Board updated.');
     }
 
-    // DELETE /boards/{board}
     public function destroy(Request $request, Board $board)
     {
         $this->authorize('delete', $board);
@@ -103,11 +94,65 @@ class BoardController extends Controller
             ->with('success', 'Board deleted.');
     }
 
+    public function addMember(Request $request, Board $board)
+    {
+        $this->authorize('addMember', $board);
+
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ], [
+            'email.exists' => 'No user found with that email address.',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if ($board->isMember($user)) {
+            return redirect()
+                ->route('boards.edit', $board)
+                ->with('error', $user->name . ' is already a member of this board.');
+        }
+
+        $board->members()->attach($user->id, ['role' => 'member']);
+
+        ActivityLog::log(
+            $request->user(),
+            'added_member',
+            $request->user()->name . ' added ' . $user->name . ' to the board',
+            $board->id
+        );
+
+        return redirect()
+            ->route('boards.edit', $board)
+            ->with('success', $user->name . ' has been added to the board.');
+    }
+
     public function removeMember(Request $request, Board $board, User $user)
     {
         $this->authorize('addMember', $board);
+
+        if ($board->user_id === $user->id) {
+            return redirect()
+                ->route('boards.edit', $board)
+                ->with('error', 'You cannot remove the board owner.');
+        }
+
+        if ($request->user()->id === $user->id) {
+            return redirect()
+                ->route('boards.edit', $board)
+                ->with('error', 'You cannot remove yourself from the board.');
+        }
+
         $board->members()->detach($user->id);
-        return redirect()->route('boards.edit', $board)
-            ->with('success', $user->name . ' removed from board.');
+
+        ActivityLog::log(
+            $request->user(),
+            'removed_member',
+            $request->user()->name . ' removed ' . $user->name . ' from the board',
+            $board->id
+        );
+
+        return redirect()
+            ->route('boards.edit', $board)
+            ->with('success', $user->name . ' has been removed from the board.');
     }
 }
