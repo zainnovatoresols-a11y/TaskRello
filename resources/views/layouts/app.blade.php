@@ -11,20 +11,18 @@
 
 <body class="h-full bg-gray-100 dark:bg-gray-900 font-sans antialiased">
 
-    {{-- ── Navbar ──────────────────────────────────────────── --}}
+
     <nav class="bg-blue-700 dark:bg-blue-900 sticky top-0 z-40 shadow-md">
         <div class="max-w-screen-xl mx-auto px-4 flex items-center justify-between h-14">
 
-            {{-- Logo --}}
             <a href="{{ route('boards.index') }}"
                 class="text-white font-bold text-lg tracking-tight hover:opacity-90 transition">
                 {{ config('app.name', 'TaskRello') }}
             </a>
 
-            {{-- Right side --}}
+
             <div class="flex items-center gap-4">
 
-                {{-- New board shortcut --}}
                 <a href="{{ route('boards.create') }}"
                     class="hidden sm:inline-flex items-center gap-1 text-white/80 hover:text-white text-sm transition">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,7 +31,74 @@
                     New board
                 </a>
 
-                {{-- User dropdown (Alpine.js) --}}
+                <div x-data="{ open: false }" class="relative">
+
+                    <button @click="open = !open; if(open) loadNotifications()"
+                        class="relative flex items-center justify-center
+                   w-9 h-9 rounded-full text-white/80 hover:text-white
+                   hover:bg-white/10 transition">
+
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002
+                     6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388
+                     6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3
+                     0 11-6 0v-1m6 0H9" />
+                        </svg>
+
+                        <span id="notif-badge"
+                            class="{{ auth()->user()->unreadNotificationsCount() > 0 ? '' : 'hidden' }}
+                     absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500
+                     text-white text-xs font-bold rounded-full
+                     flex items-center justify-center leading-none">
+                            {{ auth()->user()->unreadNotificationsCount() > 9
+                ? '9+'
+                : auth()->user()->unreadNotificationsCount() }}
+                        </span>
+                    </button>
+
+                    <div x-show="open"
+                        @click.away="open = false"
+                        x-transition:enter="transition ease-out duration-100"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-75"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800
+                rounded-2xl shadow-2xl border border-gray-100
+                dark:border-gray-700 z-50 overflow-hidden">
+
+                        <div class="flex items-center justify-between px-4 py-3
+                    border-b border-gray-100 dark:border-gray-700">
+                            <h3 class="font-semibold text-sm text-gray-900 dark:text-white">
+                                Notifications
+                            </h3>
+                            <button onclick="markAllRead()"
+                                class="text-xs text-blue-600 dark:text-blue-400
+                           hover:underline font-medium transition">
+                                Mark all as read
+                            </button>
+                        </div>
+
+                        <div id="notif-list"
+                            class="max-h-96 overflow-y-auto divide-y divide-gray-50
+                    dark:divide-gray-700/50">
+                            <div class="flex items-center justify-center py-10">
+                                <div class="w-5 h-5 border-2 border-blue-500 border-t-transparent
+                            rounded-full animate-spin"></div>
+                            </div>
+                        </div>
+
+                        <div class="px-4 py-2.5 border-t border-gray-100 dark:border-gray-700
+                    text-center">
+                            <span class="text-xs text-gray-400 dark:text-gray-500">
+                                Showing last 30 notifications
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
                 <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open"
                         class="flex items-center gap-2 text-white text-sm hover:opacity-80 transition focus:outline-none">
@@ -48,7 +113,6 @@
                         </svg>
                     </button>
 
-                    {{-- Dropdown panel --}}
                     <div x-show="open"
                         x-transition:enter="transition ease-out duration-100"
                         x-transition:enter-start="opacity-0 scale-95"
@@ -105,7 +169,6 @@
         </div>
     </nav>
 
-    {{-- ── Flash messages ───────────────────────────────────── --}}
     @if(session('success'))
     <div class="max-w-screen-xl mx-auto px-4 mt-4" id="flash-success">
         <div class="flex items-center justify-between bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-300 rounded-xl px-4 py-3 text-sm">
@@ -140,15 +203,10 @@
     </div>
     @endif
 
-    {{-- ── Page content ─────────────────────────────────────── --}}
     <main>
         @yield('content')
     </main>
-
-    {{-- ── Alpine.js (already included by Breeze — skip if duplicate) ── --}}
-    {{-- Alpine is already loaded by Breeze's app.js via npm --}}
-
-    {{-- ── Page-specific scripts ────────────────────────────── --}}
+    <script src="{{ asset('js/notifications.js') }}"></script>
     @yield('scripts')
 
 </body>

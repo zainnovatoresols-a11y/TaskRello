@@ -9,6 +9,7 @@ use App\Http\Controllers\CardController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\LabelController;
+use App\Http\Controllers\NotificationController;
 
 
 Route::get('/', fn() => redirect()->route('boards.index'));
@@ -63,6 +64,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/cards/{card}/labels/{label}', [LabelController::class, 'attach'])->name('labels.attach');
     Route::delete('/cards/{card}/labels/{label}', [LabelController::class, 'detach'])->name('labels.detach');
+
+
+    Route::get('/notifications', [NotificationController::class, 'index'])
+        ->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])
+        ->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])
+        ->name('notifications.read-all');
 });
 
 require __DIR__ . '/auth.php';

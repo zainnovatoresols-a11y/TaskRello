@@ -85,4 +85,17 @@ class User extends Authenticatable
     {
         return $this->hasMany(ActivityLog::class);
     }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class)
+            ->orderByDesc('created_at');
+    }
+
+    public function unreadNotificationsCount(): int
+    {
+        return $this->notifications()
+            ->where('is_read', false)
+            ->count();
+    }
 }

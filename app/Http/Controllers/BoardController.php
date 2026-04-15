@@ -9,6 +9,7 @@ use App\Models\Board;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Models\Notification;
 
 class BoardController extends Controller
 {
@@ -114,6 +115,16 @@ class BoardController extends Controller
 
         $board->members()->attach($user->id, ['role' => 'member']);
 
+        Notification::notify(
+            userId: $user->id,
+            actor: $request->user(),
+            type: 'added_to_board',
+            message: $request->user()->name . ' added you to board "' . $board->name . '"',
+            boardId: $board->id,
+            cardId: null,
+            url: route('boards.show', $board->id)
+        );
+
         ActivityLog::log(
             $request->user(),
             'added_member',
@@ -149,6 +160,16 @@ class BoardController extends Controller
             'removed_member',
             $request->user()->name . ' removed ' . $user->name . ' from the board',
             $board->id
+        );
+
+        Notification::notify(
+            userId: $user->id,
+            actor: $request->user(),
+            type: 'removed_from_board',
+            message: $request->user()->name . ' removed you from the board "' . $board->name . '"',
+            boardId: $board->id,
+            cardId: null,
+            url: route('boards.index')
         );
 
         return redirect()
