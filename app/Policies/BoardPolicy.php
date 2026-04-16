@@ -40,7 +40,7 @@ class BoardPolicy
     }
 
     // ONLY the board owner can invite/remove members
-    public function addMember(User $user, Board $board): bool
+    public function manageMember(User $user, Board $board): bool
     {
         return $board->isOwner($user);
     }

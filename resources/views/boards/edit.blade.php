@@ -180,7 +180,7 @@
         </div>
 
         {{-- Invite member form --}}
-        @can('addMember', $board)
+        @can('manageMember', $board)
         <div class="border-t border-gray-100 dark:border-gray-700 pt-5">
             <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                 Invite a member

@@ -1,65 +1,43 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Card;
 use App\Models\Attachment;
-use App\Models\ActivityLog;
+use App\Services\AttachmentService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Http\Requests\StoreAttachmentRequest;
 
 class AttachmentController extends Controller
 {
     use AuthorizesRequests;
 
-    public function store(Request $request, Card $card)
+    public function __construct(private AttachmentService $attachmentService)
     {
-        $board = $card->list->board;
+        
+    }
+
+    public function store(StoreAttachmentRequest $request, Card $card)
+    {
         $this->authorize('create', [Attachment::class, $card]);
 
-        $request->validate([
-            'file' => [
-                'required',
-                'file',
-                'max:10240',
-                'mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,txt,zip',
-            ],
-        ]);
-
-        $file     = $request->file('file');
-        $path     = $file->store('attachments/card-' . $card->id, 'public');
-
-        $attachment = $card->attachments()->create([
-            'user_id'   => $request->user()->id,
-            'filename'  => $file->getClientOriginalName(),
-            'file_path' => $path,
-            'file_size' => $file->getSize(),
-            'mime_type' => $file->getMimeType(),
-        ]);
-
-        ActivityLog::log(
-            $request->user(),
-            'added_attachment',
-            "{$request->user()->name} attached '{$file->getClientOriginalName()}'",
-            $board->id,
-            $card->id
-        );
+        $file = $request->file('file');
+        $user_id = $request->user()->id;
+        $attachment = $this->attachmentService->store($card, $file , $user_id);
 
         return response()->json([
             'success'    => true,
             'attachment' => $attachment,
         ], 201);
+
     }
 
     public function destroy(Request $request, Attachment $attachment)
     {
         $this->authorize('delete', $attachment);
 
-        Storage::disk('public')->delete($attachment->file_path);
-        $attachment->delete();
-
+        $this->attachmentService->delete($attachment);
         return response()->json(['success' => true]);
     }
 }

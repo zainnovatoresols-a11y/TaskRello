@@ -11,6 +11,8 @@ use App\Policies\BoardPolicy;
 use App\Policies\CardPolicy;
 use App\Policies\CommentPolicy;
 use App\Policies\AttachmentPolicy;
+use App\Repositories\AttachmentRepository;
+use App\Repositories\Contracts\AttachmentRepositoryInterface;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -21,7 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(
+            AttachmentRepositoryInterface::class,
+            AttachmentRepository::class
+        );
     }
 
     /**

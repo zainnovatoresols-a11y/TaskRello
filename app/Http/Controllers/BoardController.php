@@ -33,11 +33,13 @@ class BoardController extends Controller
 
     public function store(StoreBoardRequest $request)
     {
+        $validated = $request->validated();
+
         $board = Board::create([
             'user_id'          => $request->user()->id,
-            'name'             => $request->validated()['name'],
-            'description'      => $request->validated()['description'] ?? null,
-            'background_color' => $request->validated()['background_color'] ?? '#0052CC',
+            'name'             => $validated['name'],
+            'description'      => $validated['description'] ?? null,
+            'background_color' => $validated['background_color'] ?? '#0052CC',
         ]);
 
         $board->members()->attach($request->user()->id, ['role' => 'owner']);
@@ -64,6 +66,7 @@ class BoardController extends Controller
             'members',
             'labels',
         ]);
+        
 
         return view('boards.show', compact('board'));
     }
@@ -97,7 +100,7 @@ class BoardController extends Controller
 
     public function addMember(Request $request, Board $board)
     {
-        $this->authorize('addMember', $board);
+        $this->authorize('manageMember', $board);
 
         $request->validate([
             'email' => 'required|email|exists:users,email',
@@ -113,24 +116,27 @@ class BoardController extends Controller
                 ->with('error', $user->name . ' is already a member of this board.');
         }
 
-        $board->members()->attach($user->id, ['role' => 'member']);
+        DB::transaction(function () use ($request, $board, $user) {
 
-        Notification::notify(
-            userId: $user->id,
-            actor: $request->user(),
-            type: 'added_to_board',
-            message: $request->user()->name . ' added you to board "' . $board->name . '"',
-            boardId: $board->id,
-            cardId: null,
-            url: route('boards.show', $board->id)
-        );
+            $board->members()->attach($user->id, ['role' => 'member']);
 
-        ActivityLog::log(
-            $request->user(),
-            'added_member',
-            $request->user()->name . ' added ' . $user->name . ' to the board',
-            $board->id
-        );
+            Notification::notify(
+                userId: $user->id,
+                actor: $request->user(),
+                type: 'added_to_board',
+                message: $request->user()->name . ' added you to board "' . $board->name . '"',
+                boardId: $board->id,
+                cardId: null,
+                url: route('boards.show', $board->id)
+            );
+
+            ActivityLog::log(
+                $request->user(),
+                'added_member',
+                $request->user()->name . ' added ' . $user->name . ' to the board',
+                $board->id
+            );
+        });
 
         return redirect()
             ->route('boards.edit', $board)
@@ -139,7 +145,7 @@ class BoardController extends Controller
 
     public function removeMember(Request $request, Board $board, User $user)
     {
-        $this->authorize('addMember', $board);
+        $this->authorize('manageMember', $board);
 
         if ($board->user_id === $user->id) {
             return redirect()
@@ -153,24 +159,26 @@ class BoardController extends Controller
                 ->with('error', 'You cannot remove yourself from the board.');
         }
 
-        $board->members()->detach($user->id);
+        DB::transaction(function () use ($request, $board, $user) {
+            $board->members()->detach($user->id);
 
-        ActivityLog::log(
-            $request->user(),
-            'removed_member',
-            $request->user()->name . ' removed ' . $user->name . ' from the board',
-            $board->id
-        );
+            Notification::notify(
+                userId: $user->id,
+                actor: $request->user(),
+                type: 'removed_from_board',
+                message: $request->user()->name . ' removed you from the board "' . $board->name . '"',
+                boardId: $board->id,
+                cardId: null,
+                url: route('boards.index')
+            );
 
-        Notification::notify(
-            userId: $user->id,
-            actor: $request->user(),
-            type: 'removed_from_board',
-            message: $request->user()->name . ' removed you from the board "' . $board->name . '"',
-            boardId: $board->id,
-            cardId: null,
-            url: route('boards.index')
-        );
+            ActivityLog::log(
+                $request->user(),
+                'removed_member',
+                $request->user()->name . ' removed ' . $user->name . ' from the board',
+                $board->id
+            );
+        });
 
         return redirect()
             ->route('boards.edit', $board)
