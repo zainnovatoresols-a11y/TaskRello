@@ -4,24 +4,30 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBoardRequest;
 use App\Http\Requests\UpdateBoardRequest;
-use App\Models\ActivityLog;
 use App\Models\Board;
 use App\Models\User;
+use App\Services\BoardService;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use App\Models\Notification;
 
 class BoardController extends Controller
 {
     use AuthorizesRequests;
+
+    public function __construct(
+        private BoardService $boardService
+    ) {}
+
     public function index(Request $request)
     {
-        $boards = $request->user()
-            ->boards()
-            ->with('owner')
-            ->withCount('members')
-            ->latest()
-            ->get();
+        $boards = $this->boardService->getUserBoards($request->user());
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status'=> 'success',
+                'data'=> $boards,
+            ], 200);
+        }
 
         return view('boards.index', compact('boards'));
     }
@@ -33,40 +39,79 @@ class BoardController extends Controller
 
     public function store(StoreBoardRequest $request)
     {
-        $validated = $request->validated();
+        $board = $this->boardService->create($request->user(), $request->validated());
 
-        $board = Board::create([
-            'user_id'          => $request->user()->id,
-            'name'             => $validated['name'],
-            'description'      => $validated['description'] ?? null,
-            'background_color' => $validated['background_color'] ?? '#0052CC',
-        ]);
-
-        $board->members()->attach($request->user()->id, ['role' => 'owner']);
-
-        ActivityLog::log(
-            $request->user(),
-            'created_board',
-            "{$request->user()->name} created board '{$board->name}'",
-            $board->id
-        );
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status'=> 'created',
+                'message'=> 'Board created successfully!',
+                'data'=> $board,
+            ], 201);
+        }
 
         return redirect()
             ->route('boards.show', $board)
             ->with('success', 'Board created successfully!');
     }
 
-    public function show(Board $board)
+    public function show(Request $request, Board $board)
     {
         $this->authorize('view', $board);
+        $board = $this->boardService->loadBoardWithRelations($board);
 
-        $board->load([
-            'lists.cards.assignees',
-            'lists.cards.labels',
-            'members',
-            'labels',
-        ]);
-        
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success'=> true,
+                'data'=> [
+                    'id'=> $board->id,
+                    'name'=> $board->name,
+                    'description'=> $board->description,
+                    'background_color'=> $board->background_color,
+                    'is_archived'=> $board->is_archived,
+                    'created_at'=> $board->created_at->toDateTimeString(),
+                    'owner'=> [
+                        'id'=> $board->owner->id,
+                        'name'=> $board->owner->name,
+                    ],
+                    'members'=> $board->members->map(fn($m) => [
+                        'id'=> $m->id,
+                        'name'=> $m->name,
+                        'email'=> $m->email,
+                        'role'=> $m->pivot->role,
+                    ]),
+                    'labels'=> $board->labels->map(fn($l) => [
+                        'id'=> $l->id,
+                        'name'=> $l->name,
+                        'color'=> $l->color,
+                    ]),
+                    'lists'=> $board->lists->map(fn($list) => [
+                        'id'=> $list->id,
+                        'name'=> $list->name,
+                        'position'=> $list->position,
+                        'cards'=> $list->cards->map(fn($card) => [
+                            'id'=> $card->id,
+                            'title'=> $card->title,
+                            'description'=> $card->description,
+                            'position'=> $card->position,
+                            'due_date'=> $card->due_date?->toDateString(),
+                            'cover_color'=> $card->cover_color,
+                            'is_completed'=> $card->is_completed,
+                            'is_overdue'=> $card->isOverdue(),
+                            'is_due_soon'=> $card->isDueSoon(),
+                            'assignees'=> $card->assignees->map(fn($u) => [
+                                'id'=> $u->id,
+                                'name'=> $u->name,
+                            ]),
+                            'labels'=> $card->labels->map(fn($l) => [
+                                'id'=> $l->id,
+                                'name'=> $l->name,
+                                'color'=> $l->color,
+                            ]),
+                        ]),
+                    ]),
+                ],
+            ]);
+        }
 
         return view('boards.show', compact('board'));
     }
@@ -74,13 +119,20 @@ class BoardController extends Controller
     public function edit(Board $board)
     {
         $this->authorize('update', $board);
-
         return view('boards.edit', compact('board'));
     }
 
     public function update(UpdateBoardRequest $request, Board $board)
     {
-        $board->update($request->validated());
+        $this->boardService->update($board, $request->validated());
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status'=> 'success',
+                'message'=> 'Board updated.',
+                'data'=> $board->fresh(),
+            ], 200);
+        }
 
         return redirect()
             ->route('boards.show', $board)
@@ -90,8 +142,14 @@ class BoardController extends Controller
     public function destroy(Request $request, Board $board)
     {
         $this->authorize('delete', $board);
+        $this->boardService->delete($board);
 
-        $board->delete();
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status'=> 'success',
+                'message'=> 'Board deleted.',
+            ], 200);
+        }
 
         return redirect()
             ->route('boards.index')
@@ -110,78 +168,49 @@ class BoardController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if ($board->isMember($user)) {
-            return redirect()
-                ->route('boards.edit', $board)
-                ->with('error', $user->name . ' is already a member of this board.');
+        $response = $this->boardService->addMember($board, $request->user(), $user, $request);
+
+        if ($response) {
+            return $response;
         }
 
-        DB::transaction(function () use ($request, $board, $user) {
-
-            $board->members()->attach($user->id, ['role' => 'member']);
-
-            Notification::notify(
-                userId: $user->id,
-                actor: $request->user(),
-                type: 'added_to_board',
-                message: $request->user()->name . ' added you to board "' . $board->name . '"',
-                boardId: $board->id,
-                cardId: null,
-                url: route('boards.show', $board->id)
-            );
-
-            ActivityLog::log(
-                $request->user(),
-                'added_member',
-                $request->user()->name . ' added ' . $user->name . ' to the board',
-                $board->id
-            );
-        });
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "{$user->name} has been added to the board.",
+                'data' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => 'member',
+                ],
+            ], 201);
+        }
 
         return redirect()
             ->route('boards.edit', $board)
-            ->with('success', $user->name . ' has been added to the board.');
+            ->with('success', "{$user->name} has been added to the board.");
     }
 
     public function removeMember(Request $request, Board $board, User $user)
     {
         $this->authorize('manageMember', $board);
 
-        if ($board->user_id === $user->id) {
-            return redirect()
-                ->route('boards.edit', $board)
-                ->with('error', 'You cannot remove the board owner.');
+        $response = $this->boardService->removeMember($board, $request->user(), $user, $request);
+
+        if ($response) {
+            return $response;
         }
 
-        if ($request->user()->id === $user->id) {
-            return redirect()
-                ->route('boards.edit', $board)
-                ->with('error', 'You cannot remove yourself from the board.');
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => "{$user->name} has been removed from the board.",
+            ], 200);
         }
-
-        DB::transaction(function () use ($request, $board, $user) {
-            $board->members()->detach($user->id);
-
-            Notification::notify(
-                userId: $user->id,
-                actor: $request->user(),
-                type: 'removed_from_board',
-                message: $request->user()->name . ' removed you from the board "' . $board->name . '"',
-                boardId: $board->id,
-                cardId: null,
-                url: route('boards.index')
-            );
-
-            ActivityLog::log(
-                $request->user(),
-                'removed_member',
-                $request->user()->name . ' removed ' . $user->name . ' from the board',
-                $board->id
-            );
-        });
 
         return redirect()
             ->route('boards.edit', $board)
-            ->with('success', $user->name . ' has been removed from the board.');
+            ->with('success', "{$user->name} has been removed from the board.");
     }
 }

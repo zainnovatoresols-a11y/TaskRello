@@ -13,6 +13,10 @@ use App\Policies\CommentPolicy;
 use App\Policies\AttachmentPolicy;
 use App\Repositories\AttachmentRepository;
 use App\Repositories\Contracts\AttachmentRepositoryInterface;
+use App\Repositories\BoardRepository;
+use App\Repositories\Contracts\BoardRepositoryInterface;
+use App\Repositories\ListRepository;
+use App\Repositories\Contracts\ListRepositoryInterface;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -23,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(BoardRepositoryInterface::class, BoardRepository::class);
+        $this->app->bind(ListRepositoryInterface::class, ListRepository::class);
         $this->app->bind(
             AttachmentRepositoryInterface::class,
             AttachmentRepository::class

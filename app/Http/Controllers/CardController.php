@@ -138,7 +138,6 @@ class CardController extends Controller
                 ->where('position', '>', $oldPos)
                 ->decrement('position');
 
-            // Make space in the new list
             Card::where('list_id', $newListId)
                 ->where('position', '>=', $newPos)
                 ->increment('position');

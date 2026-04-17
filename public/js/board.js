@@ -969,7 +969,7 @@ function applyBoardFilters() {
             if (!emptyMsg) {
                 emptyMsg = document.createElement('div');
                 emptyMsg.className = 'list-empty-search-msg text-xs text-center '
-                    + 'text-gray-400 dark:text-gray-600 py-4 italic';
+                    + 'text-gray-600 dark:text-gray-300 py-4 italic';
                 emptyMsg.textContent = 'No cards match';
                 const container = col.querySelector('.cards-container');
                 if (container) container.appendChild(emptyMsg);
