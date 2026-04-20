@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\BoardController;
 use App\Http\Controllers\ListController;
+use App\Http\Controllers\CardController;
 
 
 Route::get('/user', function (Request $request) {
@@ -34,4 +35,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/boards/{board}/lists/reorder',[ListController::class, 'reorder']);
     Route::put('/boards/{board}/lists/{list}',[ListController::class, 'update']);
     Route::delete('/boards/{board}/lists/{list}',[ListController::class, 'destroy']);
+
+    Route::get('/lists/{list}/cards',[CardController::class, 'index']);
+    Route::post('/lists/{list}/cards',[CardController::class, 'store']);
+    Route::get('/cards/{card}',[CardController::class, 'show']);
+    Route::put('/cards/{card}',[CardController::class, 'update']);
+    Route::delete('/cards/{card}',[CardController::class, 'destroy']);
+    Route::post('/cards/{card}/move',[CardController::class, 'move']);
+    Route::post('/cards/{card}/assign',[CardController::class, 'assign']);
+    Route::post('/cards/{card}/complete',[CardController::class, 'toggleComplete']);
 });

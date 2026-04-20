@@ -17,6 +17,8 @@ use App\Repositories\BoardRepository;
 use App\Repositories\Contracts\BoardRepositoryInterface;
 use App\Repositories\ListRepository;
 use App\Repositories\Contracts\ListRepositoryInterface;
+use App\Repositories\CardRepository;
+use App\Repositories\Contracts\CardRepositoryInterface;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -27,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(CardRepositoryInterface::class, CardRepository::class);
         $this->app->bind(BoardRepositoryInterface::class, BoardRepository::class);
         $this->app->bind(ListRepositoryInterface::class, ListRepository::class);
         $this->app->bind(
@@ -40,7 +43,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Register all policies manually
         Gate::policy(Board::class,      BoardPolicy::class);
         Gate::policy(Card::class,       CardPolicy::class);
         Gate::policy(Comment::class,    CommentPolicy::class);

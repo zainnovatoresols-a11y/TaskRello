@@ -6,96 +6,132 @@ use App\Http\Requests\StoreCardRequest;
 use App\Http\Requests\UpdateCardRequest;
 use App\Models\BoardList;
 use App\Models\Card;
-use App\Models\User;
-use App\Models\ActivityLog;
-use Illuminate\Http\Request;
+use App\Services\CardService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use App\Models\Notification;
+use Illuminate\Http\Request;
 
 class CardController extends Controller
 {
     use AuthorizesRequests;
+
+    public function __construct(private CardService $cardService) {}
+
+    public function index(Request $request, BoardList $list)
+    {
+        $board = $list->board;
+        $this->authorize('view', $board);
+        $cards = $this->cardService->getCardsByList($list);
+        
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'data'    => $cards,
+            ]);
+        }
+
+        return redirect()->route('boards.show', $board);
+    }
+
     public function store(StoreCardRequest $request, BoardList $list)
     {
         $board = $list->board;
         $this->authorize('create', [Card::class, $board]);
 
-        $position = $list->cards()->count();
+        $card = $this->cardService->create($list, $request->validated(), $request->user());
 
-        $card = $list->cards()->create([
-            'user_id'  => $request->user()->id,
-            'title'    => $request->validated()['title'],
-            'position' => $position,
-        ]);
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Card created successfully.',
+                'data'    => $this->formatCard($card),
+            ], 201);
+        }
 
-        ActivityLog::log(
-            $request->user(),
-            'created_card',
-            "{$request->user()->name} created card '{$card->title}'",
-            $board->id,
-            $card->id
-        );
-
-        return response()->json([
-            'success' => true,
-            'card'    => $card->load('assignees', 'labels'),
-        ]);
+        return redirect()->route('boards.show', $board)->with('success', "Card '{$card->title}' created.");
     }
 
-    public function show(Card $card)
+    public function show(Request $request, Card $card)
     {
         $this->authorize('view', $card);
 
-        $card->load([
-            'creator',
-            'assignees',
-            'labels',
-            'comments.author',
-            'attachments.uploader',
-            'activityLogs.user',
-            'list.board.members',
-        ]);
+        $card = $this->cardService->show($card);
 
-       
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'data'    => [
+                    'id'            => $card->id,
+                    'title'         => $card->title,
+                    'description'   => $card->description,
+                    'position'      => $card->position,
+                    'due_date'      => $card->due_date?->toDateString(),
+                    'cover_color'   => $card->cover_color,
+                    'is_completed'  => $card->is_completed,
+                    'is_archived'   => $card->is_archived,
+                    'is_overdue'    => $card->isOverdue(),
+                    'is_due_soon'   => $card->isDueSoon(),
+                    'created_at'    => $card->created_at->toDateTimeString(),
+                    'list'          => ['id' => $card->list->id, 'name' => $card->list->name],
+                    'creator'       => ['id' => $card->creator->id, 'name' => $card->creator->name],
+                    'assignees'     => $card->assignees->map(fn($u) => ['id' => $u->id, 'name' => $u->name, 'email' => $u->email]),
+                    'labels'        => $card->labels->map(fn($l) => ['id' => $l->id, 'name' => $l->name, 'color' => $l->color]),
+                    'comments'      => $card->comments->map(fn($c) => [
+                        'id'         => $c->id,
+                        'body'       => $c->body,
+                        'created_at' => $c->created_at->diffForHumans(),
+                        'author'     => ['id' => $c->author->id, 'name' => $c->author->name],
+                    ]),
+                    'attachments'   => $card->attachments->map(fn($a) => [
+                        'id'        => $a->id,
+                        'filename'  => $a->filename,
+                        'url'       => $a->url,
+                        'is_image'  => $a->is_image,
+                        'file_size' => $a->file_size,
+                        'mime_type' => $a->mime_type,
+                    ]),
+                    'activity_logs' => $card->activityLogs->map(fn($log) => [
+                        'id'          => $log->id,
+                        'action'      => $log->action,
+                        'description' => $log->description,
+                        'created_at'  => $log->created_at->diffForHumans(),
+                        'user'        => ['id' => $log->user->id, 'name' => $log->user->name],
+                    ]),
+                    'board_members' => $card->list->board->members->map(fn($m) => [
+                        'id'   => $m->id,
+                        'name' => $m->name,
+                        'role' => $m->pivot->role,
+                    ]),
+                ],
+            ]);
+        }
+
         return view('cards.show', compact('card'));
     }
 
     public function update(UpdateCardRequest $request, Card $card)
     {
-        $card->update($request->validated());
+        $board       = $card->list->board;
+        $updatedCard = $this->cardService->update($card, $request->validated(), $request->user());
 
-        ActivityLog::log(
-            $request->user(),
-            'updated_card',
-            "{$request->user()->name} updated card '{$card->title}'",
-            $card->list->board_id,
-            $card->id
-        );
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Card updated successfully.', 'data' => $this->formatCard($updatedCard)]);
+        }
 
-        return response()->json([
-            'success' => true,
-            'card'    => $card->fresh()->load('assignees', 'labels'),
-        ]);
+        return redirect()->route('boards.show', $board)->with('success', 'Card updated.');
     }
 
-   
     public function destroy(Request $request, Card $card)
     {
         $this->authorize('delete', $card);
 
-        $boardId = $card->list->board_id;
-        $title   = $card->title;
+        $board = $card->list->board;
+        $this->cardService->delete($card, $request->user());
 
-        $card->delete();
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Card deleted successfully.']);
+        }
 
-        ActivityLog::log(
-            $request->user(),
-            'deleted_card',
-            "{$request->user()->name} deleted card '{$title}'",
-            $boardId
-        );
-
-        return response()->json(['success' => true]);
+        return redirect()->route('boards.show', $board)->with('success', 'Card deleted.');
     }
 
     public function move(Request $request, Card $card)
@@ -107,88 +143,18 @@ class CardController extends Controller
             'position' => 'required|integer|min:0',
         ]);
 
-        $oldListId = $card->list_id;
-        $oldPos    = $card->position;
-        $newListId = (int) $request->list_id;
-        $newPos    = (int) $request->position;
+        $board = $card->list->board;
+        $this->cardService->move($card, (int) $request->list_id, (int) $request->position, $request->user());
 
-        if ($oldListId === $newListId) {
-
-            if ($oldPos === $newPos) {
-                return response()->json(['success' => true]);
-            }
-
-            if ($newPos > $oldPos) {
-
-                Card::where('list_id', $newListId)
-                    ->where('id', '!=', $card->id)
-                    ->whereBetween('position', [$oldPos + 1, $newPos])
-                    ->decrement('position');
-            } else {
-                Card::where('list_id', $newListId)
-                    ->where('id', '!=', $card->id)
-                    ->whereBetween('position', [$newPos, $oldPos - 1])
-                    ->increment('position');
-            }
-
-            $card->update(['position' => $newPos]);
-        } else {
-
-            Card::where('list_id', $oldListId)
-                ->where('position', '>', $oldPos)
-                ->decrement('position');
-
-            Card::where('list_id', $newListId)
-                ->where('position', '>=', $newPos)
-                ->increment('position');
-
-            $card->update([
-                'list_id'  => $newListId,
-                'position' => $newPos,
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Card moved successfully.',
+                'data'    => $this->formatCard($card->fresh()->load('assignees', 'labels')),
             ]);
         }
 
-        $newList = BoardList::find($newListId);
-
-        ActivityLog::log(
-            $request->user(),
-            'moved_card',
-            "{$request->user()->name} moved '{$card->title}' to '{$newList->name}'",
-            $newList->board_id,
-            $card->id
-        );
-
-        $board    = $card->list->board;
-        $notified = [$request->user()->id];
-
-        foreach ($card->assignees as $assignee) {
-            if (!in_array($assignee->id, $notified)) {
-                Notification::notify(
-                    userId: $assignee->id,
-                    actor: $request->user(),
-                    type: 'new_comment',
-                    message: $request->user()->name . ' commented on "' . $card->title . '"',
-                    boardId: $board->id,
-                    cardId: $card->id,
-                    url: route('boards.show', $board->id)
-                );
-                $notified[] = $assignee->id;
-            }
-        }
-
-        if (!in_array($board->user_id, $notified)) {
-            Notification::notify(
-                userId: $board->user_id,
-                actor: $request->user(),
-                type: 'moved_card',
-                message: $request->user()->name . ' moved "' . $card->title . '" to "' . $newList->name . '"',
-                boardId: $board->id,
-                cardId: $card->id,
-                url: route('boards.show', $board->id)
-            );
-        }
-
-        return response()->json(['success' => true]);
+        return redirect()->route('boards.show', $board)->with('success', 'Card moved.');
     }
 
     public function assign(Request $request, Card $card)
@@ -197,39 +163,11 @@ class CardController extends Controller
 
         $request->validate(['user_id' => 'required|exists:users,id']);
 
-        $card->assignees()->toggle($request->user_id);
-
-
-        $isNowAssigned = $card->fresh()->assignees->contains($request->user_id);
-
-        if ($isNowAssigned) {
-            Notification::notify(
-                userId: $request->user_id,
-                actor: $request->user(),
-                type: 'assigned_card',
-                message: $request->user()->name . ' assigned you to "' . $card->title . '"',
-                boardId: $card->list->board_id,
-                cardId: $card->id,
-                url: route('boards.show', $card->list->board_id)
-            );
-
-            $boardOwnerId = $card->list->board->user_id;
-            if ($boardOwnerId !== $request->user_id) {
-                Notification::notify(
-                    userId: $boardOwnerId,
-                    actor: $request->user(),
-                    type: 'assigned_card',
-                    message: $request->user()->name . ' assigned ' . User::find($request->user_id)?->name . ' to "' . $card->title . '"',
-                    boardId: $card->list->board_id,
-                    cardId: $card->id,
-                    url: route('boards.show', $card->list->board_id)
-                );
-            }
-        }
+        $assignees = $this->cardService->assign($card, (int) $request->user_id, $request->user());
 
         return response()->json([
             'success'   => true,
-            'assignees' => $card->fresh()->assignees,
+            'assignees' => $assignees,
         ]);
     }
 
@@ -237,37 +175,41 @@ class CardController extends Controller
     {
         $this->authorize('update', $card);
 
-        $card->update([
-            'is_completed' => ! $card->is_completed,
-        ]);
+        $board       = $card->list->board;
+        $updatedCard = $this->cardService->toggleComplete($card, $request->user());
+        $message     = $updatedCard->is_completed ? 'Card marked as completed.' : 'Card marked as incomplete.';
 
-        ActivityLog::log(
-            $request->user(),
-            $card->is_completed ? 'completed_card' : 'reopened_card',
-            $request->user()->name
-                . ($card->is_completed ? ' completed ' : ' reopened ')
-                . "'{$card->title}'",
-            $card->list->board_id,
-            $card->id
-        );
-
-        $board = $card->list->board;
-
-        if ($board->user_id !== $request->user()->id) {
-            Notification::notify(
-                userId: $board->user_id,
-                actor: $request->user(),
-                type: $card->is_completed ? 'completed_card' : 'reopened_card',
-                message: $request->user()->name . ($card->is_completed ? ' completed ' : ' reopened ') . '"' . $card->title . '"',
-                boardId: $board->id,
-                cardId: $card->id,
-                url: route('boards.show', $board->id)
-            );
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => $message, 'data' => ['id' => $updatedCard->id, 'is_completed' => $updatedCard->is_completed]]);
         }
 
-        return response()->json([
-            'success'      => true,
+        return redirect()->route('boards.show', $board)->with('success', $message);
+    }
+
+    private function formatCard(Card $card): array
+    {
+        return [
+            'id'           => $card->id,
+            'title'        => $card->title,
+            'description'  => $card->description,
+            'position'     => $card->position,
+            'due_date'     => $card->due_date?->toDateString(),
+            'cover_color'  => $card->cover_color,
             'is_completed' => $card->is_completed,
-        ]);
+            'is_archived'  => $card->is_archived,
+            'is_overdue'   => $card->isOverdue(),
+            'is_due_soon'  => $card->isDueSoon(),
+            'list_id'      => $card->list_id,
+            'created_at'   => $card->created_at->toDateTimeString(),
+            'assignees'    => $card->assignees->map(fn($u) => [
+                'id' => $u->id,
+                'name' => $u->name
+            ])->toArray(),
+            'labels'       => $card->labels->map(fn($l) => [
+                'id' => $l->id,
+                'name' => $l->name,
+                'color' => $l->color
+            ])->toArray(),
+        ];
     }
 }
