@@ -12,7 +12,7 @@
 <body class="h-full bg-gray-100 dark:bg-gray-900 font-sans antialiased">
 
 
-    <nav class="bg-blue-700 dark:bg-blue-900 sticky top-0 z-40 shadow-md">
+    <nav class="bg-gray-700 dark:bg-gray-800 sticky top-0 z-40 shadow-md">
         <div class="max-w-screen-xl mx-auto px-4 flex items-center justify-between h-14">
 
             <a href="{{ route('boards.index') }}"

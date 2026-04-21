@@ -15,4 +15,5 @@ interface BoardRepositoryInterface
     public function attachMember(Board $board, int $userId, string $role): void;
     public function detachMember(Board $board, int $userId): void;
     public function loadBoardWithRelations(Board $board): Board;
+    public function unassignFromAllCards(Board $board, int $userId): void;
 }

@@ -216,74 +216,184 @@
     class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
     style="background-color: rgba(0,0,0,0.55);">
 
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-6">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 overflow-y-auto max-h-[90vh]">
+
+        {{-- Header --}}
         <div class="flex items-center justify-between mb-5">
             <h3 class="font-semibold text-gray-900 dark:text-white text-base">
                 Board labels
             </h3>
             <button onclick="closeLabelsManager()"
-                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200
-                           text-xl font-bold transition">
+                class="text-gray-400 hover:text-gray-600
+                           dark:hover:text-gray-200 text-xl font-bold transition">
                 &times;
             </button>
         </div>
 
-        {{-- Existing labels --}}
+        {{-- Existing labels list --}}
         <div id="labels-list" class="space-y-2 mb-5">
             @foreach($board->labels as $label)
-            <div class="flex items-center justify-between py-1.5 px-3 rounded-lg"
+            <div class="flex items-center justify-between py-2 px-3 rounded-lg"
                 style="background-color: {{ $label->color }}20"
                 id="label-row-{{ $label->id }}">
-                <div class="flex items-center gap-2">
-                    <span class="w-5 h-5 rounded-full flex-shrink-0"
-                        style="background-color: {{ $label->color }}"></span>
-                    <span class="text-sm font-medium text-gray-800 dark:text-gray-100">
+
+                {{-- Color dot + name --}}
+                <div class="flex items-center gap-2 flex-1 min-w-0">
+                    <span class="w-4 h-4 rounded-full flex-shrink-0"
+                        id="label-dot-{{ $label->id }}"
+                        style="background-color: {{ $label->color }}">
+                    </span>
+                    <span class="text-sm font-medium text-gray-800
+                                     dark:text-gray-100 truncate"
+                        id="label-name-{{ $label->id }}">
                         {{ $label->name }}
                     </span>
                 </div>
+
+                {{-- Action buttons --}}
+                <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
+
+                    {{-- Edit button --}}
+                    <button onclick="startEditLabel({{ $label->id }}, '{{ addslashes($label->name) }}', '{{ $label->color }}', {{ $board->id }})"
+                        class="w-6 h-6 flex items-center justify-center
+                                       rounded text-gray-400 hover:text-blue-600
+                                       dark:hover:text-blue-400
+                                       hover:bg-white/50 transition"
+                        title="Edit label">
+                        <svg class="w-3.5 h-3.5" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002
+                                         2h11a2 2 0 002-2v-5m-1.414-9.414a2
+                                         2 0 112.828 2.828L11.828 15H9v-2.828
+                                         l8.586-8.586z" />
+                        </svg>
+                    </button>
+
+                    {{-- Delete button --}}
+                    <button onclick="deleteLabel({{ $label->id }}, {{ $board->id }})"
+                        class="w-6 h-6 flex items-center justify-center
+                                       rounded text-gray-400 hover:text-red-500
+                                       dark:hover:text-red-400
+                                       hover:bg-white/50 transition"
+                        title="Delete label">
+                        <svg class="w-3.5 h-3.5" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
             </div>
             @endforeach
+
             @if($board->labels->isEmpty())
-            <p class="text-sm text-gray-400 text-center py-3" id="no-labels-msg">
+            <p class="text-sm text-gray-400 text-center py-3"
+                id="no-labels-msg">
                 No labels yet. Create one below.
             </p>
             @endif
         </div>
 
-        {{-- Create label form --}}
-        <div class="border-t border-gray-100 dark:border-gray-700 pt-4">
-            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3">
-                Create new label
+        {{-- ── Edit label form (hidden by default) ─────────── --}}
+        <div id="edit-label-form"
+            class="hidden border border-blue-200 dark:border-blue-800
+                    bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 mb-4">
+
+            <p class="text-xs font-semibold text-blue-700 dark:text-blue-400
+                      uppercase tracking-wider mb-3">
+                Edit label
             </p>
+
+            <input type="hidden" id="edit-label-id">
+            <input type="hidden" id="edit-board-id">
+
             <input type="text"
-                id="new-label-name"
-                placeholder="Label name e.g. Bug, Feature..."
+                id="edit-label-name"
+                placeholder="Label name..."
                 maxlength="100"
-                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg
-                          px-3 py-2 text-sm mb-3
+                class="w-full border border-gray-300 dark:border-gray-600
+                          rounded-lg px-3 py-2 text-sm mb-3
                           bg-white dark:bg-gray-900
                           text-gray-900 dark:text-gray-100
                           placeholder-gray-400
                           focus:outline-none focus:ring-2 focus:ring-blue-500
                           focus:border-transparent">
 
-            {{-- Color swatches for label --}}
+            {{-- Color swatches for edit --}}
+            <div class="flex flex-wrap gap-2 mb-3" id="edit-label-colors">
+                @foreach(['#EB5A46','#F2D600','#61BD4F','#0079BF','#C377E0','#FF9F1A','#00C2E0','#51E898'] as $ec)
+                <label class="cursor-pointer">
+                    <input type="radio"
+                        name="edit_label_color"
+                        value="{{ $ec }}"
+                        class="sr-only peer">
+                    <span class="block w-7 h-7 rounded-full ring-2
+                                     ring-transparent ring-offset-1
+                                     peer-checked:ring-gray-500 transition"
+                        style="background-color: {{ $ec }}">
+                    </span>
+                </label>
+                @endforeach
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="saveEditLabel()"
+                    class="flex-1 bg-blue-700 hover:bg-blue-800
+                               text-white text-sm font-medium
+                               py-2 rounded-lg transition">
+                    Save changes
+                </button>
+                <button onclick="cancelEditLabel()"
+                    class="px-3 py-2 text-sm text-gray-500
+                               dark:text-gray-400 hover:bg-gray-100
+                               dark:hover:bg-gray-700 rounded-lg transition">
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+        {{-- ── Create label form ─────────────────────────────── --}}
+        <div class="border-t border-gray-100 dark:border-gray-700 pt-4">
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3">
+                Create new label
+            </p>
+
+            <input type="text"
+                id="new-label-name"
+                placeholder="Label name e.g. Bug, Feature..."
+                maxlength="100"
+                class="w-full border border-gray-300 dark:border-gray-600
+                          rounded-lg px-3 py-2 text-sm mb-3
+                          bg-white dark:bg-gray-900
+                          text-gray-900 dark:text-gray-100
+                          placeholder-gray-400
+                          focus:outline-none focus:ring-2 focus:ring-blue-500
+                          focus:border-transparent">
+
+            {{-- Color swatches for create --}}
             <div class="flex flex-wrap gap-2 mb-3" id="label-color-picker">
                 @foreach(['#EB5A46','#F2D600','#61BD4F','#0079BF','#C377E0','#FF9F1A','#00C2E0','#51E898'] as $lc)
                 <label class="cursor-pointer">
-                    <input type="radio" name="label_color" value="{{ $lc }}"
+                    <input type="radio"
+                        name="label_color"
+                        value="{{ $lc }}"
                         class="sr-only peer"
                         {{ $loop->first ? 'checked' : '' }}>
-                    <span class="block w-7 h-7 rounded-full ring-2 ring-transparent
-                                     ring-offset-1 peer-checked:ring-gray-500 transition"
-                        style="background-color: {{ $lc }}"></span>
+                    <span class="block w-7 h-7 rounded-full ring-2
+                                     ring-transparent ring-offset-1
+                                     peer-checked:ring-gray-500 transition"
+                        style="background-color: {{ $lc }}">
+                    </span>
                 </label>
                 @endforeach
             </div>
 
             <button onclick="createLabel({{ $board->id }})"
-                class="w-full bg-blue-700 hover:bg-blue-800 text-white text-sm
-                           font-medium py-2 rounded-lg transition">
+                class="w-full bg-blue-700 hover:bg-blue-800
+                           text-white text-sm font-medium
+                           py-2 rounded-lg transition">
                 Create label
             </button>
         </div>

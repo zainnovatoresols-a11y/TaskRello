@@ -23,9 +23,6 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    Route::post('/cards/{card}/complete', [CardController::class, 'toggleComplete'])
-        ->name('cards.complete');
-
     Route::get('/boards', [BoardController::class, 'index'])->name('boards.index');
     Route::get('/boards/create', [BoardController::class, 'create'])->name('boards.create');
     Route::post('/boards', [BoardController::class, 'store'])->name('boards.store');
@@ -43,7 +40,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/boards/{board}/lists/{list}', [ListController::class, 'update'])->name('lists.update');
         Route::delete('/boards/{board}/lists/{list}', [ListController::class, 'destroy'])->name('lists.destroy');
         Route::post('/boards/{board}/lists/reorder', [ListController::class, 'reorder'])->name('lists.reorder');
-
         Route::post('/boards/{board}/labels', [LabelController::class, 'store'])->name('labels.store');
     });
 
@@ -53,6 +49,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/cards/{card}', [CardController::class, 'destroy'])->name('cards.destroy');
     Route::post('/cards/{card}/move', [CardController::class, 'move'])->name('cards.move');
     Route::post('/cards/{card}/assign', [CardController::class, 'assign'])->name('cards.assign');
+    Route::post('/cards/{card}/complete', [CardController::class, 'toggleComplete'])->name('cards.complete');
 
     Route::post('/cards/{card}/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::put('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
@@ -64,14 +61,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/cards/{card}/labels/{label}', [LabelController::class, 'attach'])->name('labels.attach');
     Route::delete('/cards/{card}/labels/{label}', [LabelController::class, 'detach'])->name('labels.detach');
+    Route::delete('/boards/{board}/labels/{label}', [LabelController::class, 'destroy'])->name('labels.destroy');
 
 
-    Route::get('/notifications', [NotificationController::class, 'index'])
-        ->name('notifications.index');
-    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])
-        ->name('notifications.read');
-    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])
-        ->name('notifications.read-all');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
 });
 
 require __DIR__ . '/auth.php';

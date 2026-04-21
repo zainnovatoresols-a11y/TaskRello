@@ -19,6 +19,10 @@ use App\Repositories\ListRepository;
 use App\Repositories\Contracts\ListRepositoryInterface;
 use App\Repositories\CardRepository;
 use App\Repositories\Contracts\CardRepositoryInterface;
+use App\Repositories\LabelRepository;
+use App\Repositories\Contracts\LabelRepositoryInterface;
+use App\Repositories\CommentRepository;
+use App\Repositories\Contracts\CommentRepositoryInterface;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -29,6 +33,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(CommentRepositoryInterface::class, CommentRepository::class);
+        $this->app->bind(LabelRepositoryInterface::class, LabelRepository::class);
         $this->app->bind(CardRepositoryInterface::class, CardRepository::class);
         $this->app->bind(BoardRepositoryInterface::class, BoardRepository::class);
         $this->app->bind(ListRepositoryInterface::class, ListRepository::class);

@@ -6,6 +6,9 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\BoardController;
 use App\Http\Controllers\ListController;
 use App\Http\Controllers\CardController;
+use App\Http\Controllers\LabelController;
+use App\Http\Controllers\CommentController;
+
 
 
 Route::get('/user', function (Request $request) {
@@ -44,4 +47,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/cards/{card}/move',[CardController::class, 'move']);
     Route::post('/cards/{card}/assign',[CardController::class, 'assign']);
     Route::post('/cards/{card}/complete',[CardController::class, 'toggleComplete']);
+
+    Route::get('/boards/{board}/labels',[LabelController::class, 'index']);
+    Route::post('/boards/{board}/labels',[LabelController::class, 'store']);
+    Route::delete('/boards/{board}/labels/{label}',[LabelController::class, 'destroy']);
+    Route::post('/cards/{card}/labels/{label}',[LabelController::class, 'attach']);
+    Route::delete('/cards/{card}/labels/{label}',[LabelController::class, 'detach']);
+    Route::put('/boards/{board}/labels/{label}', [LabelController::class, 'update']);
+
+    Route::get('/cards/{card}/comments',[CommentController::class, 'index']);
+    Route::post('/cards/{card}/comments',[CommentController::class, 'store']);
+    Route::delete('/comments/{comment}',[CommentController::class, 'destroy']);
 });

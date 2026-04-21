@@ -5,15 +5,46 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCommentRequest;
 use App\Models\Card;
 use App\Models\Comment;
-use App\Models\ActivityLog;
+use App\Services\CommentService;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use App\Models\Notification;
-
 
 class CommentController extends Controller
 {
     use AuthorizesRequests;
+
+    public function __construct(
+        private CommentService $commentService
+    ) {}
+
+    public function index(Request $request, Card $card)
+    {
+        $board = $card->list->board;
+
+        if (!$board->isMember($request->user())) {
+            abort(403, 'You must be a board member to view comments.');
+        }
+
+        $comments = $card->comments()
+            ->with('author')
+            ->orderBy('created_at')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $comments->map(fn($c) => [
+                'id'         => $c->id,
+                'body'       => $c->body,
+                'created_at' => $c->created_at->toDateTimeString(),
+                'time_ago'   => $c->created_at->diffForHumans(),
+                'author'     => [
+                    'id'   => $c->author->id,
+                    'name' => $c->author->name,
+                ],
+            ]),
+        ]);
+    }
+
     public function store(StoreCommentRequest $request, Card $card)
     {
         $board = $card->list->board;
@@ -22,74 +53,28 @@ class CommentController extends Controller
             abort(403, 'You must be a board member to comment.');
         }
 
-        $comment = $card->comments()->create([
-            'user_id' => $request->user()->id,
-            'body'    => $request->validated()['body'],
-        ]);
+        $comment = $this->commentService->create($card, $request->validated()['body'], $request->user());
 
-        ActivityLog::log(
-            $request->user(),
-            'added_comment',
-            "{$request->user()->name} commented on '{$card->title}'",
-            $board->id,
-            $card->id
-        );
-        $notified = [$request->user()->id];
-        foreach ($card->assignees as $assignee) {
-            if (!in_array($assignee->id, $notified)) {
-                Notification::notify(
-                    userId: $assignee->id,
-                    actor: $request->user(),
-                    type: 'new_comment',
-                    message: $request->user()->name . ' commented on "' . $card->title . '"',
-                    boardId: $board->id,
-                    cardId: $card->id,
-                    url: route('boards.show', $board->id)
-                );
-
-                $notified[] = $assignee->id;
-            }
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'comment' => $comment], 201);
         }
 
-        if (!in_array($board->user_id, $notified)) {
-            Notification::notify(
-                userId: $board->user_id,
-                actor: $request->user(),
-                type: 'new_comment',
-                message: $request->user()->name . ' commented on "' . $card->title . '"',
-                boardId: $board->id,
-                cardId: $card->id,
-                url: route('boards.show', $board->id)
-            );
-        }
-        return response()->json([
-            'success' => true,
-            'comment' => $comment->load('author'),
-        ], 201);
-    }
-
-    public function update(Request $request, Comment $comment)
-    {
-        $this->authorize('update', $comment);
-
-        $request->validate([
-            'body' => 'required|string|min:1|max:5000',
-        ]);
-
-        $comment->update(['body' => trim($request->body)]);
-
-        return response()->json([
-            'success' => true,
-            'comment' => $comment->fresh()->load('author'),
-        ]);
+        return redirect()->route('boards.show', $board)->with('success', 'Comment added.');
     }
 
     public function destroy(Request $request, Comment $comment)
     {
         $this->authorize('delete', $comment);
 
-        $comment->delete();
+        $board = $comment->card->list->board;
 
-        return response()->json(['success' => true]);
+        $this->commentService->delete($comment);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Comment deleted successfully']);
+        }
+
+        return redirect()->route('boards.show', $board)->with('success', 'Comment deleted.');
     }
+
 }

@@ -1,5 +1,4 @@
 <?php
-// app/Repositories/BoardRepository.php
 
 namespace App\Repositories;
 
@@ -53,5 +52,14 @@ class BoardRepository implements BoardRepositoryInterface
             'members',
             'labels',
         ]);
+    }
+
+    public function unassignFromAllCards(Board $board, int $userId): void
+    {
+        $board->lists->each(function ($list) use ($userId) {
+            $list->cards->each(function ($card) use ($userId) {
+                $card->assignees()->detach($userId);
+            });
+        });
     }
 }

@@ -43,7 +43,7 @@ class CardController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Card created successfully.',
-                'data'    => $this->formatCard($card),
+                'card'    => $this->formatCard($card), 
             ], 201);
         }
 

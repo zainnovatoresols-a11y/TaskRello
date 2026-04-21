@@ -100,6 +100,7 @@ class BoardService
 
     public function removeMember(Board $board, User $actor, User $user, Request $request): mixed
     {
+
         if ($board->user_id === $user->id) {
             if ($request->wantsJson()) {
                 return response()->json([
@@ -127,6 +128,8 @@ class BoardService
         }
 
         DB::transaction(function () use ($board, $actor, $user) {
+
+            $this->boardRepository->unassignFromAllCards($board, $user->id);
             $this->boardRepository->detachMember($board, $user->id);
 
             Notification::notify(

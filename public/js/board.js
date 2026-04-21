@@ -137,31 +137,54 @@ async function createLabel(boardId) {
         const data = await fetchJSON(`/boards/${boardId}/labels`, 'POST', { name, color });
 
         if (data.success) {
-           
             const noMsg = document.getElementById('no-labels-msg');
             if (noMsg) noMsg.remove();
 
-          
             const list = document.getElementById('labels-list');
-            const row = document.createElement('div');
-            row.id = `label-row-${data.label.id}`;
-            row.className = 'flex items-center justify-between py-1.5 px-3 rounded-lg';
-            row.style.backgroundColor = data.label.color + '20';
-            row.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <span class="w-5 h-5 rounded-full flex-shrink-0"
-                          style="background-color:${data.label.color}"></span>
-                    <span class="text-sm font-medium text-gray-800 dark:text-gray-100">
-                        ${data.label.name}
-                    </span>
-                </div>`;
-            list.appendChild(row);
+            const l = data.data;
 
+            const row = document.createElement('div');
+            row.id = `label-row-${l.id}`;
+            row.className = 'flex items-center justify-between py-2 px-3 rounded-lg';
+            row.style.backgroundColor = l.color + '20';
+            row.innerHTML = `
+                <div class="flex items-center gap-2 flex-1 min-w-0">
+                    <span class="w-4 h-4 rounded-full flex-shrink-0"
+                          id="label-dot-${l.id}"
+                          style="background-color:${l.color}"></span>
+                    <span class="text-sm font-medium text-gray-800 dark:text-gray-100 truncate"
+                          id="label-name-${l.id}">
+                        ${escapeHtml(l.name)}
+                    </span>
+                </div>
+                <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                    <button onclick="startEditLabel(${l.id}, '${escapeHtml(l.name)}', '${l.color}', ${boardId})"
+                            class="w-6 h-6 flex items-center justify-center rounded
+                                   text-gray-400 hover:text-blue-600 dark:hover:text-blue-400
+                                   hover:bg-white/50 transition"
+                            title="Edit label">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                    </button>
+                    <button onclick="deleteLabel(${l.id}, ${boardId})"
+                            class="w-6 h-6 flex items-center justify-center rounded
+                                   text-gray-400 hover:text-red-500 dark:hover:text-red-400
+                                   hover:bg-white/50 transition"
+                            title="Delete label">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>`;
+
+            list.appendChild(row);
             nameInput.value = '';
             showToast('Label created.');
         }
-    } catch (err) {
-       
+    } catch {
     }
 }
 
@@ -1041,5 +1064,100 @@ function toggleFilter(type) {
     }
 
     applyBoardFilters();
+}
+
+
+async function deleteLabel(labelId, boardId) {
+    if (!confirm('Delete this label? It will be removed from all cards.')) return;
+
+    try {
+        await fetchJSON(`/boards/${boardId}/labels/${labelId}`, 'DELETE');
+
+        document.getElementById(`label-row-${labelId}`)?.remove();
+
+        const list = document.getElementById('labels-list');
+        if (list && list.querySelectorAll('[id^="label-row-"]').length === 0) {
+            const msg = document.createElement('p');
+            msg.id = 'no-labels-msg';
+            msg.className = 'text-sm text-gray-400 text-center py-3';
+            msg.textContent = 'No labels yet. Create one below.';
+            list.appendChild(msg);
+        }
+
+        showToast('Label deleted.');
+        cardModalDirty = true;
+
+    } catch {
+    }
+}
+
+
+function startEditLabel(labelId, name, color, boardId) {
+    // Populate the edit form
+    document.getElementById('edit-label-id').value = labelId;
+    document.getElementById('edit-board-id').value = boardId;
+    document.getElementById('edit-label-name').value = name;
+
+    const radios = document.querySelectorAll('input[name="edit_label_color"]');
+    radios.forEach(r => {
+        r.checked = r.value.toLowerCase() === color.toLowerCase();
+    });
+
+    const form = document.getElementById('edit-label-form');
+    form.classList.remove('hidden');
+    form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    document.getElementById('edit-label-name').focus();
+}
+
+
+function cancelEditLabel() {
+    document.getElementById('edit-label-form').classList.add('hidden');
+    document.getElementById('edit-label-name').value = '';
+    document.getElementById('edit-label-id').value = '';
+    document.getElementById('edit-board-id').value = '';
+}
+
+
+async function saveEditLabel() {
+    const labelId = document.getElementById('edit-label-id').value;
+    const boardId = document.getElementById('edit-board-id').value;
+    const name = document.getElementById('edit-label-name').value.trim();
+    const color = document.querySelector('input[name="edit_label_color"]:checked')?.value;
+
+    if (!name) {
+        showToast('Label name cannot be empty.', 'error');
+        document.getElementById('edit-label-name').focus();
+        return;
+    }
+
+    if (!color) {
+        showToast('Please select a color.', 'error');
+        return;
+    }
+
+    try {
+        const data = await fetchJSON(
+            `/boards/${boardId}/labels/${labelId}`,
+            'PUT',
+            { name, color }
+        );
+
+        if (data.success) {
+            const row = document.getElementById(`label-row-${labelId}`);
+            const dot = document.getElementById(`label-dot-${labelId}`);
+            const span = document.getElementById(`label-name-${labelId}`);
+
+            if (row) row.style.backgroundColor = color + '20';
+            if (dot) dot.style.backgroundColor = color;
+            if (span) span.textContent = name;
+
+            cancelEditLabel();
+
+            showToast('Label updated.');
+            cardModalDirty = true;
+        }
+    } catch {
+    }
 }
     
