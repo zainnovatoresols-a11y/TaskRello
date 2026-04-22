@@ -8,8 +8,10 @@ use App\Http\Controllers\ListController;
 use App\Http\Controllers\CardController;
 use App\Http\Controllers\LabelController;
 use App\Http\Controllers\CommentController;
-
-
+use App\Http\Controllers\AttachmentController;
+use App\Http\Controllers\NotificationController;
+use App\Models\Notification;
+use App\Http\Controllers\ActivityController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -58,4 +60,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/cards/{card}/comments',[CommentController::class, 'index']);
     Route::post('/cards/{card}/comments',[CommentController::class, 'store']);
     Route::delete('/comments/{comment}',[CommentController::class, 'destroy']);
+
+    Route::get('/cards/{card}/attachments',[AttachmentController::class, 'index']);
+    Route::post('/cards/{card}/attachments',[AttachmentController::class, 'store']);
+    Route::delete('/attachments/{attachment}',[AttachmentController::class, 'destroy']);
+
+    Route::get('/notifications',[NotificationController::class, 'index']);
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
+    Route::post('/notifications/read-all',[NotificationController::class, 'markAllRead']);
+
+    Route::get('/cards/{card}/activity',   [ActivityController::class, 'card']);
+    Route::get('/boards/{board}/activity', [ActivityController::class, 'board']);
 });

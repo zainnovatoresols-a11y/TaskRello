@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\Notification;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
@@ -29,21 +31,51 @@ class NotificationController extends Controller
     public function markRead(Request $request, Notification $notification)
     {
         if ($notification->user_id !== $request->user()->id) {
-            return response()->json(['success' => false], 403);
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 403);
         }
 
         $notification->update(['is_read' => true]);
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'message' => "Notification '{$notification->type}' has been marked as read.",
+            'notification_id' => $notification->id,
+        ]);
     }
 
     public function markAllRead(Request $request)
     {
-        $request->user()
+        $count = $request->user()
             ->notifications()
             ->where('is_read', false)
             ->update(['is_read' => true]);
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'message' => "{$count} notification(s) marked as read.",
+            'updated_count' => $count
+        ]);
     }
+
+    public function markunRead(Request $request, Notification $notification)
+    {
+        if ($notification->user_id !== $request->user()->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 403);
+        }
+
+        $notification->update(['is_read' => false]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Notification '{$notification->type}' has been marked as unread.",
+            'notification_id' => $notification->id,
+        ]);
+    }
+
 }

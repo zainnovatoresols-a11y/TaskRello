@@ -18,6 +18,37 @@ class AttachmentController extends Controller
         
     }
 
+    public function index(Request $request, Card $card)
+    {
+        $board = $card->list->board;
+
+        if (!$board->isMember($request->user())) {
+            abort(403, 'You must be a board member to view attachments.');
+        }
+
+        $attachments = $card->attachments()
+            ->with('uploader')
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $attachments->map(fn($a) => [
+                'id'         => $a->id,
+                'filename'   => $a->filename,
+                'url'        => $a->url,
+                'is_image'   => $a->is_image,
+                'file_size'  => $a->file_size,
+                'mime_type'  => $a->mime_type,
+                'created_at' => $a->created_at->toDateTimeString(),
+                'uploader'   => [
+                    'id'   => $a->uploader->id,
+                    'name' => $a->uploader->name,
+                ],
+            ]),
+        ]);
+    }
+
     public function store(StoreAttachmentRequest $request, Card $card)
     {
         $this->authorize('create', [Attachment::class, $card]);
@@ -38,6 +69,9 @@ class AttachmentController extends Controller
         $this->authorize('delete', $attachment);
 
         $this->attachmentService->delete($attachment);
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Attachment deleted successfully'
+        ]);
     }
 }
