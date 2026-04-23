@@ -33,8 +33,15 @@
         </div>
     </div>
 
-    {{-- ── Cover color strip ────────────────────────────────── --}}
-    @if($card->cover_color)
+    {{-- ── Cover image (priority) or color strip ──────────── --}}
+    @if($card->cover_image_url)
+    <div class="relative w-full rounded-t-lg overflow-hidden cursor-pointer"
+        onclick="openCardModal({{ $card->id }})">
+        <img src="{{ $card->cover_image_url }}"
+            alt="Card cover"
+            class="w-full h-24 object-cover">
+    </div>
+    @elseif($card->cover_color)
     <div class="h-8 rounded-t-lg w-full"
         style="background-color: {{ $card->cover_color }}"
         onclick="openCardModal({{ $card->id }})">

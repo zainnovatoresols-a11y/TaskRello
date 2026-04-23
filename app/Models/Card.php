@@ -8,10 +8,8 @@ use App\Models\Comment;
 use App\Models\Attachment;
 use App\Models\Label;
 use App\Models\ActivityLog;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use CarbonCarbon;
 
 class Card extends Model
 {
@@ -25,15 +23,25 @@ class Card extends Model
         'position',
         'due_date',
         'cover_color',
+        'cover_image',
         'is_archived',
         'is_completed',
     ];
 
     protected $casts = [
-        'is_archived' => 'boolean',
+        'is_archived'  => 'boolean',
         'is_completed' => 'boolean',
-        'due_date'    => 'date',
+        'due_date'     => 'date',
     ];
+
+    protected $appends = ['cover_image_url']; // ← removed 'url' and 'is_image'
+
+    public function getCoverImageUrlAttribute(): ?string
+    {
+        return $this->cover_image
+            ? asset('storage/' . $this->cover_image)
+            : null;
+    }
 
     public function list()
     {
@@ -47,8 +55,7 @@ class Card extends Model
 
     public function assignees()
     {
-        return $this->belongsToMany(User::class, 'card_user')
-            ->withTimestamps();
+        return $this->belongsToMany(User::class, 'card_user')->withTimestamps();
     }
 
     public function labels()
@@ -58,8 +65,7 @@ class Card extends Model
 
     public function comments()
     {
-        return $this->hasMany(Comment::class)
-            ->orderBy('created_at');
+        return $this->hasMany(Comment::class)->orderBy('created_at');
     }
 
     public function attachments()
@@ -88,8 +94,6 @@ class Card extends Model
 
     public function isAssignedTo(User $user): bool
     {
-        return $this->assignees()
-            ->where('user_id', $user->id)
-            ->exists();
+        return $this->assignees()->where('user_id', $user->id)->exists();
     }
 }

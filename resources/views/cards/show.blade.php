@@ -1,18 +1,18 @@
 {{--
     Card detail modal content
     Loaded via JS: fetch('/cards/{{ $card->id }}')
-    Returns HTML that is injected into #card-modal-body
+Returns HTML that is injected into #card-modal-body
 --}}
 
 <style>
-.modal-select {
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    padding-right: 28px !important;
-}
+    .modal-select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        padding-right: 28px !important;
+    }
 </style>
 
 <div data-card-id="{{ $card->id }}" class="font-sans">
@@ -282,17 +282,77 @@
             {{-- Divider --}}
             <div class="border-t border-gray-100 dark:border-gray-700"></div>
 
-            {{-- Cover color --}}
+            {{-- Cover color + image --}}
             <div>
-                <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400
+               uppercase tracking-wider mb-2">
                     Cover
                 </h4>
+
+                {{-- Current cover image preview --}}
+                @if($card->cover_image_url)
+                <div class="relative mb-3 rounded-xl overflow-hidden group"
+                    id="cover-image-preview-{{ $card->id }}">
+                    <img src="{{ $card->cover_image_url }}"
+                        alt="Cover image"
+                        class="w-full h-24 object-cover rounded-xl">
+                    <button onclick="removeCoverImage({{ $card->id }})"
+                        class="absolute top-1.5 right-1.5 w-6 h-6 bg-black/50
+                           hover:bg-black/70 text-white rounded-full
+                           flex items-center justify-center text-sm
+                           transition opacity-0 group-hover:opacity-100">
+                        &times;
+                    </button>
+                </div>
+                @else
+                <div id="cover-image-preview-{{ $card->id }}" class="hidden">
+                    <div class="relative mb-3 rounded-xl overflow-hidden group">
+                        <img src="" alt="Cover image"
+                            id="cover-img-{{ $card->id }}"
+                            class="w-full h-24 object-cover rounded-xl">
+                        <button onclick="removeCoverImage({{ $card->id }})"
+                            class="absolute top-1.5 right-1.5 w-6 h-6 bg-black/50
+                               hover:bg-black/70 text-white rounded-full
+                               flex items-center justify-center text-sm
+                               transition opacity-0 group-hover:opacity-100">
+                            &times;
+                        </button>
+                    </div>
+                </div>
+                @endif
+
+                {{-- Upload cover image button --}}
+                <label class="flex items-center justify-center gap-1.5 w-full cursor-pointer
+                  border border-dashed border-gray-300 dark:border-gray-600
+                  rounded-lg px-2 py-2 text-xs text-gray-500 dark:text-gray-400
+                  hover:border-blue-400 hover:text-blue-600
+                  dark:hover:border-blue-500 dark:hover:text-blue-400
+                  transition mb-3">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2
+                     2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0
+                     00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Upload cover image
+                    <input type="file"
+                        class="hidden"
+                        accept="image/*"
+                        onchange="uploadCoverImage({{ $card->id }}, this)">
+                </label>
+
+                {{-- Color swatches --}}
+                <p class="text-xs text-gray-400 dark:text-gray-500 mb-2">Or pick a color</p>
                 <div class="flex flex-wrap gap-1.5">
                     @foreach(['#EB5A46','#F2D600','#61BD4F','#0079BF','#C377E0','#FF9F1A','none'] as $cc)
                     <button onclick="saveCardField({{ $card->id }}, 'cover_color', '{{ $cc === 'none' ? '' : $cc }}')"
-                        class="w-6 h-6 rounded-md border-2 transition-all hover:scale-110
-                               {{ $card->cover_color === $cc ? 'border-gray-500 scale-110 shadow-sm' : 'border-transparent' }}"
-                        style="{{ $cc !== 'none' ? 'background-color:'.$cc : 'background:repeating-linear-gradient(45deg,#e5e7eb 0,#e5e7eb 2px,#fff 0,#fff 8px)' }}"
+                        class="w-6 h-6 rounded-md border-2 transition
+                           {{ $card->cover_color === $cc
+                               ? 'border-gray-500 scale-110'
+                               : 'border-transparent hover:scale-110' }}"
+                        style="{{ $cc !== 'none'
+                        ? 'background-color:'.$cc
+                        : 'background:repeating-linear-gradient(45deg,#ddd 0,#ddd 2px,#fff 0,#fff 8px)' }}"
                         title="{{ $cc === 'none' ? 'No cover' : $cc }}">
                     </button>
                     @endforeach

@@ -9,6 +9,8 @@ use App\Models\Card;
 use App\Services\CardService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use App\Models\ActivityLog;
+
 
 class CardController extends Controller
 {
@@ -211,5 +213,62 @@ class CardController extends Controller
                 'color' => $l->color
             ])->toArray(),
         ];
+    }
+
+    public function uploadCoverImage(Request $request, Card $card)
+    {
+        $this->authorize('update', $card);
+
+        $request->validate([
+            'image' => [
+                'required',
+                'image',
+                'mimes:jpg,jpeg,png,gif,webp',
+                'max:5120',
+            ],
+        ]);
+
+        if ($card->cover_image) {
+            \Illuminate\Support\Facades\Storage::disk('public')
+                ->delete($card->cover_image);
+        }
+
+        $path = $request->file('image')->store(
+            'cover-images/card-' . $card->id,
+            'public'
+        );
+
+        $card->update(['cover_image' => $path]);
+
+        ActivityLog::log(
+            $request->user(),
+            'updated_card',
+            "{$request->user()->name} added a cover image to '{$card->title}'",
+            $card->list->board_id,
+            $card->id
+        );
+
+        return response()->json([
+            'success'         => true,
+            'message'         => 'Cover image uploaded.',
+            'cover_image_url' => $card->fresh()->cover_image_url,
+        ]);
+    }
+
+    public function removeCoverImage(Request $request, Card $card)
+    {
+        $this->authorize('update', $card);
+
+        if ($card->cover_image) {
+            \Illuminate\Support\Facades\Storage::disk('public')
+                ->delete($card->cover_image);
+        }
+
+        $card->update(['cover_image' => null]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cover image removed.',
+        ]);
     }
 }

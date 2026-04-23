@@ -40,7 +40,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/boards/{board}/lists/{list}', [ListController::class, 'update'])->name('lists.update');
         Route::delete('/boards/{board}/lists/{list}', [ListController::class, 'destroy'])->name('lists.destroy');
         Route::post('/boards/{board}/lists/reorder', [ListController::class, 'reorder'])->name('lists.reorder');
-        Route::post('/boards/{board}/labels', [LabelController::class, 'store'])->name('labels.store');
     });
 
     Route::post('/lists/{list}/cards', [CardController::class, 'store'])->name('cards.store');
@@ -59,14 +58,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/cards/{card}/attachments', [AttachmentController::class, 'store'])->name('attachments.store');
     Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])->name('attachments.destroy');
 
+    Route::post('/boards/{board}/labels', [LabelController::class, 'store'])->name('labels.store');
+    Route::put('/boards/{board}/labels/{label}', [LabelController::class, 'update'])->name('labels.update');
+    Route::delete('/boards/{board}/labels/{label}', [LabelController::class, 'destroy'])->name('labels.destroy');
     Route::post('/cards/{card}/labels/{label}', [LabelController::class, 'attach'])->name('labels.attach');
     Route::delete('/cards/{card}/labels/{label}', [LabelController::class, 'detach'])->name('labels.detach');
-    Route::delete('/boards/{board}/labels/{label}', [LabelController::class, 'destroy'])->name('labels.destroy');
-
 
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+
+    Route::post('/cards/{card}/cover-image',    [CardController::class, 'uploadCoverImage'])->name('cards.cover-image.upload');
+    Route::delete('/cards/{card}/cover-image',  [CardController::class, 'removeCoverImage'])->name('cards.cover-image.remove');
 });
 
 require __DIR__ . '/auth.php';
