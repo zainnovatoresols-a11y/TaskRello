@@ -1352,3 +1352,189 @@ document.addEventListener('keydown', function (e) {
         closeLightbox();
     }
 });    
+
+
+
+async function uploadCoverImage(cardId, input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('Image too large. Max 5MB.', 'error');
+        input.value = '';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('_token', csrfToken);
+
+    try {
+        showToast('Uploading cover...');
+
+        const res = await fetch(`/cards/${cardId}/cover-image`, {
+            method: 'POST',
+            body: formData,
+            headers: { 'Accept': 'application/json' },
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            showToast(data.message || 'Upload failed.', 'error');
+            return;
+        }
+
+        if (data.success) {
+            const preview = document.getElementById(`cover-image-preview-${cardId}`);
+            const img = document.getElementById(`cover-img-${cardId}`);
+
+            if (preview) {
+                if (img) img.src = data.cover_image_url;
+                preview.classList.remove('hidden');
+            }
+
+            const tile = document.getElementById(`card-${cardId}`);
+            if (tile) {
+                tile.querySelector('.cover-strip')?.remove();
+
+                let coverImg = tile.querySelector('.tile-cover-img');
+                if (!coverImg) {
+                    coverImg = document.createElement('img');
+                    coverImg.className = 'tile-cover-img w-full h-24 object-cover '
+                        + 'rounded-t-lg cursor-pointer';
+                    coverImg.onclick = () => openCardModal(cardId);
+                    tile.prepend(coverImg);
+                }
+                coverImg.src = data.cover_image_url;
+            }
+
+            input.value = '';
+            cardModalDirty = true;
+            showToast('Cover image set.');
+        }
+    } catch {
+        showToast('Upload failed. Please try again.', 'error');
+    }
+}
+
+async function removeCoverImage(cardId) {
+    try {
+        await fetchJSON(`/cards/${cardId}/cover-image`, 'DELETE');
+
+        const preview = document.getElementById(`cover-image-preview-${cardId}`);
+        if (preview) preview.classList.add('hidden');
+
+        const tile = document.getElementById(`card-${cardId}`);
+        tile?.querySelector('.tile-cover-img')?.remove();
+
+        cardModalDirty = true;
+        showToast('Cover image removed.');
+    } catch {
+    }
+}
+
+
+async function uploadDescriptionImage(cardId, input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('Image too large. Max 5MB.', 'error');
+        input.value = '';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('_token', csrfToken);
+
+    try {
+        showToast('Uploading image...');
+
+        const res = await fetch(`/cards/${cardId}/description-images`, {
+            method: 'POST',
+            body: formData,
+            headers: { 'Accept': 'application/json' },
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            showToast(data.message || 'Upload failed.', 'error');
+            return;
+        }
+
+        if (data.success) {
+            const grid = document.getElementById(`desc-images-${cardId}`);
+            if (grid) {
+                grid.classList.remove('hidden');
+
+                const div = document.createElement('div');
+                div.id = `desc-img-row-${data.image.id}`;
+                div.className = 'relative group rounded-xl overflow-hidden';
+                div.innerHTML = `
+                    <img src="${data.image.url}"
+                         alt="Description image"
+                         class="w-full h-28 object-cover cursor-pointer rounded-xl
+                                hover:opacity-90 transition"
+                         onclick="openImageLightbox('${data.image.url}')">
+                    <button onclick="removeDescriptionImage(${cardId}, ${data.image.id})"
+                            class="absolute top-1.5 right-1.5 w-6 h-6 bg-black/50
+                                   hover:bg-black/70 text-white rounded-full
+                                   flex items-center justify-center text-sm
+                                   transition opacity-0 group-hover:opacity-100">
+                        &times;
+                    </button>`;
+                grid.appendChild(div);
+            }
+
+            input.value = '';
+            cardModalDirty = true;
+            showToast('Image uploaded.');
+        }
+    } catch {
+        showToast('Upload failed. Please try again.', 'error');
+    }
+}
+
+async function removeDescriptionImage(cardId, imageId) {
+    if (!confirm('Remove this image?')) return;
+
+    try {
+        await fetchJSON(`/cards/${cardId}/description-images/${imageId}`, 'DELETE');
+
+        document.getElementById(`desc-img-row-${imageId}`)?.remove();
+
+        const grid = document.getElementById(`desc-images-${cardId}`);
+        if (grid && grid.children.length === 0) {
+            grid.classList.add('hidden');
+        }
+
+        cardModalDirty = true;
+        showToast('Image removed.');
+    } catch {
+    }
+}
+
+function openImageLightbox(url) {
+    const lightbox = document.getElementById('image-lightbox');
+    const img = document.getElementById('lightbox-img');
+
+    if (!lightbox || !img) return;
+
+    img.src = url;
+    lightbox.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+    const lightbox = document.getElementById('image-lightbox');
+    if (lightbox) lightbox.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+// Close lightbox on Escape key — add to existing keydown listener
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        closeLightbox();
+    }
+});

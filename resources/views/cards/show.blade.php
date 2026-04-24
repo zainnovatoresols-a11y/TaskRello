@@ -49,24 +49,74 @@ Returns HTML that is injected into #card-modal-body
 
             {{-- Description --}}
             <div>
-                <div class="flex items-center gap-2 mb-2.5">
-                    <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h7" />
                     </svg>
-                    <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</h3>
+                    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                        Description
+                    </h3>
                 </div>
+
                 <textarea id="card-description-{{ $card->id }}"
                     placeholder="Add a more detailed description..."
                     rows="4"
                     onblur="saveCardField({{ $card->id }}, 'description', this.value)"
                     class="w-full border border-gray-200 dark:border-gray-600 rounded-xl
-                           px-3 py-2.5 text-sm resize-none
-                           bg-gray-50 dark:bg-gray-700/50
-                           text-gray-800 dark:text-gray-100
-                           placeholder-gray-400 dark:placeholder-gray-500
-                           focus:outline-none focus:ring-2 focus:ring-blue-500
-                           focus:border-transparent focus:bg-white dark:focus:bg-gray-700
-                           transition-all">{{ $card->description }}</textarea>
+                     px-3 py-2.5 text-sm resize-none
+                     bg-gray-50 dark:bg-gray-700/50
+                     text-gray-800 dark:text-gray-100
+                     placeholder-gray-400 dark:placeholder-gray-500
+                     focus:outline-none focus:ring-2 focus:ring-blue-500
+                     focus:border-transparent focus:bg-white dark:focus:bg-gray-700
+                     transition mb-2">{{ $card->description }}</textarea>
+
+                {{-- Description images gallery --}}
+                @if($card->descriptionImages->isNotEmpty())
+                <div class="grid grid-cols-2 gap-2 mb-3"
+                    id="desc-images-{{ $card->id }}">
+                    @foreach($card->descriptionImages as $img)
+                    <div class="relative group rounded-xl overflow-hidden"
+                        id="desc-img-row-{{ $img->id }}">
+                        <img src="{{ $img->url }}"
+                            alt="Description image"
+                            class="w-full h-28 object-cover cursor-pointer rounded-xl
+                                hover:opacity-90 transition"
+                            onclick="openImageLightbox('{{ $img->url }}')">
+                        <button onclick="removeDescriptionImage({{ $card->id }}, {{ $img->id }})"
+                            class="absolute top-1.5 right-1.5 w-6 h-6 bg-black/50
+                                   hover:bg-black/70 text-white rounded-full
+                                   flex items-center justify-center text-sm
+                                   transition opacity-0 group-hover:opacity-100">
+                            &times;
+                        </button>
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                <div class="grid grid-cols-2 gap-2 mb-3 hidden"
+                    id="desc-images-{{ $card->id }}">
+                </div>
+                @endif
+
+                {{-- Upload image to description --}}
+                <label class="flex items-center gap-1.5 text-xs text-gray-400
+                  dark:text-gray-500 cursor-pointer hover:text-blue-600
+                  dark:hover:text-blue-400 transition w-fit">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2
+                     2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0
+                     00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Attach image to description
+                    <input type="file"
+                        class="hidden"
+                        accept="image/*"
+                        onchange="uploadDescriptionImage({{ $card->id }}, this)">
+                </label>
             </div>
 
             {{-- Comments --}}
@@ -295,7 +345,8 @@ Returns HTML that is injected into #card-modal-body
                     id="cover-image-preview-{{ $card->id }}">
                     <img src="{{ $card->cover_image_url }}"
                         alt="Cover image"
-                        class="w-full h-24 object-cover rounded-xl">
+                        class="w-full h-24 object-cover rounded-xl cursor-pointer hover:opacity-90 transition"
+                        onclick="openImageLightbox('{{ $card->cover_image_url }}')">
                     <button onclick="removeCoverImage({{ $card->id }})"
                         class="absolute top-1.5 right-1.5 w-6 h-6 bg-black/50
                            hover:bg-black/70 text-white rounded-full
@@ -309,7 +360,8 @@ Returns HTML that is injected into #card-modal-body
                     <div class="relative mb-3 rounded-xl overflow-hidden group">
                         <img src="" alt="Cover image"
                             id="cover-img-{{ $card->id }}"
-                            class="w-full h-24 object-cover rounded-xl">
+                            class="w-full h-24 object-cover rounded-xl cursor-pointer hover:opacity-90 transition"
+                            onclick="openImageLightbox(this.src)">
                         <button onclick="removeCoverImage({{ $card->id }})"
                             class="absolute top-1.5 right-1.5 w-6 h-6 bg-black/50
                                hover:bg-black/70 text-white rounded-full
@@ -415,5 +467,23 @@ Returns HTML that is injected into #card-modal-body
             @endcan
 
         </div>
+    </div>
+</div>
+
+{{-- ── Image lightbox ──────────────────────────────────────── --}}
+<div id="image-lightbox"
+     class="hidden fixed inset-0 z-[9999] flex items-center justify-center px-4"
+     style="background-color: rgba(0,0,0,0.85);"
+     onclick="closeLightbox()">
+    <div class="relative max-w-4xl w-full" onclick="event.stopPropagation()">
+        <button onclick="closeLightbox()"
+                class="absolute -top-10 right-0 text-white/70 hover:text-white
+                       text-3xl font-bold transition">
+            &times;
+        </button>
+        <img id="lightbox-img"
+             src=""
+             alt="Full size image"
+             class="w-full max-h-[80vh] object-contain rounded-xl">
     </div>
 </div>

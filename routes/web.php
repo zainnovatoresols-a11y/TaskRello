@@ -68,8 +68,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
 
-    Route::post('/cards/{card}/cover-image',    [CardController::class, 'uploadCoverImage'])->name('cards.cover-image.upload');
-    Route::delete('/cards/{card}/cover-image',  [CardController::class, 'removeCoverImage'])->name('cards.cover-image.remove');
+    Route::post('/cards/{card}/cover-image',[CardController::class, 'uploadCoverImage'])->name('cards.cover-image.upload');
+    Route::delete('/cards/{card}/cover-image',[CardController::class, 'removeCoverImage'])->name('cards.cover-image.remove');
+
+    Route::post('/cards/{card}/description-images',[CardController::class, 'uploadDescriptionImage'])->name('cards.description-images.upload');
+    Route::delete('/cards/{card}/description-images/{image}',[CardController::class, 'removeDescriptionImage'])->name('cards.description-images.remove');
 });
 
 require __DIR__ . '/auth.php';

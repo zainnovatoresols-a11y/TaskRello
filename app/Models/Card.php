@@ -96,4 +96,10 @@ class Card extends Model
     {
         return $this->assignees()->where('user_id', $user->id)->exists();
     }
+
+    public function descriptionImages()
+    {
+        return $this->hasMany(CardDescriptionImage::class)
+            ->latest('created_at');
+    }
 }

@@ -10,7 +10,8 @@ use App\Services\CardService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use App\Models\ActivityLog;
-
+use App\Models\CardDescriptionImage;
+use Illuminate\Container\Attributes\Storage;
 
 class CardController extends Controller
 {
@@ -229,7 +230,7 @@ class CardController extends Controller
         ]);
 
         if ($card->cover_image) {
-            \Illuminate\Support\Facades\Storage::disk('public')
+           Storage::disk('public')
                 ->delete($card->cover_image);
         }
 
@@ -260,7 +261,7 @@ class CardController extends Controller
         $this->authorize('update', $card);
 
         if ($card->cover_image) {
-            \Illuminate\Support\Facades\Storage::disk('public')
+            Storage::disk('public')
                 ->delete($card->cover_image);
         }
 
@@ -269,6 +270,55 @@ class CardController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Cover image removed.',
+        ]);
+    }
+
+    public function uploadDescriptionImage(Request $request, Card $card)
+    {
+        $this->authorize('update', $card);
+
+        $request->validate([
+            'image' => [
+                'required',
+                'image',
+                'mimes:jpg,jpeg,png,gif,webp',
+                'max:5120',
+            ],
+        ]);
+
+        $path = $request->file('image')->store(
+            'description-images/card-' . $card->id,
+            'public'
+        );
+
+        $image = CardDescriptionImage::create([
+            'card_id'    => $card->id,
+            'user_id'    => $request->user()->id,
+            'image_path' => $path,
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'image'   => [
+                'id'  => $image->id,
+                'url' => $image->url,
+            ],
+        ]);
+    }
+
+    public function removeDescriptionImage(Request $request, Card $card, CardDescriptionImage $image)
+    {
+        $this->authorize('update', $card);
+
+        Storage::disk('public')
+            ->delete($image->image_path);
+
+        $image->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Image removed.',
         ]);
     }
 }

@@ -39,6 +39,7 @@ class CardRepository implements CardRepositoryInterface
             'attachments.uploader',
             'activityLogs.user',
             'list.board.members',
+            'descriptionImages',
         ]);
     }
 
