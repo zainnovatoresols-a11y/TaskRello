@@ -11,7 +11,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use App\Models\ActivityLog;
 use App\Models\CardDescriptionImage;
-use Illuminate\Container\Attributes\Storage;
+use Illuminate\Support\Facades\Storage;
 
 class CardController extends Controller
 {

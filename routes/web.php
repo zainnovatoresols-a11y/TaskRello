@@ -12,7 +12,6 @@ use App\Http\Controllers\LabelController;
 use App\Http\Controllers\NotificationController;
 
 
-Route::get('/', fn() => redirect()->route('boards.index'));
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -22,6 +21,8 @@ Route::middleware('auth')->group(function () {
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', fn() => redirect()->route('boards.index'));
+
 
     Route::get('/boards', [BoardController::class, 'index'])->name('boards.index');
     Route::get('/boards/create', [BoardController::class, 'create'])->name('boards.create');
@@ -73,6 +74,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/cards/{card}/description-images',[CardController::class, 'uploadDescriptionImage'])->name('cards.description-images.upload');
     Route::delete('/cards/{card}/description-images/{image}',[CardController::class, 'removeDescriptionImage'])->name('cards.description-images.remove');
+
+    Route::post('/profile/avatar',[ProfileController::class,'updateAvatar'])->name('profile.avatar.update');
+    Route::delete('/profile/avatar',[ProfileController::class,'removeAvatar'])->name('profile.avatar.remove');
 });
 
 require __DIR__ . '/auth.php';

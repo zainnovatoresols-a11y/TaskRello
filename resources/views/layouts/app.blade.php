@@ -102,9 +102,15 @@
                 <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open"
                         class="flex items-center gap-2 text-white text-sm hover:opacity-80 transition focus:outline-none">
+                        @if(auth()->user()->avatar)
+                        <img src="{{ Storage::url(auth()->user()->avatar) }}"
+                            alt="{{ auth()->user()->name }}"
+                            class="w-8 h-8 rounded-full ring-2 ring-white/30 object-cover">
+                        @else
                         <span class="w-8 h-8 rounded-full bg-white/25 flex items-center justify-center font-bold text-xs ring-2 ring-white/30">
                             {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                         </span>
+                        @endif
                         <span class="hidden sm:block max-w-[120px] truncate">
                             {{ auth()->user()->name }}
                         </span>
