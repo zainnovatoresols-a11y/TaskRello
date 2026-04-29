@@ -23,6 +23,8 @@ use App\Repositories\LabelRepository;
 use App\Repositories\Contracts\LabelRepositoryInterface;
 use App\Repositories\CommentRepository;
 use App\Repositories\Contracts\CommentRepositoryInterface;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Notifications\Messages\MailMessage;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -53,5 +55,19 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Card::class,       CardPolicy::class);
         Gate::policy(Comment::class,    CommentPolicy::class);
         Gate::policy(Attachment::class, AttachmentPolicy::class);
+
+        ResetPassword::toMailUsing(function ($notifiable, $token) {
+
+            $url = url('/reset-password/' . $token . '?email=' . $notifiable->email);
+
+            return (new MailMessage)
+                ->subject('Reset Your Password')
+                ->view('emails.reset-password', [
+                    'user' => $notifiable,
+                    'url' => $url,
+                ]);
+        });
     }
+
+    
 }

@@ -1,9 +1,3 @@
-{{--
-    Card detail modal content
-    Loaded via JS: fetch('/cards/{{ $card->id }}')
-Returns HTML that is injected into #card-modal-body
---}}
-
 <style>
     .modal-select {
         appearance: none;
@@ -232,9 +226,33 @@ Returns HTML that is injected into #card-modal-body
 
             {{-- Members --}}
             <div>
-                <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                    Members
-                </h4>
+                <div class="flex items-center justify-between gap-2 mb-2">
+                    <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Members
+                    </h4>
+                    @can('update', $card->list->board)
+                    <button type="button"
+                        onclick="window.location='{{ route('boards.edit', $card->list->board) }}'"
+                        class="w-8 h-8 flex items-center justify-center rounded-lg
+                           text-gray-400 hover:text-blue-600 dark:hover:text-blue-400
+                           hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724
+                             1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724
+                             1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724
+                             1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724
+                             1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724
+                             1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724
+                             1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724
+                             1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608
+                             2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </button>
+                    @endcan
+                </div>
                 <div id="assignees-{{ $card->id }}"
                     class="flex items-center -space-x-1.5 mb-2.5 min-h-[28px]">
                     @foreach($card->assignees->take(4) as $assignee)
@@ -299,9 +317,31 @@ Returns HTML that is injected into #card-modal-body
 
             {{-- Labels --}}
             <div>
-                <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                    Labels
-                </h4>
+                <div class="flex items-center justify-between mb-2 gap-2">
+                    <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Labels
+                    </h4>
+                    <button onclick="openLabelsManager()"
+                        title="Manage labels"
+                        class="w-8 h-8 flex items-center justify-center rounded-lg
+                           text-gray-400 hover:text-blue-600 dark:hover:text-blue-400
+                           hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724
+                             1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724
+                             1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724
+                             1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724
+                             1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724
+                             1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724
+                             1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724
+                             1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608
+                             2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </button>
+                </div>
                 <div id="card-labels-{{ $card->id }}"
                     class="flex flex-wrap gap-1 mb-2.5 min-h-[20px]">
                     @foreach($card->labels as $label)
@@ -327,6 +367,7 @@ Returns HTML that is injected into #card-modal-body
                     <option value="{{ $label->id }}">{{ $label->name }}</option>
                     @endforeach
                 </select>
+
             </div>
 
             {{-- Divider --}}
@@ -472,18 +513,18 @@ Returns HTML that is injected into #card-modal-body
 
 {{-- ── Image lightbox ──────────────────────────────────────── --}}
 <div id="image-lightbox"
-     class="hidden fixed inset-0 z-[9999] flex items-center justify-center px-4"
-     style="background-color: rgba(0,0,0,0.85);"
-     onclick="closeLightbox()">
+    class="hidden fixed inset-0 z-[9999] flex items-center justify-center px-4"
+    style="background-color: rgba(0,0,0,0.85);"
+    onclick="closeLightbox()">
     <div class="relative max-w-4xl w-full" onclick="event.stopPropagation()">
         <button onclick="closeLightbox()"
-                class="absolute -top-10 right-0 text-white/70 hover:text-white
+            class="absolute -top-10 right-0 text-white/70 hover:text-white
                        text-3xl font-bold transition">
             &times;
         </button>
         <img id="lightbox-img"
-             src=""
-             alt="Full size image"
-             class="w-full max-h-[80vh] object-contain rounded-xl">
+            src=""
+            alt="Full size image"
+            class="w-full max-h-[80vh] object-contain rounded-xl">
     </div>
 </div>
