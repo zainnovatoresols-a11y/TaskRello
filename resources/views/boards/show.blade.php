@@ -138,7 +138,7 @@
     id="board-columns">
 
     {{-- Render each list column --}}
-    @foreach($board->lists as $list)
+    @foreach($board->lists->where('is_archived', false) as $list)
     @include('partials._list', ['list' => $list, 'board' => $board])
     @endforeach
 

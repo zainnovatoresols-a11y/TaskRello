@@ -212,6 +212,176 @@
         @endcan
     </div>
 
+    @php
+    $archivedLists = $board->lists->where('is_archived', true);
+    @endphp
+
+    <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-2xl 
+            border border-gray-200 dark:border-gray-700 
+            shadow-sm p-6 mb-6">
+
+        <div class="flex items-center justify-between mb-5">
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                Archived Lists
+            </h2>
+
+            @if($archivedLists->isNotEmpty())
+            <span class="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                {{ $archivedLists->count() }}
+            </span>
+            @endif
+        </div>
+
+        @if($archivedLists->isEmpty())
+        <div class="flex flex-col items-center justify-center py-10 text-center">
+            <div class="w-12 h-12 mb-3 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                📂
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+                No archived lists yet
+            </p>
+            <p class="text-xs text-gray-400 mt-1">
+                Archived lists will appear here
+            </p>
+        </div>
+        @else
+
+        <div class="divide-y divide-gray-100 dark:divide-gray-700">
+            @foreach($archivedLists as $archivedList)
+            <div x-data="{ loading: false }"
+                class="group flex items-center justify-between py-4">
+
+                <div class="flex flex-col">
+                    <p class="text-sm font-medium text-gray-800 dark:text-gray-100">
+                        {{ $archivedList->name }}
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Archived on {{ $archivedList->updated_at->format('M j, Y') }}
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <form method="POST"
+                        action="{{ route('lists.update', [$board, $archivedList]) }}"
+                        x-data="{
+                            loading: false,
+                            controller: new AbortController(),
+                            async handleUnarchive(e) {
+                                e.preventDefault();
+                                this.loading = true;
+                                try {
+                                    const response = await fetch(this.$el.action, {
+                                        method: 'POST',
+                                        body: new FormData(this.$el),
+                                        signal: this.controller.signal
+                                    });
+                                    if (!response.ok) {
+                                        throw new Error('Request failed');
+                                    }
+                                    window.location.reload();
+                                } catch (error) {
+                                    if (error.name !== 'AbortError') {
+                                        console.error('Unarchive failed:', error);
+                                    }
+                                    this.loading = false;
+                                }
+                            }
+                        }"
+                        @submit="handleUnarchive($event)">
+
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="is_archived" value="0">
+
+                        <button type="submit"
+                            :disabled="loading"
+                            class="inline-flex items-center gap-2 px-3 py-1.5 
+                               text-xs font-medium rounded-lg
+                               bg-green-50 text-green-700 
+                               hover:bg-green-100 hover:text-green-800
+                               dark:bg-green-900/30 dark:text-green-400 
+                               dark:hover:bg-green-900/50
+                               disabled:opacity-50 disabled:cursor-not-allowed
+                               transition">
+
+                            <svg x-show="loading" class="w-4 h-4 animate-spin"
+                                viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v8H4z"></path>
+                            </svg>
+
+                            <span x-show="!loading">Unarchive</span>
+                            <span x-show="loading">Restoring...</span>
+                        </button>
+                    </form>
+
+                    <form method="POST"
+                        action="{{ route('lists.destroy', [$board, $archivedList]) }}"
+                        x-data="{
+                            loading: false,
+                            controller: new AbortController(),
+                            async handleDelete(e) {
+                                e.preventDefault();
+                                const name = '{{ addslashes($archivedList->name) }}';
+                                if (!confirm(`Delete list '${name}'? This cannot be undone.`)) {
+                                    return;
+                                }
+                                this.loading = true;
+                                try {
+                                    const response = await fetch(this.$el.action, {
+                                        method: 'POST',
+                                        body: new FormData(this.$el),
+                                        signal: this.controller.signal
+                                    });
+                                    if (!response.ok) {
+                                        throw new Error('Request failed');
+                                    }
+                                    window.location.reload();
+                                } catch (error) {
+                                    if (error.name !== 'AbortError') {
+                                        console.error('Delete failed:', error);
+                                    }
+                                    this.loading = false;
+                                }
+                            }
+                        }"
+                        @submit="handleDelete($event)">
+
+                        @csrf
+                        @method('DELETE')
+
+                        <button type="submit"
+                            :disabled="loading"
+                            class="inline-flex items-center gap-2 px-3 py-1.5 
+                               text-xs font-medium rounded-lg
+                               bg-red-50 text-red-700 
+                               hover:bg-red-100 hover:text-red-800
+                               dark:bg-red-900/30 dark:text-red-400 
+                               dark:hover:bg-red-900/50
+                               disabled:opacity-50 disabled:cursor-not-allowed
+                               transition">
+
+                            <svg x-show="loading" class="w-4 h-4 animate-spin"
+                                viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v8H4z"></path>
+                            </svg>
+
+                            <span x-show="!loading">Delete</span>
+                            <span x-show="loading">Deleting...</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
+    </div>
+
     {{-- ── Section 3: Danger zone ────────────────────────────── --}}
     @can('delete', $board)
     <div class="bg-white dark:bg-gray-800 rounded-2xl border border-red-100
@@ -227,13 +397,51 @@
 
         <form method="POST"
             action="{{ route('boards.destroy', $board) }}"
-            onsubmit="return confirm('DELETE board \'{{ addslashes($board->name) }}\'?\n\nThis cannot be undone. All lists and cards will be permanently lost.')">
+            x-data="{
+                loading: false,
+                controller: new AbortController(),
+                async handleDelete(e) {
+                    e.preventDefault();
+                    const name = '{{ addslashes($board->name) }}';
+                    if (!confirm(`DELETE board '${name}'?\n\nThis cannot be undone. All lists and cards will be permanently lost.`)) {
+                        return;
+                    }
+                    this.loading = true;
+                    try {
+                        const response = await fetch(this.$el.action, {
+                            method: 'POST',
+                            body: new FormData(this.$el),
+                            signal: this.controller.signal
+                        });
+                        if (!response.ok) {
+                            throw new Error('Request failed');
+                        }
+                        window.location.reload();
+                    } catch (error) {
+                        if (error.name !== 'AbortError') {
+                            console.error('Delete failed:', error);
+                        }
+                        this.loading = false;
+                    }
+                }
+            }"
+            @submit="handleDelete($event)">
             @csrf
             @method('DELETE')
             <button type="submit"
+                :disabled="loading"
                 class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5
-                               rounded-lg text-sm font-medium transition">
-                Delete this board permanently
+                               rounded-lg text-sm font-medium transition
+                               disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg x-show="loading" class="w-4 h-4 animate-spin inline mr-2"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                        stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span x-show="!loading">Delete this board permanently</span>
+                <span x-show="loading">Deleting...</span>
             </button>
         </form>
     </div>

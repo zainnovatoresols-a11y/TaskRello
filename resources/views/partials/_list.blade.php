@@ -19,7 +19,6 @@
             ondblclick="inlineEditList({{ $list->id }}, this)">
             {{ $list->name }}
         </h3>
-
         {{-- Card count badge --}}
         <span class="text-xs text-gray-500 dark:text-gray-400 mr-2 flex-shrink-0">
             {{ $list->cards->count() }}
@@ -52,12 +51,21 @@
                     Rename list
                 </button>
 
+                @if($list->is_archived)
+                <button onclick="unarchiveList({{ $list->id }}, {{ $board->id }})"
+                    class="w-full text-left px-4 py-2 text-sm
+                               text-gray-700 dark:text-gray-200
+                               hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                    Unarchive list
+                </button>
+                @else
                 <button onclick="archiveList({{ $list->id }}, {{ $board->id }})"
                     class="w-full text-left px-4 py-2 text-sm
                                text-gray-700 dark:text-gray-200
                                hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                     Archive list
                 </button>
+                @endif
 
                 <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
 

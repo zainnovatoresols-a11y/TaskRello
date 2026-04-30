@@ -675,6 +675,19 @@ async function archiveList(listId, boardId) {
     }
 }
 
+async function unarchiveList(listId, boardId) {
+    if (!confirm('Unarchive this list?')) return;
+
+    try {
+        await fetchJSON(`/boards/${boardId}/lists/${listId}`, 'PUT', {
+            is_archived: false,
+        });
+        showToast('List unarchived.');
+        window.location.reload();
+    } catch {
+    }
+}
+
 async function deleteList(listId, boardId) {
     if (!confirm('Delete this list and ALL its cards? This cannot be undone.')) return;
 
