@@ -70,51 +70,156 @@
                                  resize-none transition">{{ old('description', $board->description) }}</textarea>
             </div>
 
-            {{-- Background color --}}
+            {{-- Background ──────────────────────────────────────────── --}}
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                    Background color
+                    Background
                 </label>
 
-                @php
-                $colors = [
-                '#0052CC' => 'Blue',
-                '#00875A' => 'Green',
-                '#FF5630' => 'Red',
-                '#6554C0' => 'Purple',
-                '#FF8B00' => 'Orange',
-                '#00B8D9' => 'Cyan',
-                '#36B37E' => 'Teal',
-                '#172B4D' => 'Navy',
-                ];
-                @endphp
-
-                <div class="flex flex-wrap gap-3 mb-4">
-                    @foreach($colors as $hex => $label)
-                    <label class="cursor-pointer group" title="{{ $label }}">
-                        <input type="radio"
-                            name="background_color"
-                            value="{{ $hex }}"
-                            class="sr-only peer"
-                            {{ old('background_color', $board->background_color) === $hex ? 'checked' : '' }}>
-                        <span class="block w-10 h-10 rounded-xl transition-all
-                                         ring-2 ring-transparent ring-offset-2
-                                         ring-offset-white dark:ring-offset-gray-800
-                                         peer-checked:ring-gray-500 dark:peer-checked:ring-gray-300
-                                         group-hover:scale-110"
-                            style="background-color: {{ $hex }}">
-                        </span>
-                    </label>
-                    @endforeach
+                {{-- Tab switcher --}}
+                <div class="flex gap-2 mb-4">
+                    <button type="button"
+                        id="edit-tab-color"
+                        onclick="switchEditBgTab('color')"
+                        class="px-3 py-1.5 text-xs font-medium rounded-lg transition
+                       {{ !$board->background_image
+                           ? 'bg-blue-700 text-white'
+                           : 'bg-gray-100 dark:bg-gray-700 text-gray-600
+                              dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
+                        Color
+                    </button>
+                    <button type="button"
+                        id="edit-tab-image"
+                        onclick="switchEditBgTab('image')"
+                        class="px-3 py-1.5 text-xs font-medium rounded-lg transition
+                       {{ $board->background_image
+                           ? 'bg-blue-700 text-white'
+                           : 'bg-gray-100 dark:bg-gray-700 text-gray-600
+                              dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
+                        Image
+                    </button>
                 </div>
 
-                {{-- Live preview strip --}}
-                <div class="rounded-xl h-12 flex items-center px-4 transition-colors"
-                    id="color-preview"
-                    style="background-color: {{ old('background_color', $board->background_color) }}">
-                    <span class="text-white font-semibold text-sm" id="preview-name">
-                        {{ old('name', $board->name) }}
-                    </span>
+                {{-- Color picker panel --}}
+                <div id="edit-panel-color"
+                    class="{{ $board->background_image ? 'hidden' : '' }}">
+
+                    @php
+                    $colors = [
+                    '#0052CC' => 'Blue',
+                    '#00875A' => 'Green',
+                    '#FF5630' => 'Red',
+                    '#6554C0' => 'Purple',
+                    '#FF8B00' => 'Orange',
+                    '#00B8D9' => 'Cyan',
+                    '#36B37E' => 'Teal',
+                    '#172B4D' => 'Navy',
+                    ];
+                    @endphp
+
+                    <div class="flex flex-wrap gap-3 mb-4">
+                        @foreach($colors as $hex => $label)
+                        <label class="cursor-pointer group" title="{{ $label }}">
+                            <input type="radio"
+                                name="background_color"
+                                value="{{ $hex }}"
+                                class="sr-only peer"
+                                {{ old('background_color', $board->background_color) === $hex ? 'checked' : '' }}>
+                            <span class="block w-10 h-10 rounded-xl transition-all
+                                 ring-2 ring-transparent ring-offset-2
+                                 ring-offset-white dark:ring-offset-gray-800
+                                 peer-checked:ring-gray-500 dark:peer-checked:ring-gray-300
+                                 group-hover:scale-110"
+                                style="background-color: {{ $hex }}">
+                            </span>
+                        </label>
+                        @endforeach
+                    </div>
+
+                    {{-- Live preview strip --}}
+                    <div class="rounded-xl h-12 flex items-center px-4 transition-colors"
+                        id="color-preview"
+                        style="background-color: {{ old('background_color', $board->background_color) }}">
+                        <span class="text-white font-semibold text-sm"
+                            id="preview-name">
+                            {{ old('name', $board->name) }}
+                        </span>
+                    </div>
+                </div>
+
+                {{-- Image upload panel --}}
+                <div id="edit-panel-image"
+                    class="{{ $board->background_image ? '' : 'hidden' }}">
+
+                    {{-- Current image preview --}}
+                    <div id="edit-bg-preview-wrap"
+                        class="{{ $board->background_image ? '' : 'hidden' }} mb-3">
+                        <div class="relative rounded-xl overflow-hidden group"
+                            style="height: 140px;">
+                            <img id="edit-bg-preview-img"
+                                src="{{ $board->background_image_url ?? '' }}"
+                                alt="Board background"
+                                class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black/20 rounded-xl"></div>
+                            <div class="absolute bottom-2 right-2 flex gap-1.5">
+                                <label class="cursor-pointer bg-white/90 hover:bg-white
+                                  text-gray-700 text-xs font-medium px-2.5 py-1.5
+                                  rounded-lg transition shadow-sm">
+                                    Change
+                                    <input type="file"
+                                        accept="image/*"
+                                        class="hidden"
+                                        onchange="uploadEditBoardBg({{ $board->id }}, this)">
+                                </label>
+                                <button type="button"
+                                    onclick="removeEditBoardBg({{ $board->id }})"
+                                    class="bg-red-500 hover:bg-red-600 text-white
+                                   text-xs font-medium px-2.5 py-1.5
+                                   rounded-lg transition shadow-sm">
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Upload zone (shown when no image) --}}
+                    <div id="edit-bg-upload-zone"
+                        class="{{ $board->background_image ? 'hidden' : '' }}">
+                        <label class="flex flex-col items-center justify-center w-full
+                          border-2 border-dashed border-gray-300 dark:border-gray-600
+                          rounded-xl px-4 py-6 cursor-pointer
+                          hover:border-blue-400 dark:hover:border-blue-500
+                          hover:bg-blue-50 dark:hover:bg-blue-900/10
+                          transition group">
+                            <svg class="w-8 h-8 text-gray-400 group-hover:text-blue-500
+                            transition mb-2"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="1.5"
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2
+                             l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6
+                             20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0
+                             00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span class="text-sm text-gray-500 dark:text-gray-400
+                             group-hover:text-blue-600 dark:group-hover:text-blue-400
+                             font-medium transition">
+                                Click to upload background image
+                            </span>
+                            <span class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                JPG, PNG, WEBP or GIF — max 8MB
+                            </span>
+                            <input type="file"
+                                accept="image/*"
+                                class="hidden"
+                                onchange="uploadEditBoardBg({{ $board->id }}, this)">
+                        </label>
+                    </div>
+
+                    {{-- Upload progress --}}
+                    <p id="edit-bg-status"
+                        class="text-xs mt-2 text-gray-400 hidden">
+                    </p>
                 </div>
             </div>
 
@@ -382,7 +487,6 @@
         @endif
     </div>
 
-    {{-- ── Section 3: Danger zone ────────────────────────────── --}}
     @can('delete', $board)
     <div class="bg-white dark:bg-gray-800 rounded-2xl border border-red-100
                     dark:border-red-900/50 shadow-sm p-6">
@@ -416,7 +520,7 @@
                         if (!response.ok) {
                             throw new Error('Request failed');
                         }
-                        window.location.reload();
+                        window.location.href = '{{ route("boards.index") }}';
                     } catch (error) {
                         if (error.name !== 'AbortError') {
                             console.error('Delete failed:', error);
@@ -451,8 +555,8 @@
 @endsection
 
 @section('scripts')
+<script src="{{ asset('js/board.js') }}"></script>
 <script>
-    // Live color preview on edit page
     const preview = document.getElementById('color-preview');
     const previewName = document.getElementById('preview-name');
     const nameInput = document.getElementById('name');

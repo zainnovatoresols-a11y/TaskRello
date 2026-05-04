@@ -33,6 +33,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/boards/{board}/edit', [BoardController::class, 'edit'])->name('boards.edit');
         Route::put('/boards/{board}', [BoardController::class, 'update'])->name('boards.update');
         Route::delete('/boards/{board}', [BoardController::class, 'destroy'])->name('boards.destroy');
+        Route::post('/boards/{board}/background-image', [BoardController::class, 'uploadBackgroundImage'])->name('boards.background-image.upload');
+        Route::delete('/boards/{board}/background-image', [BoardController::class, 'removeBackgroundImage'])->name('boards.background-image.remove');
 
         Route::post('/boards/{board}/members', [BoardController::class, 'addMember'])->name('boards.members.add');
         Route::delete('/boards/{board}/members/{user}', [BoardController::class, 'removeMember'])->name('boards.members.remove');
@@ -69,14 +71,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
 
-    Route::post('/cards/{card}/cover-image',[CardController::class, 'uploadCoverImage'])->name('cards.cover-image.upload');
-    Route::delete('/cards/{card}/cover-image',[CardController::class, 'removeCoverImage'])->name('cards.cover-image.remove');
+    Route::post('/cards/{card}/cover-image', [CardController::class, 'uploadCoverImage'])->name('cards.cover-image.upload');
+    Route::delete('/cards/{card}/cover-image', [CardController::class, 'removeCoverImage'])->name('cards.cover-image.remove');
 
-    Route::post('/cards/{card}/description-images',[CardController::class, 'uploadDescriptionImage'])->name('cards.description-images.upload');
-    Route::delete('/cards/{card}/description-images/{image}',[CardController::class, 'removeDescriptionImage'])->name('cards.description-images.remove');
+    Route::post('/cards/{card}/description-images', [CardController::class, 'uploadDescriptionImage'])->name('cards.description-images.upload');
+    Route::delete('/cards/{card}/description-images/{image}', [CardController::class, 'removeDescriptionImage'])->name('cards.description-images.remove');
 
-    Route::post('/profile/avatar',[ProfileController::class,'updateAvatar'])->name('profile.avatar.update');
-    Route::delete('/profile/avatar',[ProfileController::class,'removeAvatar'])->name('profile.avatar.remove');
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
+    Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
 });
 
 require __DIR__ . '/auth.php';

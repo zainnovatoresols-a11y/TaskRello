@@ -9,6 +9,7 @@ use App\Models\ActivityLog;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Storage;
 
 class Board extends Model
 {
@@ -19,12 +20,22 @@ class Board extends Model
         'name',
         'description',
         'background_color',
+         'background_image',
         'is_archived',
     ];
 
     protected $casts = [
         'is_archived' => 'boolean',
     ];
+
+    protected $appends = ['background_image_url'];
+
+    public function getBackgroundImageUrlAttribute(): ?string
+    {
+        return $this->background_image
+            ? Storage::url($this->background_image)
+            : null;
+    }
 
     public function owner()
     {

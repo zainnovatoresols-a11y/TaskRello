@@ -46,6 +46,7 @@ async function openCardModal(cardId) {
     const modal = document.getElementById('card-modal');
     const body = document.getElementById('card-modal-body');
 
+    if (!modal || !body) return;
 
     body.innerHTML = `
         <div class="flex items-center justify-center py-16">
@@ -82,7 +83,8 @@ async function openCardModal(cardId) {
 }
 
 function closeCardModal() {
-    document.getElementById('card-modal').classList.add('hidden');
+    const cardModal = document.getElementById('card-modal');
+    if (cardModal) cardModal.classList.add('hidden');
     document.body.style.overflow = '';
 
    
@@ -93,8 +95,20 @@ function closeCardModal() {
 }
 
 
-document.getElementById('card-modal').addEventListener('mousedown', function (e) {
-    if (e.target === document.getElementById('card-modal')) closeCardModal();
+document.addEventListener('DOMContentLoaded', function () {
+    const cardModal = document.getElementById('card-modal');
+    if (cardModal) {
+        cardModal.addEventListener('mousedown', function (e) {
+            if (e.target === cardModal) closeCardModal();
+        });
+    }
+
+    const labelsModal = document.getElementById('labels-modal');
+    if (labelsModal) {
+        labelsModal.addEventListener('click', function (e) {
+            if (e.target === this) closeLabelsManager();
+        });
+    }
 });
 
 
@@ -107,18 +121,18 @@ document.addEventListener('keydown', function (e) {
 
 
 function openLabelsManager() {
-    document.getElementById('labels-modal').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+    const labelsModal = document.getElementById('labels-modal');
+    if (labelsModal) {
+        labelsModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function closeLabelsManager() {
-    document.getElementById('labels-modal').classList.add('hidden');
+    const labelsModal = document.getElementById('labels-modal');
+    if (labelsModal) labelsModal.classList.add('hidden');
     document.body.style.overflow = '';
 }
-
-document.getElementById('labels-modal').addEventListener('click', function (e) {
-    if (e.target === this) closeLabelsManager();
-});
 
 async function createLabel(boardId) {
     const nameInput = document.getElementById('new-label-name');
@@ -1545,9 +1559,218 @@ function closeLightbox() {
     document.body.style.overflow = '';
 }
 
-// Close lightbox on Escape key — add to existing keydown listener
 document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
         closeLightbox();
     }
 });
+
+async function uploadEditBoardBg(boardId, input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    if (file.size > 8 * 1024 * 1024) {
+        showBgStatus('File too large. Maximum size is 8MB.', 'error');
+        input.value = '';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('_token', csrfToken);
+
+    showBgStatus('Uploading background image...');
+
+    try {
+        const res  = await fetch(`/boards/${boardId}/background-image`, {
+            method:  'POST',
+            body:    formData,
+            headers: { 'Accept': 'application/json' },
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            showBgStatus(data.message || 'Upload failed.', 'error');
+            return;
+        }
+
+        if (data.success) {
+            const url = data.background_image_url;
+
+            const previewWrap = document.getElementById('edit-bg-preview-wrap');
+            const previewImg  = document.getElementById('edit-bg-preview-img');
+            const uploadZone  = document.getElementById('edit-bg-upload-zone');
+
+            if (previewImg)  previewImg.src = url;
+            if (previewWrap) previewWrap.classList.remove('hidden');
+            if (uploadZone)  uploadZone.classList.add('hidden');
+
+            updateBoardHeaderBg(url, null);
+
+            showBgStatus('Background image updated!', 'success');
+            input.value = '';
+        }
+    } catch {
+        showBgStatus('Upload failed. Please try again.', 'error');
+    }
+}
+
+async function removeEditBoardBg(boardId) {
+    if (!confirm('Remove the background image?')) return;
+
+    try {
+        const res  = await fetch(`/boards/${boardId}/background-image`, {
+            method:  'DELETE',
+            headers: {
+                'Accept':       'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+            },
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            const previewWrap = document.getElementById('edit-bg-preview-wrap');
+            const uploadZone  = document.getElementById('edit-bg-upload-zone');
+
+            if (previewWrap) previewWrap.classList.add('hidden');
+            if (uploadZone)  uploadZone.classList.remove('hidden');
+
+            const colorInput = document.querySelector(
+                'input[name="background_color"]:checked'
+            );
+            const color = colorInput?.value || '#0052CC';
+            updateBoardHeaderBg(null, color);
+
+            showBgStatus('Background image removed.', 'success');
+        }
+    } catch {
+        showBgStatus('Failed to remove background.', 'error');
+    }
+}
+
+function updateBoardHeaderBg(imageUrl, color) {
+    const header = document.getElementById('board-header-bar');
+    if (!header) return;
+
+    if (imageUrl) {
+        header.style.backgroundImage    = `url(${imageUrl})`;
+        header.style.backgroundSize     = 'cover';
+        header.style.backgroundPosition = 'center';
+        header.style.backgroundColor    = '';
+
+        let overlay = header.querySelector('.bg-overlay');
+        if (!overlay) {
+            overlay           = document.createElement('div');
+            overlay.className = 'bg-overlay absolute inset-0 bg-black/40 z-0';
+            header.prepend(overlay);
+        }
+    } else {
+        header.style.backgroundImage = '';
+        header.style.backgroundColor = color || '#0052CC';
+
+        header.querySelector('.bg-overlay')?.remove();
+    }
+}
+
+function previewCreateBg(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    if (file.size > 8 * 1024 * 1024) {
+        alert('File too large. Maximum 8MB.');
+        input.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const preview = document.getElementById('create-bg-preview');
+        const img     = document.getElementById('create-bg-img');
+
+        if (img)     img.src = e.target.result;
+        if (preview) preview.classList.remove('hidden');
+
+        const zone = document.getElementById('create-bg-drop-zone');
+        if (zone) {
+            const span = zone.querySelector('span');
+            if (span) span.textContent = 'Image selected — will upload after board is created';
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+function switchBgTab(tab) {
+    const colorPanel = document.getElementById('panel-color');
+    const imagePanel = document.getElementById('panel-image');
+    const colorTab   = document.getElementById('tab-color');
+    const imageTab   = document.getElementById('tab-image');
+
+    const activeClass   = ['bg-blue-700', 'text-white'];
+    const inactiveClass = [
+        'bg-gray-100', 'dark:bg-gray-700',
+        'text-gray-600', 'dark:text-gray-300',
+        'hover:bg-gray-200', 'dark:hover:bg-gray-600',
+    ];
+
+    if (tab === 'color') {
+        colorPanel.classList.remove('hidden');
+        imagePanel.classList.add('hidden');
+        activeClass.forEach(c   => colorTab.classList.add(c));
+        inactiveClass.forEach(c => colorTab.classList.remove(c));
+        inactiveClass.forEach(c => imageTab.classList.add(c));
+        activeClass.forEach(c   => imageTab.classList.remove(c));
+    } else {
+        colorPanel.classList.add('hidden');
+        imagePanel.classList.remove('hidden');
+        activeClass.forEach(c   => imageTab.classList.add(c));
+        inactiveClass.forEach(c => imageTab.classList.remove(c));
+        inactiveClass.forEach(c => colorTab.classList.add(c));
+        activeClass.forEach(c   => colorTab.classList.remove(c));
+    }
+}
+
+function switchEditBgTab(tab) {
+    const colorPanel = document.getElementById('edit-panel-color');
+    const imagePanel = document.getElementById('edit-panel-image');
+    const colorTab   = document.getElementById('edit-tab-color');
+    const imageTab   = document.getElementById('edit-tab-image');
+
+    const activeClass   = ['bg-blue-700', 'text-white'];
+    const inactiveClass = [
+        'bg-gray-100', 'dark:bg-gray-700',
+        'text-gray-600', 'dark:text-gray-300',
+        'hover:bg-gray-200', 'dark:hover:bg-gray-600',
+    ];
+
+    if (tab === 'color') {
+        colorPanel.classList.remove('hidden');
+        imagePanel.classList.add('hidden');
+        activeClass.forEach(c   => colorTab.classList.add(c));
+        inactiveClass.forEach(c => colorTab.classList.remove(c));
+        inactiveClass.forEach(c => imageTab.classList.add(c));
+        activeClass.forEach(c   => imageTab.classList.remove(c));
+    } else {
+        colorPanel.classList.add('hidden');
+        imagePanel.classList.remove('hidden');
+        activeClass.forEach(c   => imageTab.classList.add(c));
+        inactiveClass.forEach(c => imageTab.classList.remove(c));
+        inactiveClass.forEach(c => colorTab.classList.add(c));
+        activeClass.forEach(c   => colorTab.classList.remove(c));
+    }
+}
+
+function showBgStatus(message, type = 'info') {
+    const el = document.getElementById('edit-bg-status');
+    if (!el) return;
+    el.textContent = message;
+    el.className   = 'text-xs mt-2 '
+        + (type === 'error'   ? 'text-red-500' :
+           type === 'success' ? 'text-green-600 dark:text-green-400' :
+                                'text-gray-400 dark:text-gray-500');
+    el.classList.remove('hidden');
+    if (type !== 'info') {
+        setTimeout(() => el.classList.add('hidden'), 4000);
+    }
+}

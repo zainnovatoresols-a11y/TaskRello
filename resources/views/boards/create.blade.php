@@ -4,7 +4,6 @@
 @section('content')
 <div class="max-w-xl mx-auto px-4 py-12">
 
-    {{-- Back link --}}
     <a href="{{ route('boards.index') }}"
         class="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400
               hover:text-gray-700 dark:hover:text-gray-200 transition mb-6">
@@ -27,7 +26,6 @@
         <form method="POST" action="{{ route('boards.store') }}">
             @csrf
 
-            {{-- Board name --}}
             <div class="mb-5">
                 <label for="name"
                     class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
@@ -60,7 +58,6 @@
                 @enderror
             </div>
 
-            {{-- Description --}}
             <div class="mb-5">
                 <label for="description"
                     class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
@@ -79,56 +76,127 @@
                                  resize-none transition">{{ old('description') }}</textarea>
             </div>
 
-            {{-- Background color picker --}}
-            <div class="mb-8">
+            <div class="mb-7">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                    Background color
+                    Background
                 </label>
 
-                @php
-                $colors = [
-                '#0052CC' => 'Blue',
-                '#00875A' => 'Green',
-                '#FF5630' => 'Red',
-                '#6554C0' => 'Purple',
-                '#FF8B00' => 'Orange',
-                '#00B8D9' => 'Cyan',
-                '#36B37E' => 'Teal',
-                '#172B4D' => 'Navy',
-                ];
-                @endphp
-
-                <div class="flex flex-wrap gap-3">
-                    @foreach($colors as $hex => $label)
-                    <label class="cursor-pointer group" title="{{ $label }}">
-                        <input type="radio"
-                            name="background_color"
-                            value="{{ $hex }}"
-                            class="sr-only peer"
-                            {{ old('background_color', '#0052CC') === $hex ? 'checked' : '' }}>
-                        <span class="block w-10 h-10 rounded-xl transition-all
-                                         ring-2 ring-transparent ring-offset-2
-                                         ring-offset-white dark:ring-offset-gray-800
-                                         peer-checked:ring-gray-500 dark:peer-checked:ring-gray-300
-                                         group-hover:scale-110"
-                            style="background-color: {{ $hex }}">
-                        </span>
-                    </label>
-                    @endforeach
+                <div class="flex gap-2 mb-4">
+                    <button type="button"
+                        id="tab-color"
+                        onclick="switchBgTab('color')"
+                        class="px-3 py-1.5 text-xs font-medium rounded-lg transition
+                       bg-blue-700 text-white">
+                        Color
+                    </button>
+                    <button type="button"
+                        id="tab-image"
+                        onclick="switchBgTab('image')"
+                        class="px-3 py-1.5 text-xs font-medium rounded-lg transition
+                       bg-gray-100 dark:bg-gray-700
+                       text-gray-600 dark:text-gray-300
+                       hover:bg-gray-200 dark:hover:bg-gray-600">
+                        Image
+                    </button>
                 </div>
 
-                @error('background_color')
-                <p class="text-red-500 text-xs mt-1.5">{{ $message }}</p>
-                @enderror
-            </div>
+                {{-- Color picker panel --}}
+                <div id="panel-color">
+                    @php
+                    $colors = [
+                    '#0052CC' => 'Blue',
+                    '#00875A' => 'Green',
+                    '#FF5630' => 'Red',
+                    '#6554C0' => 'Purple',
+                    '#FF8B00' => 'Orange',
+                    '#00B8D9' => 'Cyan',
+                    '#36B37E' => 'Teal',
+                    '#172B4D' => 'Navy',
+                    ];
+                    @endphp
 
-            {{-- Preview strip --}}
-            <div class="mb-8 rounded-xl h-14 flex items-center px-4 transition-colors"
-                id="color-preview"
-                style="background-color: {{ old('background_color', '#0052CC') }}">
-                <span class="text-white font-semibold text-sm opacity-80">
-                    {{ old('name') ?: 'Board preview' }}
-                </span>
+                    <div class="flex flex-wrap gap-3 mb-4">
+                        @foreach($colors as $hex => $label)
+                        <label class="cursor-pointer group" title="{{ $label }}">
+                            <input type="radio"
+                                name="background_color"
+                                value="{{ $hex }}"
+                                class="sr-only peer"
+                                {{ old('background_color', '#0052CC') === $hex ? 'checked' : '' }}>
+                            <span class="block w-10 h-10 rounded-xl transition-all
+                                 ring-2 ring-transparent ring-offset-2
+                                 ring-offset-white dark:ring-offset-gray-800
+                                 peer-checked:ring-gray-500 dark:peer-checked:ring-gray-300
+                                 group-hover:scale-110"
+                                style="background-color: {{ $hex }}">
+                            </span>
+                        </label>
+                        @endforeach
+                    </div>
+
+                    {{-- Live preview strip --}}
+                    <div class="rounded-xl h-14 flex items-center px-4 transition-colors"
+                        id="color-preview"
+                        style="background-color: {{ old('background_color', '#0052CC') }}">
+                        <span class="text-white font-semibold text-sm"
+                            id="preview-name">
+                            {{ old('name') ?: 'Board preview' }}
+                        </span>
+                    </div>
+                </div>
+
+                {{-- Image upload panel --}}
+                <div id="panel-image" class="hidden">
+                    <div id="create-bg-preview"
+                        class="hidden mb-3 rounded-xl overflow-hidden relative group"
+                        style="height: 120px;">
+                        <img id="create-bg-img"
+                            src=""
+                            alt="Background preview"
+                            class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-black/30 flex items-center
+                        justify-center opacity-0 group-hover:opacity-100
+                        transition rounded-xl">
+                            <span class="text-white text-xs font-medium">
+                                Click below to change
+                            </span>
+                        </div>
+                    </div>
+
+                    <label class="flex flex-col items-center justify-center w-full
+                      border-2 border-dashed border-gray-300 dark:border-gray-600
+                      rounded-xl px-4 py-6 cursor-pointer
+                      hover:border-blue-400 dark:hover:border-blue-500
+                      hover:bg-blue-50 dark:hover:bg-blue-900/10
+                      transition group" id="create-bg-drop-zone">
+                        <svg class="w-8 h-8 text-gray-400 group-hover:text-blue-500
+                        transition mb-2"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="1.5"
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2
+                         l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6
+                         20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0
+                         00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span class="text-sm text-gray-500 dark:text-gray-400
+                         group-hover:text-blue-600 dark:group-hover:text-blue-400
+                         font-medium transition">
+                            Click to upload background image
+                        </span>
+                        <span class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                            JPG, PNG, WEBP or GIF — max 8MB
+                        </span>
+                        <span class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                            Image will be uploaded after the board is created
+                        </span>
+                        <input type="file"
+                            id="create-bg-file"
+                            accept="image/*"
+                            class="hidden"
+                            onchange="previewCreateBg(this)">
+                    </label>
+                </div>
             </div>
 
             {{-- Action buttons --}}
@@ -151,8 +219,8 @@
 @endsection
 
 @section('scripts')
+<script src="{{ asset('js/board.js') }}"></script>
 <script>
-    // Live preview — update strip color and name as user types/selects
     const preview = document.getElementById('color-preview');
     const nameInput = document.getElementById('name');
 

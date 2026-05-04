@@ -4,131 +4,141 @@
 @section('content')
 
 {{-- ── Board header bar ─────────────────────────────────────── --}}
-<div class="px-6 py-3 flex items-center gap-4 flex-wrap"
-    style="background-color: {{ $board->background_color }}">
+<div class="px-6 py-3 flex items-center gap-4 flex-wrap relative overflow-hidden"
+    id="board-header-bar"
+    style="{{ $board->background_image_url
+         ? 'background-image: url(' . $board->background_image_url . '); background-size: cover; background-position: center;'
+         : 'background-color: ' . $board->background_color }}">
 
-    {{-- Board name --}}
-    <h1 class="text-white font-bold text-lg tracking-tight">
-        {{ $board->name }}
-    </h1>
+    @if($board->background_image_url)
+    <div class="absolute inset-0 bg-black/40 z-0"></div>
+    @endif
 
-    {{-- Separator --}}
-    <span class="text-white/30 hidden sm:block">|</span>
+    <div class="relative z-10 flex items-center gap-4 flex-wrap w-full">
 
-    {{-- Member avatars --}}
-    <div class="flex items-center -space-x-1.5">
-        @foreach($board->members->take(5) as $member)
-        <div class="w-7 h-7 rounded-full bg-white/30 ring-2 ring-white/40
+        {{-- Board name --}}
+        <h1 class="text-white font-bold text-lg tracking-tight">
+            {{ $board->name }}
+        </h1>
+
+        {{-- Separator --}}
+        <span class="text-white/30 hidden sm:block">|</span>
+
+        {{-- Member avatars --}}
+        <div class="flex items-center -space-x-1.5">
+            @foreach($board->members->take(5) as $member)
+            <div class="w-7 h-7 rounded-full bg-white/30 ring-2 ring-white/40
                         flex items-center justify-center text-white text-xs font-bold"
-            title="{{ $member->name }}">
-            {{ strtoupper(substr($member->name, 0, 1)) }}
-        </div>
-        @endforeach
-        @if($board->members->count() > 5)
-        <div class="w-7 h-7 rounded-full bg-black/20 ring-2 ring-white/40
-                        flex items-center justify-center text-white text-xs font-bold">
-            +{{ $board->members->count() - 5 }}
-        </div>
-        @endif
-    </div>
-
-
-
-
-    {{-- ── Search + filter row ─────────────────────────────────── --}}
-    <div class="flex items-center gap-2 ml-auto">
-
-        {{-- Search input --}}
-        <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg class="w-3.5 h-3.5 text-white/60" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                title="{{ $member->name }}">
+                {{ strtoupper(substr($member->name, 0, 1)) }}
             </div>
-            <input type="text"
-                id="board-card-search"
-                placeholder="Search cards..."
-                autocomplete="off"
-                class="bg-white/20 hover:bg-white/25 focus:bg-white/30
+            @endforeach
+            @if($board->members->count() > 5)
+            <div class="w-7 h-7 rounded-full bg-black/20 ring-2 ring-white/40
+                        flex items-center justify-center text-white text-xs font-bold">
+                +{{ $board->members->count() - 5 }}
+            </div>
+            @endif
+        </div>
+
+
+
+
+        {{-- ── Search + filter row ─────────────────────────────────── --}}
+        <div class="flex items-center gap-2 ml-auto">
+
+            {{-- Search input --}}
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="w-3.5 h-3.5 text-white/60" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <input type="text"
+                    id="board-card-search"
+                    placeholder="Search cards..."
+                    autocomplete="off"
+                    class="bg-white/20 hover:bg-white/25 focus:bg-white/30
                       border border-white/20 rounded-lg
                       pl-9 pr-8 py-1.5 text-sm text-white
                       placeholder-white/50
                       focus:outline-none focus:ring-2 focus:ring-white/30
                       ">
 
-            {{-- Clear button --}}
-            <button id="card-search-clear"
-                onclick="clearCardSearch()"
-                class="hidden absolute inset-y-0 right-0 pr-2.5
+                {{-- Clear button --}}
+                <button id="card-search-clear"
+                    onclick="clearCardSearch()"
+                    class="hidden absolute inset-y-0 right-0 pr-2.5
                        flex items-center text-white/60 hover:text-white transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Completed filter button --}}
+            <button id="filter-completed"
+                onclick="toggleFilter('completed')"
+                data-active="false"
+                class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
+                   text-white/80 hover:text-white text-xs font-medium
+                   px-3 py-1.5 rounded-lg transition border border-white/20
+                   whitespace-nowrap">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
+                Completed
             </button>
+
+            {{-- Incomplete filter button --}}
+            <button id="filter-incomplete"
+                onclick="toggleFilter('incomplete')"
+                data-active="false"
+                class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
+                   text-white/80 hover:text-white text-xs font-medium
+                   px-3 py-1.5 rounded-lg transition border border-white/20
+                   whitespace-nowrap">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Incomplete
+            </button>
+
         </div>
 
-        {{-- Completed filter button --}}
-        <button id="filter-completed"
-            onclick="toggleFilter('completed')"
-            data-active="false"
-            class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
-                   text-white/80 hover:text-white text-xs font-medium
-                   px-3 py-1.5 rounded-lg transition border border-white/20
-                   whitespace-nowrap">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-            Completed
-        </button>
+        {{-- Right side actions --}}
+        <div class="ml-auto flex items-center gap-3">
 
-        {{-- Incomplete filter button --}}
-        <button id="filter-incomplete"
-            onclick="toggleFilter('incomplete')"
-            data-active="false"
-            class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
-                   text-white/80 hover:text-white text-xs font-medium
-                   px-3 py-1.5 rounded-lg transition border border-white/20
-                   whitespace-nowrap">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Incomplete
-        </button>
-
-    </div>
-
-    {{-- Right side actions --}}
-    <div class="ml-auto flex items-center gap-3">
-
-        {{-- Board settings (owner/member) --}}
-        @can('update', $board)
-        <a href="{{ route('boards.edit', $board) }}"
-            class="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30
+            {{-- Board settings (owner/member) --}}
+            @can('update', $board)
+            <a href="{{ route('boards.edit', $board) }}"
+                class="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30
                       text-white text-xs font-medium px-3 py-1.5 rounded-lg transition">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Settings
-        </a>
-        @endcan
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Settings
+            </a>
+            @endcan
 
-        {{-- Labels manager button --}}
-        <button onclick="openLabelsManager()"
-            class="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30
+            {{-- Labels manager button --}}
+            <button onclick="openLabelsManager()"
+                class="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30
                        text-white text-xs font-medium px-3 py-1.5 rounded-lg transition">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-            </svg>
-            Labels
-        </button>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                Labels
+            </button>
+        </div>
     </div>
 </div>
 

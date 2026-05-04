@@ -92,9 +92,15 @@
         <a href="{{ route('boards.show', $board) }}"
             class="group relative rounded-xl p-5 min-h-[130px] flex flex-col
           justify-between hover:opacity-90 hover:shadow-lg transition-all
-          shadow-sm overflow-hidden board-tile"
-            data-name="{{ strtolower($board->name) }}"
-            style="background-color: {{ $board->background_color }}">
+          shadow-sm overflow-hidden"
+            style="{{ $board->background_image_url
+       ? 'background-image: url(' . $board->background_image_url . '); background-size: cover; background-position: center;'
+       : 'background-color: ' . $board->background_color }}">
+
+            {{-- Overlay for image boards --}}
+            @if($board->background_image_url)
+            <div class="absolute inset-0 bg-black/35 rounded-xl"></div>
+            @endif
 
             {{-- Subtle overlay on hover --}}
             <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity rounded-xl"></div>

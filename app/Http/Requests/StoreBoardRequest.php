@@ -30,6 +30,12 @@ class StoreBoardRequest extends FormRequest
                 'string',
                 'regex:/^#[0-9A-Fa-f]{6}$/',
             ],
+            'image' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp,gif',
+                'max:8192',
+            ],
         ];
     }
 

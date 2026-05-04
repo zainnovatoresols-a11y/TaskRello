@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Services\BoardService;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Storage;
+use App\Models\ActivityLog;
 
 class BoardController extends Controller
 {
@@ -41,11 +43,20 @@ class BoardController extends Controller
     {
         $board = $this->boardService->create($request->user(), $request->validated());
 
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store(
+                'board-backgrounds/board-' . $board->id,
+                'public'
+            );
+
+            $board->update(['background_image' => $path]);
+        }
+
         if ($request->wantsJson()) {
             return response()->json([
                 'status'=> 'created',
                 'message'=> 'Board created successfully!',
-                'data'=> $board,
+                'data'=> $board->fresh(),
             ], 201);
         }
 
@@ -212,5 +223,61 @@ class BoardController extends Controller
         return redirect()
             ->route('boards.edit', $board)
             ->with('success', "{$user->name} has been removed from the board.");
+    }
+
+    public function uploadBackgroundImage(Request $request, Board $board)
+    {
+        $this->authorize('update', $board);
+
+        $request->validate([
+            'image' => [
+                'required',
+                'image',
+                'mimes:jpg,jpeg,png,webp,gif',
+                'max:8192',
+            ],
+        ]);
+
+        if ($board->background_image) {
+            Storage::disk('public')
+                ->delete($board->background_image);
+        }
+
+        $path = $request->file('image')->store(
+            'board-backgrounds/board-' . $board->id,
+            'public'
+        );
+
+        $board->update(['background_image' => $path]);
+
+        ActivityLog::log(
+            $request->user(),
+            'updated_board',
+            "{$request->user()->name} updated the background image of '{$board->name}'",
+            $board->id
+        );
+
+        return response()->json([
+            'success'              => true,
+            'message'              => 'Background image updated.',
+            'background_image_url' => $board->fresh()->background_image_url,
+        ]);
+    }
+
+    public function removeBackgroundImage(Request $request, Board $board)
+    {
+        $this->authorize('update', $board);
+
+        if ($board->background_image) {
+            Storage::disk('public')
+                ->delete($board->background_image);
+        }
+
+        $board->update(['background_image' => null]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Background image removed.',
+        ]);
     }
 }
