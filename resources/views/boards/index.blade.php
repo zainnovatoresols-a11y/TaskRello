@@ -90,9 +90,10 @@
 
         @foreach($boards as $board)
         <a href="{{ route('boards.show', $board) }}"
-            class="group relative rounded-xl p-5 min-h-[130px] flex flex-col
+            class="board-tile group relative rounded-xl p-5 min-h-[130px] flex flex-col
           justify-between hover:opacity-90 hover:shadow-lg transition-all
           shadow-sm overflow-hidden"
+            data-name="{{ strtolower($board->name) }}"
             style="{{ $board->background_image_url
        ? 'background-image: url(' . $board->background_image_url . '); background-size: cover; background-position: center;'
        : 'background-color: ' . $board->background_color }}">

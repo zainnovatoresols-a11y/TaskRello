@@ -23,7 +23,7 @@
             Boards are made up of lists and cards. Use them to organise anything.
         </p>
 
-        <form method="POST" action="{{ route('boards.store') }}">
+        <form method="POST" action="{{ route('boards.store') }}" enctype="multipart/form-data">
             @csrf
 
             <div class="mb-5">
@@ -192,6 +192,7 @@
                         </span>
                         <input type="file"
                             id="create-bg-file"
+                            name="image"
                             accept="image/*"
                             class="hidden"
                             onchange="previewCreateBg(this)">
