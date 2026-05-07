@@ -173,65 +173,69 @@
                     class="mb-6 text-xs font-sans text-green-300 tracking-[0.04em]"
                     :status="session('status')" />
 
-                <div class="lx-field-1 flex items-end gap-4 mb-9">
-                    <div class="flex-shrink-0 w-5 h-5 mb-2.5 text-neutral-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor" stroke-width="1.5" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
+                <div class="lx-field-1 mb-9">
+                    <div class="flex items-end gap-4">
+                        <div class="flex-shrink-0 w-5 h-5 mb-2.5 text-neutral-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="1.5" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div class="lx-line-1 flex-1 relative border-b border-neutral-600 focus-within:border-neutral-400 transition-colors duration-300">
+                            <x-text-input
+                                id="email"
+                                type="email"
+                                name="email"
+                                placeholder="Email ID"
+                                :value="old('email')"
+                                autofocus
+                                autocomplete="username"
+                                class="lx-input" />
+                        </div>
                     </div>
-                    <div class="lx-line-1 flex-1 relative border-b border-neutral-600 focus-within:border-neutral-400 transition-colors duration-300">
-                        <x-text-input
-                            id="email"
-                            type="email"
-                            name="email"
-                            placeholder="Email ID"
-                            :value="old('email')"
-                            autofocus
-                            autocomplete="username"
-                            class="lx-input" />
-                        <x-input-error
-                            :messages="$errors->get('email')"
-                            class="text-[0.7rem] font-sans text-red-400 mt-1.5 text-left tracking-[0.03em] block" />
-                    </div>
+                    <x-input-error
+                        :messages="$errors->get('email')"
+                        class="text-[0.7rem] font-sans text-red-400 mt-1.5 text-left tracking-[0.03em] block ml-9" />
                 </div>
 
-                <div class="lx-field-2 flex items-end gap-4 mb-9">
-                    <div class="flex-shrink-0 w-5 h-5 mb-2.5 text-neutral-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor" stroke-width="1.5" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                    </div>
-                    <div class="lx-line-2 flex-1 relative border-b border-neutral-600 focus-within:border-neutral-400 transition-colors duration-300">
-                        <x-text-input
-                            id="password"
-                            type="password"
-                            name="password"
-                            placeholder="Password"
-                            autocomplete="current-password"
-                            class="lx-input" />
-                        <button type="button" id="togglePassword"
-                            class="absolute right-0 bottom-2 bg-transparent border-none cursor-pointer text-neutral-500 hover:text-neutral-300 transition-colors duration-200 flex items-center p-0"
-                            aria-label="Toggle password">
-                            <svg id="eyeOpen" class="hidden w-[15px] h-[15px]" xmlns="http://www.w3.org/2000/svg"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0" />
+                <div class="lx-field-2 mb-9">
+                    <div class="flex items-end gap-4">
+                        <div class="flex-shrink-0 w-5 h-5 mb-2.5 text-neutral-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="1.5" class="w-5 h-5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
-                            <svg id="eyeClosed" class="w-[15px] h-[15px]" xmlns="http://www.w3.org/2000/svg"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.956 9.956 0 012.223-3.592M6.223 6.223A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.543 7a9.956 9.956 0 01-4.293 5.774M15 12a3 3 0 00-3-3m0 0a3 3 0 00-2.121.879M3 3l18 18" />
-                            </svg>
-                        </button>
-                        <x-input-error
-                            :messages="$errors->get('password')"
-                            class="text-[0.7rem] font-sans text-red-400 mt-1.5 text-left tracking-[0.03em] block" />
+                        </div>
+                        <div class="lx-line-2 flex-1 relative border-b border-neutral-600 focus-within:border-neutral-400 transition-colors duration-300">
+                            <x-text-input
+                                id="password"
+                                type="password"
+                                name="password"
+                                placeholder="Password"
+                                autocomplete="current-password"
+                                class="lx-input" />
+                            <button type="button" id="togglePassword"
+                                class="absolute right-0 bottom-2 bg-transparent border-none cursor-pointer text-neutral-500 hover:text-neutral-300 transition-colors duration-200 flex items-center p-0"
+                                aria-label="Toggle password">
+                                <svg id="eyeOpen" class="hidden w-[15px] h-[15px]" xmlns="http://www.w3.org/2000/svg"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0" />
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <svg id="eyeClosed" class="w-[15px] h-[15px]" xmlns="http://www.w3.org/2000/svg"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.956 9.956 0 012.223-3.592M6.223 6.223A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.543 7a9.956 9.956 0 01-4.293 5.774M15 12a3 3 0 00-3-3m0 0a3 3 0 00-2.121.879M3 3l18 18" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
+                    <x-input-error
+                        :messages="$errors->get('password')"
+                        class="text-[0.7rem] font-sans text-red-400 mt-1.5 text-left tracking-[0.03em] block ml-9" />
                 </div>
 
                 <div class="lx-meta flex items-center justify-between mb-10 font-sans text-xs">

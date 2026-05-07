@@ -59,7 +59,11 @@ async function openCardModal(cardId) {
 
     try {
         const response = await fetch(`/cards/${cardId}`, {
-            headers: { 'Accept': 'text/html', 'X-CSRF-TOKEN': csrfToken },
+            headers: {
+                'Accept': 'text/html',
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+            },
         });
 
         if (!response.ok) throw new Error('Failed to load card.');
@@ -287,12 +291,19 @@ async function saveCardField(cardId, field, value) {
 
 
 async function deleteCard(cardId) {
-    if (!confirm('Delete this card permanently? This cannot be undone.')) return;
+    const confirmed = await showWarningModal({
+        title: 'Delete Card',
+        message: 'Delete this card permanently?',
+        warningText: 'This cannot be undone.',
+        confirmText: 'Delete Card'
+    });
+
+    if (!confirmed) return;
 
     try {
         await fetchJSON(`/cards/${cardId}`, 'DELETE');
 
- 
+
         const tile = document.getElementById(`card-${cardId}`);
         if (tile) tile.remove();
 
@@ -363,7 +374,13 @@ async function postComment(cardId) {
 }
 
 async function deleteComment(commentId) {
-    if (!confirm('Delete this comment?')) return;
+    const confirmed = await showWarningModal({
+        title: 'Delete Comment',
+        message: 'Delete this comment?',
+        confirmText: 'Delete Comment'
+    });
+
+    if (!confirmed) return;
 
     try {
         await fetchJSON(`/comments/${commentId}`, 'DELETE');
@@ -575,7 +592,13 @@ async function uploadAttachment(cardId, input) {
 }
 
 async function deleteAttachment(attId) {
-    if (!confirm('Remove this attachment?')) return;
+    const confirmed = await showWarningModal({
+        title: 'Remove Attachment',
+        message: 'Remove this attachment?',
+        confirmText: 'Remove Attachment'
+    });
+
+    if (!confirmed) return;
 
     try {
         await fetchJSON(`/attachments/${attId}`, 'DELETE');
@@ -583,7 +606,7 @@ async function deleteAttachment(attId) {
         cardModalDirty = true;
         showToast('Attachment removed.');
     } catch {
-    
+
     }
 }
 
@@ -677,7 +700,14 @@ function inlineEditList(listId, el) {
 }
 
 async function archiveList(listId, boardId) {
-    if (!confirm('Archive this list? Cards will be preserved.')) return;
+    const confirmed = await showWarningModal({
+        title: 'Archive List',
+        message: 'Archive this list?',
+        warningText: 'Cards will be preserved.',
+        confirmText: 'Archive List'
+    });
+
+    if (!confirmed) return;
 
     try {
         await fetchJSON(`/boards/${boardId}/lists/${listId}`, 'PUT', {
@@ -690,7 +720,13 @@ async function archiveList(listId, boardId) {
 }
 
 async function unarchiveList(listId, boardId) {
-    if (!confirm('Unarchive this list?')) return;
+    const confirmed = await showWarningModal({
+        title: 'Unarchive List',
+        message: 'Unarchive this list?',
+        confirmText: 'Unarchive List'
+    });
+
+    if (!confirmed) return;
 
     try {
         await fetchJSON(`/boards/${boardId}/lists/${listId}`, 'PUT', {
@@ -703,7 +739,14 @@ async function unarchiveList(listId, boardId) {
 }
 
 async function deleteList(listId, boardId) {
-    if (!confirm('Delete this list and ALL its cards? This cannot be undone.')) return;
+    const confirmed = await showWarningModal({
+        title: 'Delete List',
+        message: 'Delete this list and ALL its cards?',
+        warningText: 'This cannot be undone.',
+        confirmText: 'Delete List'
+    });
+
+    if (!confirmed) return;
 
     try {
         await fetchJSON(`/boards/${boardId}/lists/${listId}`, 'DELETE');
@@ -1095,7 +1138,14 @@ function toggleFilter(type) {
 
 
 async function deleteLabel(labelId, boardId) {
-    if (!confirm('Delete this label? It will be removed from all cards.')) return;
+    const confirmed = await showWarningModal({
+        title: 'Delete Label',
+        message: 'Delete this label?',
+        warningText: 'It will be removed from all cards.',
+        confirmText: 'Delete Label'
+    });
+
+    if (!confirmed) return;
 
     try {
         await fetchJSON(`/boards/${boardId}/labels/${labelId}`, 'DELETE');
@@ -1338,7 +1388,13 @@ async function uploadDescriptionImage(cardId, input) {
 }
 
 async function removeDescriptionImage(cardId, imageId) {
-    if (!confirm('Remove this image?')) return;
+    const confirmed = await showWarningModal({
+        title: 'Remove Image',
+        message: 'Remove this image?',
+        confirmText: 'Remove Image'
+    });
+
+    if (!confirmed) return;
 
     try {
         await fetchJSON(`/cards/${cardId}/description-images/${imageId}`, 'DELETE');
@@ -1524,7 +1580,13 @@ async function uploadDescriptionImage(cardId, input) {
 }
 
 async function removeDescriptionImage(cardId, imageId) {
-    if (!confirm('Remove this image?')) return;
+    const confirmed = await showWarningModal({
+        title: 'Remove Image',
+        message: 'Remove this image?',
+        confirmText: 'Remove Image'
+    });
+
+    if (!confirmed) return;
 
     try {
         await fetchJSON(`/cards/${cardId}/description-images/${imageId}`, 'DELETE');
@@ -1617,7 +1679,13 @@ async function uploadEditBoardBg(boardId, input) {
 }
 
 async function removeEditBoardBg(boardId) {
-    if (!confirm('Remove the background image?')) return;
+    const confirmed = await showWarningModal({
+        title: 'Remove Background',
+        message: 'Remove the background image?',
+        confirmText: 'Remove Background'
+    });
+
+    if (!confirmed) return;
 
     try {
         const res  = await fetch(`/boards/${boardId}/background-image`, {
@@ -1773,4 +1841,19 @@ function showBgStatus(message, type = 'info') {
     if (type !== 'info') {
         setTimeout(() => el.classList.add('hidden'), 4000);
     }
+}
+
+// Warning Modal Helper Function
+async function showWarningModal(options) {
+    const modal = document.getElementById('warning-modal');
+    if (!modal) {
+        return window.confirm(options.message || 'Are you sure you want to proceed?');
+    }
+
+    const modalData = modal.__x;
+    if (!modalData || !modalData.$data || typeof modalData.$data.show !== 'function') {
+        return window.confirm(options.message || 'Are you sure you want to proceed?');
+    }
+
+    return await modalData.$data.show(options);
 }

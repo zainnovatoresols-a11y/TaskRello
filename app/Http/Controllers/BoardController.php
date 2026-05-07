@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreBoardRequest;
 use App\Http\Requests\UpdateBoardRequest;
 use App\Models\Board;
+use App\Models\Notification;
 use App\Models\User;
 use App\Services\BoardService;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Models\ActivityLog;
 
@@ -32,6 +34,36 @@ class BoardController extends Controller
         }
 
         return view('boards.index', compact('boards'));
+    }
+
+    public function state(Request $request, Board $board)
+    {
+        $this->authorize('view', $board);
+
+        $board->load(['members', 'invitedMembers']);
+
+        return response()->json([
+            'success' => true,
+            'board' => [
+                'id' => $board->id,
+                'owner_id' => $board->user_id,
+            ],
+            'members' => $board->members->map(function ($member) {
+                return [
+                    'id' => $member->id,
+                    'name' => $member->name,
+                    'email' => $member->email,
+                    'role' => $member->pivot->role,
+                ];
+            })->values(),
+            'invited_members' => $board->invitedMembers->map(function ($member) {
+                return [
+                    'id' => $member->id,
+                    'name' => $member->name,
+                    'email' => $member->email,
+                ];
+            })->values(),
+        ]);
     }
 
     public function create()
@@ -188,7 +220,7 @@ class BoardController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => "{$user->name} has been added to the board.",
+                'message' => "{$user->name} has been invited to the board.",
                 'data' => [
                     'id' => $user->id,
                     'name' => $user->name,
@@ -200,7 +232,101 @@ class BoardController extends Controller
 
         return redirect()
             ->route('boards.edit', $board)
-            ->with('success', "{$user->name} has been added to the board.");
+            ->with('success', "{$user->name} has been invited to the board.");
+    }
+
+    public function acceptInvitation(Request $request, Board $board)
+    {
+        $user = $request->user();
+
+        if (!$board->hasPendingInvite($user)) {
+            abort(403, 'No pending invitation found for this board.');
+        }
+
+        $notificationId = $request->query('notif_id');
+
+        DB::transaction(function () use ($board, $user, $notificationId) {
+            $board->allMembers()->updateExistingPivot($user->id, ['status' => 'accepted']);
+
+            $notificationQuery = Notification::where('user_id', $user->id)
+                ->where('type', 'board_invite')
+                ->where('board_id', $board->id);
+
+            if ($notificationId) {
+                $notificationQuery->where('id', $notificationId);
+            }
+
+            $notificationQuery->delete();
+
+            Notification::notify(
+                userId: $board->user_id,
+                actor: $user,
+                type: 'accepted_invitation',
+                message: "{$user->name} accepted the invitation to join board \"{$board->name}\"",
+                boardId: $board->id,
+                cardId: null,
+                url: route('boards.edit', $board->id)
+            );
+
+            ActivityLog::log(
+                $user,
+                'accepted_invitation',
+                "{$user->name} accepted the invitation to join the board",
+                $board->id
+            );
+        });
+
+        return redirect()
+            ->route('boards.show', $board)
+            ->with('success', 'You have joined the board.');
+    }
+
+    public function declineInvitation(Request $request, Board $board)
+    {
+        $user = $request->user();
+        $notificationId = $request->query('notif_id');
+
+        if (!$board->hasPendingInvite($user)) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No pending invitation found for this board.',
+                ], 403);
+            }
+            abort(403, 'No pending invitation found for this board.');
+        }
+
+        DB::transaction(function () use ($board, $user, $notificationId) {
+            $board->allMembers()->detach($user->id);
+
+            $notificationQuery = Notification::where('user_id', $user->id)
+                ->where('type', 'board_invite')
+                ->where('board_id', $board->id);
+
+            if ($notificationId) {
+                $notificationQuery->where('id', $notificationId);
+            }
+
+            $notificationQuery->delete();
+
+            ActivityLog::log(
+                $user,
+                'declined_invitation',
+                "{$user->name} declined the invitation to join the board",
+                $board->id
+            );
+        });
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Invitation declined.',
+            ], 200);
+        }
+
+        return redirect()
+            ->route('boards.index')
+            ->with('success', 'Invitation declined.');
     }
 
     public function removeMember(Request $request, Board $board, User $user)

@@ -34,14 +34,17 @@ class BoardRepository implements BoardRepositoryInterface
         $board->delete();
     }
 
-    public function attachMember(Board $board, int $userId, string $role): void
+    public function attachMember(Board $board, int $userId, string $role, string $status = 'accepted'): void
     {
-        $board->members()->attach($userId, ['role' => $role]);
+        $board->allMembers()->attach($userId, [
+            'role' => $role,
+            'status' => $status,
+        ]);
     }
 
     public function detachMember(Board $board, int $userId): void
     {
-        $board->members()->detach($userId);
+        $board->allMembers()->detach($userId);
     }
 
     public function loadBoardWithRelations(Board $board): Board

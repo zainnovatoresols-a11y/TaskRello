@@ -232,15 +232,68 @@
     </div>
 
     {{-- ── Section 2: Members ────────────────────────────────── --}}
-    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100
+    <div id="board-state" data-board-id="{{ $board->id }}" data-board-owner-id="{{ $board->user_id }}" data-current-user-id="{{ auth()->id() }}"
+        class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100
                 dark:border-gray-700 shadow-sm p-6 mb-6">
 
         <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100 mb-5">
             Members
         </h2>
 
+        {{-- Pending invitations --}}
+        <div id="pending-invitations-section" class="mb-6 pb-6 border-b border-gray-100 dark:border-gray-700">
+            <h3 class="text-sm font-medium text-yellow-700 dark:text-yellow-300 mb-3">
+                Pending Invitations
+            </h3>
+            <div id="pending-invitations-list" class="space-y-3">
+                @foreach($board->invitedMembers as $invited)
+                <div class="flex items-center justify-between py-2 px-3 rounded-lg
+                                bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100
+                                dark:border-yellow-900/40">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-yellow-700 flex items-center justify-center
+                                        text-white text-sm font-bold flex-shrink-0">
+                            {{ strtoupper(substr($invited->name, 0, 1)) }}
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800 dark:text-gray-100">
+                                {{ $invited->name }}
+                            </p>
+                            <p class="text-xs text-gray-400">{{ $invited->email }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-medium px-2.5 py-1 rounded-full
+                                bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40
+                                dark:text-yellow-300">
+                            Pending
+                        </span>
+
+                        {{-- Cancel invite (owner only) --}}
+                        @if(auth()->id() === $board->user_id)
+                        <form method="POST"
+                            action="{{ route('boards.members.remove', [$board, $invited]) }}"
+                            onsubmit="event.preventDefault(); handleCancelInvite('{{ addslashes($invited->name) }}', this); return false;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                class="text-xs text-red-500 hover:text-red-700
+                                                   dark:text-red-400 dark:hover:text-red-300 transition">
+                                Cancel
+                            </button>
+                        </form>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            <p id="pending-invitations-empty" class="text-sm text-gray-500 {{ $board->invitedMembers->count() > 0 ? 'hidden' : '' }}">
+                No pending invitations.
+            </p>
+        </div>
+
         {{-- Current members list --}}
-        <div class="space-y-3 mb-6">
+        <div id="board-members-list" class="space-y-3 mb-6">
             @foreach($board->members as $member)
             <div class="flex items-center justify-between py-2 border-b
                             border-gray-50 dark:border-gray-700 last:border-0">
@@ -269,7 +322,7 @@
                     @if($member->pivot->role !== 'owner' && auth()->id() === $board->user_id)
                     <form method="POST"
                         action="{{ route('boards.members.remove', [$board, $member]) }}"
-                        onsubmit="return confirm('Remove {{ $member->name }} from this board?')">
+                        onsubmit="event.preventDefault(); handleRemoveMember('{{ addslashes($member->name) }}', this); return false;">
                         @csrf
                         @method('DELETE')
                         <button type="submit"
@@ -430,7 +483,13 @@
                             async handleDelete(e) {
                                 e.preventDefault();
                                 const name = '{{ addslashes($archivedList->name) }}';
-                                if (!confirm(`Delete list '${name}'? This cannot be undone.`)) {
+                                const confirmed = await showWarningModal({
+                                    title: 'Delete List',
+                                    message: `Delete list '${name}'?`,
+                                    warningText: 'This cannot be undone.',
+                                    confirmText: 'Delete List'
+                                });
+                                if (!confirmed) {
                                     return;
                                 }
                                 this.loading = true;
@@ -507,7 +566,13 @@
                 async handleDelete(e) {
                     e.preventDefault();
                     const name = '{{ addslashes($board->name) }}';
-                    if (!confirm(`DELETE board '${name}'?\n\nThis cannot be undone. All lists and cards will be permanently lost.`)) {
+                    const confirmed = await showWarningModal({
+                        title: 'Delete Board',
+                        message: `DELETE board '${name}'?`,
+                        warningText: 'This cannot be undone. All lists and cards will be permanently lost.',
+                        confirmText: 'Delete Board'
+                    });
+                    if (!confirmed) {
                         return;
                     }
                     this.loading = true;
@@ -537,13 +602,6 @@
                 class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5
                                rounded-lg text-sm font-medium transition
                                disabled:opacity-50 disabled:cursor-not-allowed">
-                <svg x-show="loading" class="w-4 h-4 animate-spin inline mr-2"
-                    viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                        stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8H4z"></path>
-                </svg>
                 <span x-show="!loading">Delete this board permanently</span>
                 <span x-show="loading">Deleting...</span>
             </button>
@@ -555,6 +613,7 @@
 @endsection
 
 @section('scripts')
+<script src="{{ asset('js/board-state.js') }}"></script>
 <script src="{{ asset('js/board.js') }}"></script>
 <script>
     const preview = document.getElementById('color-preview');
@@ -570,5 +629,46 @@
     nameInput.addEventListener('input', () => {
         previewName.textContent = nameInput.value || 'Board preview';
     });
+
+    // Warning Modal Functions
+    async function showWarningModal(options) {
+        const modal = document.getElementById('warning-modal');
+        if (!modal) {
+            return window.confirm(options.message || 'Are you sure you want to proceed?');
+        }
+
+        const modalData = modal.__x;
+        if (!modalData || !modalData.$data || typeof modalData.$data.show !== 'function') {
+            return window.confirm(options.message || 'Are you sure you want to proceed?');
+        }
+
+        return await modalData.$data.show(options);
+    }
+
+    async function handleCancelInvite(name, form) {
+        const confirmed = await showWarningModal({
+            title: 'Cancel Invitation',
+            message: `Cancel invitation to ${name}?`,
+            warningText: 'The user will no longer be able to join this board.',
+            confirmText: 'Cancel Invitation'
+        });
+
+        if (confirmed) {
+            form.submit();
+        }
+    }
+
+    async function handleRemoveMember(name, form) {
+        const confirmed = await showWarningModal({
+            title: 'Remove Member',
+            message: `Remove ${name} from this board?`,
+            warningText: 'They will lose access to all board content and their cards will remain.',
+            confirmText: 'Remove Member'
+        });
+
+        if (confirmed) {
+            form.submit();
+        }
+    }
 </script>
 @endsection

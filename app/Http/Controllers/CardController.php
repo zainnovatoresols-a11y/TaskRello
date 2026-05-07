@@ -108,7 +108,11 @@ class CardController extends Controller
             ]);
         }
 
-        return view('cards.show', compact('card'));
+        if ($request->ajax()) {
+            return view('cards.show', compact('card'));
+        }
+
+        return view('cards.show-page', compact('card'));
     }
 
     public function update(UpdateCardRequest $request, Card $card)

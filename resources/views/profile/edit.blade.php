@@ -694,7 +694,13 @@
     }
 
     async function removeAvatar() {
-        if (!confirm('Remove your profile photo?')) return;
+        const confirmed = await showWarningModal({
+            title: 'Remove Profile Photo',
+            message: 'Remove your profile photo?',
+            confirmText: 'Remove Photo'
+        });
+
+        if (!confirmed) return;
 
         try {
             const res = await fetch('/profile/avatar', {
@@ -779,5 +785,20 @@
     document.getElementById('cropper-modal').addEventListener('click', function(e) {
         if (e.target === this) closeCropper();
     });
+
+    // Warning Modal Helper Function
+    async function showWarningModal(options) {
+        const modal = document.getElementById('warning-modal');
+        if (!modal) {
+            return window.confirm(options.message || 'Are you sure you want to proceed?');
+        }
+
+        const modalData = modal.__x;
+        if (!modalData || !modalData.$data || typeof modalData.$data.show !== 'function') {
+            return window.confirm(options.message || 'Are you sure you want to proceed?');
+        }
+
+        return await modalData.$data.show(options);
+    }
 </script>
 @endsection

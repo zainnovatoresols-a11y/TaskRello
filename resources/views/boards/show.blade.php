@@ -5,7 +5,8 @@
 
 {{-- ── Board header bar ─────────────────────────────────────── --}}
 <div class="px-6 py-3 flex items-center gap-4 flex-wrap relative overflow-hidden"
-    id="board-header-bar"
+    id="board-show-state"
+    data-board-id="{{ $board->id }}"
     style="{{ $board->background_image_url
          ? 'background-image: url(' . $board->background_image_url . '); background-size: cover; background-position: center;'
          : 'background-color: ' . $board->background_color }}">
@@ -158,7 +159,8 @@
         {{-- Collapsed button --}}
         <button onclick="showAddListForm()"
             id="add-list-btn"
-            class="w-full text-left bg-white/20 hover:bg-white/30 text-white
+            class="w-full text-left bg-slate-100/90 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-900 dark:text-white
+                       border border-slate-200 dark:border-white/10 shadow-sm
                        text-sm font-medium rounded-xl px-4 py-3 transition backdrop-blur-sm">
             + Add another list
         </button>
@@ -415,4 +417,5 @@
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script src="{{ asset('js/board.js') }}"></script>
+<script src="{{ asset('js/board-live.js') }}"></script>
 @endsection

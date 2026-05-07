@@ -73,24 +73,37 @@ class BoardService
                 ->with('error', "{$user->name} is already a member of this board.");
         }
 
+        if ($board->hasPendingInvite($user)) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "An invitation has already been sent to {$user->name}.",
+                ], 409);
+            }
+
+            return redirect()
+                ->route('boards.edit', $board)
+                ->with('error', "An invitation has already been sent to {$user->name}.");
+        }
+
         // Action Logic
         DB::transaction(function () use ($board, $actor, $user) {
-            $this->boardRepository->attachMember($board, $user->id, 'member');
+            $this->boardRepository->attachMember($board, $user->id, 'member', 'pending');
 
             Notification::notify(
                 userId: $user->id,
                 actor: $actor,
-                type: 'added_to_board',
-                message: "{$actor->name} added you to board \"{$board->name}\"",
+                type: 'board_invite',
+                message: "{$actor->name} invited you to join board \"{$board->name}\"",
                 boardId: $board->id,
                 cardId: null,
-                url: route('boards.show', $board->id)
+                url: route('boards.invitations.accept', $board->id)
             );
 
             ActivityLog::log(
                 $actor,
-                'added_member',
-                "{$actor->name} added {$user->name} to the board",
+                'invited_member',
+                "{$actor->name} invited {$user->name} to the board",
                 $board->id
             );
         });

@@ -14,6 +14,7 @@ export default {
         './public/js/**/*.js',
     ],
 
+    darkMode: ['class'],
     theme: {
         extend: {
             // Merge font families (keep Figtree + fallback + Inter if needed)

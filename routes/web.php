@@ -38,12 +38,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::post('/boards/{board}/members', [BoardController::class, 'addMember'])->name('boards.members.add');
         Route::delete('/boards/{board}/members/{user}', [BoardController::class, 'removeMember'])->name('boards.members.remove');
+        Route::get('/boards/{board}/state', [BoardController::class, 'state'])->name('boards.state');
 
         Route::post('/boards/{board}/lists', [ListController::class, 'store'])->name('lists.store');
         Route::put('/boards/{board}/lists/{list}', [ListController::class, 'update'])->name('lists.update');
         Route::delete('/boards/{board}/lists/{list}', [ListController::class, 'destroy'])->name('lists.destroy');
         Route::post('/boards/{board}/lists/reorder', [ListController::class, 'reorder'])->name('lists.reorder');
     });
+
+    Route::match(['get', 'post'], '/boards/{board}/invitations/accept', [BoardController::class, 'acceptInvitation'])->name('boards.invitations.accept');
+    Route::post('/boards/{board}/invitations/decline', [BoardController::class, 'declineInvitation'])->name('boards.invitations.decline');
 
     Route::post('/lists/{list}/cards', [CardController::class, 'store'])->name('cards.store');
     Route::get('/cards/{card}', [CardController::class, 'show'])->name('cards.show');

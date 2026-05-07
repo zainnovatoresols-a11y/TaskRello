@@ -1,5 +1,6 @@
 
 const notifCsrf = document.querySelector('meta[name="csrf-token"]')?.content;
+window.notificationsOpen = false;
 
 async function loadNotifications() {
     const list = document.getElementById('notif-list');
@@ -60,6 +61,8 @@ function buildNotifHTML(n) {
         assigned_card: { bg: 'bg-blue-100 dark:bg-blue-900/40', color: 'text-blue-600 dark:text-blue-400', path: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
         moved_card: { bg: 'bg-purple-100 dark:bg-purple-900/40', color: 'text-purple-600 dark:text-purple-400', path: 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4' },
         new_comment: { bg: 'bg-green-100 dark:bg-green-900/40', color: 'text-green-600 dark:text-green-400', path: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
+        board_invite: { bg: 'bg-yellow-100 dark:bg-yellow-900/40', color: 'text-yellow-600 dark:text-yellow-400', path: 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' },
+        accepted_invitation: { bg: 'bg-green-100 dark:bg-green-900/40', color: 'text-green-600 dark:text-green-400', path: 'M5 13l4 4L19 7' },
         added_to_board: { bg: 'bg-yellow-100 dark:bg-yellow-900/40', color: 'text-yellow-600 dark:text-yellow-400', path: 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' },
         completed_card: { bg: 'bg-green-100 dark:bg-green-900/40', color: 'text-green-600 dark:text-green-400', path: 'M5 13l4 4L19 7' },
         reopened_card: { bg: 'bg-yellow-100 dark:bg-yellow-900/40', color: 'text-yellow-600 dark:text-yellow-400', path: 'M12 8v4l3 3M12 4a8 8 0 100 16 8 8 0 000-16z' },
@@ -68,12 +71,31 @@ function buildNotifHTML(n) {
 
     const icon = iconMap[n.type] || iconMap['moved_card'];
 
+    let actionButtons = '';
+    if (n.type === 'board_invite' && isUnread) {
+        actionButtons = `
+            <div class="flex gap-2 mt-3">
+                <button onclick="handleInviteAccept(event, ${n.id}, ${n.board?.id})" 
+                    class="text-xs px-3 py-1.5 rounded-lg bg-green-100 text-green-700 
+                    hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300 
+                    dark:hover:bg-green-900/60 transition font-medium">
+                    Accept
+                </button>
+                <button onclick="handleInviteDecline(event, ${n.id}, ${n.board?.id})" 
+                    class="text-xs px-3 py-1.5 rounded-lg bg-red-100 text-red-700 
+                    hover:bg-red-200 dark:bg-red-900/40 dark:text-red-300 
+                    dark:hover:bg-red-900/60 transition font-medium">
+                    Decline
+                </button>
+            </div>
+        `;
+    }
+
     return `
-    <div class="flex items-start gap-3 px-4 py-3 cursor-pointer
+    <div class="flex items-start gap-3 px-4 py-3
                 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition
                 ${isUnread ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}"
-         id="notif-${n.id}"
-         onclick="handleNotifClick(${n.id}, '${n.url || ''}')">
+         id="notif-${n.id}">
 
         <div class="relative flex-shrink-0">
             <div class="w-9 h-9 rounded-full bg-blue-700 flex items-center
@@ -104,6 +126,7 @@ function buildNotifHTML(n) {
                     ${escapeHtmlNotif(n.board.name)}
                 </span>` : ''}
             </div>
+            ${actionButtons}
         </div>
 
         <div class="flex-shrink-0 mt-1">
@@ -114,6 +137,7 @@ function buildNotifHTML(n) {
         </div>
     </div>`;
 }
+
 
 async function handleNotifClick(notifId, url) {
     try {
@@ -140,6 +164,124 @@ async function handleNotifClick(notifId, url) {
     } catch (err) {
         console.error('Mark read error:', err);
     }
+}
+
+async function handleInviteAccept(event, notifId, boardId) {
+    event.stopPropagation();
+    
+    const buttons = event.target.closest('.flex')?.querySelectorAll('button');
+    if (buttons) {
+        buttons.forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+        });
+    }
+
+    try {
+        const response = await fetch(`/boards/${boardId}/invitations/accept?notif_id=${notifId}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': notifCsrf,
+                'Accept': 'application/json',
+            },
+        });
+
+        if (response.ok) {
+            // Remove notification from list
+            const notifRow = document.getElementById(`notif-${notifId}`);
+            if (notifRow) {
+                notifRow.style.opacity = '0.5';
+                setTimeout(() => {
+                    notifRow.remove();
+                    decreaseBadge();
+                }, 200);
+            }
+
+            // Show success and redirect
+            setTimeout(() => {
+                window.location.href = `/boards/${boardId}`;
+            }, 500);
+        }
+    } catch (err) {
+        console.error('Accept invitation error:', err);
+        if (buttons) {
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            });
+        }
+    }
+}
+
+async function handleInviteDecline(event, notifId, boardId) {
+    event.stopPropagation();
+
+    const confirmed = await showWarningModal({
+        title: 'Decline Invitation',
+        message: 'Are you sure you want to decline this invitation?',
+        confirmText: 'Decline Invitation'
+    });
+
+    if (!confirmed) {
+        return;
+    }
+
+    const buttons = event.target.closest('.flex')?.querySelectorAll('button');
+    if (buttons) {
+        buttons.forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+        });
+    }
+
+    try {
+        const response = await fetch(`/boards/${boardId}/invitations/decline?notif_id=${notifId}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': notifCsrf,
+                'Accept': 'application/json',
+            },
+        });
+
+        if (response.ok) {
+            // Remove notification from list
+            const notifRow = document.getElementById(`notif-${notifId}`);
+            if (notifRow) {
+                notifRow.style.opacity = '0.5';
+                setTimeout(() => {
+                    notifRow.remove();
+                    decreaseBadge();
+                }, 200);
+            }
+        }
+    } catch (err) {
+        console.error('Decline invitation error:', err);
+        if (buttons) {
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            });
+        }
+    }
+}
+
+// Warning Modal Helper Function
+async function showWarningModal(options) {
+    const modal = document.getElementById('warning-modal');
+    if (!modal) {
+        return window.confirm(options.message || 'Are you sure you want to proceed?');
+    }
+
+    const modalData = modal.__x;
+    if (!modalData || !modalData.$data || typeof modalData.$data.show !== 'function') {
+        return window.confirm(options.message || 'Are you sure you want to proceed?');
+    }
+
+    return await modalData.$data.show(options);
 }
 
 async function markAllRead() {
@@ -224,6 +366,12 @@ setInterval(async () => {
         const data = await res.json();
         if (data.success) {
             updateBadge(data.unread_count);
+            if (window.notificationsOpen) {
+                const list = document.getElementById('notif-list');
+                if (list) {
+                    list.innerHTML = data.notifications.map(n => buildNotifHTML(n)).join('');
+                }
+            }
         }
     } catch { }
-}, 10000);
+}, 5000);

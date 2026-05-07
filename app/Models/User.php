@@ -64,8 +64,17 @@ class User extends Authenticatable implements MustVerifyEmail
     public function boards()
     {
         return $this->belongsToMany(Board::class)
-            ->withPivot('role')
-            ->withTimestamps();
+            ->withPivot('role', 'status')
+            ->withTimestamps()
+            ->wherePivot('status', 'accepted');
+    }
+
+    public function invitedBoards()
+    {
+        return $this->belongsToMany(Board::class)
+            ->withPivot('role', 'status')
+            ->withTimestamps()
+            ->wherePivot('status', 'pending');
     }
 
     public function assignedCards()

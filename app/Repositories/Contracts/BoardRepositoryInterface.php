@@ -12,7 +12,7 @@ interface BoardRepositoryInterface
     public function create(array $data): Board;
     public function update(Board $board, array $data): Board;
     public function delete(Board $board): void;
-    public function attachMember(Board $board, int $userId, string $role): void;
+    public function attachMember(Board $board, int $userId, string $role, string $status = 'accepted'): void;
     public function detachMember(Board $board, int $userId): void;
     public function loadBoardWithRelations(Board $board): Board;
     public function unassignFromAllCards(Board $board, int $userId): void;

@@ -42,11 +42,23 @@ class Board extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function members()
+    public function allMembers()
     {
         return $this->belongsToMany(User::class)
-            ->withPivot('role')
+            ->withPivot('role', 'status')
             ->withTimestamps();
+    }
+
+    public function members()
+    {
+        return $this->allMembers()
+            ->wherePivot('status', 'accepted');
+    }
+
+    public function invitedMembers()
+    {
+        return $this->allMembers()
+            ->wherePivot('status', 'pending');
     }
 
     public function lists()
@@ -67,8 +79,17 @@ class Board extends Model
 
     public function isMember(User $user): bool
     {
-        return $this->members()
+        return $this->allMembers()
             ->where('user_id', $user->id)
+            ->wherePivot('status', 'accepted')
+            ->exists();
+    }
+
+    public function hasPendingInvite(User $user): bool
+    {
+        return $this->allMembers()
+            ->where('user_id', $user->id)
+            ->wherePivot('status', 'pending')
             ->exists();
     }
 
