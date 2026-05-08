@@ -1317,7 +1317,16 @@ function applyBoardFilters() {
 
     listColumns.forEach(col => {
         const visibleCards = col.querySelectorAll('.card-item:not([style*="display: none"])');
+        const totalCards = col.querySelectorAll('.card-item').length;
         let emptyMsg = col.querySelector('.list-empty-search-msg');
+
+        // Update card count badge
+        const countBadge = col.querySelector('.list-column > div > span:nth-child(2)');
+        if (countBadge) {
+            // Show filtered count when filters are active, otherwise show total count
+            const displayCount = (currentSearch !== '' || activeFilter) ? visibleCards.length : totalCards;
+            countBadge.textContent = displayCount;
+        }
 
         if (visibleCards.length === 0 && (currentSearch !== '' || activeFilter)) {
             if (!emptyMsg) {
