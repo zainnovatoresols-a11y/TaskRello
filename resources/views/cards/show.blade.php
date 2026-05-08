@@ -355,12 +355,13 @@
                     </span>
                     @endforeach
                 </div>
-                <select onchange="attachLabel({{ $card->id }}, this.value); this.selectedIndex=0;"
-                    class="modal-select w-full border border-gray-200 dark:border-gray-600 rounded-lg
-                           px-2 py-1.5 text-xs bg-white dark:bg-gray-700
-                           text-gray-700 dark:text-gray-200
-                           focus:outline-none focus:ring-2 focus:ring-blue-500
-                           focus:border-transparent transition cursor-pointer">
+                <select id="card-label-select-{{ $card->id }}"
+                        class="js-label-select modal-select w-full border border-gray-200 dark:border-gray-600 rounded-lg
+                               px-2 py-1.5 text-xs bg-white dark:bg-gray-700
+                               text-gray-700 dark:text-gray-200
+                               focus:outline-none focus:ring-2 focus:ring-blue-500
+                               focus:border-transparent transition cursor-pointer"
+                        onchange="attachLabel({{ $card->id }}, this.value); this.selectedIndex=0;">
                     <option value="" disabled selected hidden>Add label...</option>
                     @foreach($card->list->board->labels as $label)
                     <option value="{{ $label->id }}">{{ $label->name }}</option>

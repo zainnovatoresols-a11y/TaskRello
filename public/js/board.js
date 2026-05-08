@@ -199,11 +199,39 @@ async function createLabel(boardId) {
                 </div>`;
 
             list.appendChild(row);
+            addLabelOption(l);
             nameInput.value = '';
             showToast('Label created.');
         }
     } catch {
     }
+}
+
+function addLabelOption(label) {
+    document.querySelectorAll('.js-label-select').forEach(select => {
+        if (!select.querySelector(`option[value="${label.id}"]`)) {
+            const option = document.createElement('option');
+            option.value = label.id;
+            option.textContent = label.name;
+            select.appendChild(option);
+        }
+    });
+}
+
+function updateLabelOption(label) {
+    document.querySelectorAll('.js-label-select').forEach(select => {
+        const option = select.querySelector(`option[value="${label.id}"]`);
+        if (option) {
+            option.textContent = label.name;
+        }
+    });
+}
+
+function removeLabelOption(labelId) {
+    document.querySelectorAll('.js-label-select').forEach(select => {
+        const option = select.querySelector(`option[value="${labelId}"]`);
+        if (option) option.remove();
+    });
 }
 
 function startEditTitle(cardId, el) {
@@ -1209,6 +1237,7 @@ async function deleteLabel(labelId, boardId) {
         await fetchJSON(`/boards/${boardId}/labels/${labelId}`, 'DELETE');
 
         document.getElementById(`label-row-${labelId}`)?.remove();
+        removeLabelOption(labelId);
 
         const list = document.getElementById('labels-list');
         if (list && list.querySelectorAll('[id^="label-row-"]').length === 0) {
@@ -1286,6 +1315,7 @@ async function saveEditLabel() {
             if (dot) dot.style.backgroundColor = color;
             if (span) span.textContent = name;
 
+            updateLabelOption({ id: labelId, name });
             cancelEditLabel();
 
             showToast('Label updated.');
