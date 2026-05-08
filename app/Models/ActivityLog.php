@@ -61,4 +61,9 @@ class ActivityLog extends Model
             'created_at'  => now(),
         ]);
     }
+
+    public function getHumanCreatedAtAttribute()
+    {
+        return $this->created_at->format('M j, Y g:i A');
+    }
 }

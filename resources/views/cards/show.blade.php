@@ -210,7 +210,7 @@
                         </div>
                         <div class="flex-1 min-w-0 pt-0.5">
                             <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">{{ $log->description }}</p>
-                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ $log->created_at->diffForHumans() }}</p>
+                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ $log->human_created_at }}</p>
                         </div>
                     </div>
                     @empty
