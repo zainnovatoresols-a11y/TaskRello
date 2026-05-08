@@ -260,6 +260,46 @@
         const password = document.getElementById("password");
         const confirm = document.getElementById("password_confirmation");
 
+        // Immediately attach submit listener to prevent any submission
+        const form = document.querySelector("form");
+        form.addEventListener("submit", function(e) {
+            let valid = true;
+            let errorCount = 0;
+
+            if (!name.value.trim() || name.value.length < 3) {
+                showError(name, "Valid name required");
+                valid = false;
+                errorCount++;
+            }
+            if (!email.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+                showError(email, "Valid email required");
+                valid = false;
+                errorCount++;
+            }
+
+            const pwd = password.value;
+            if (!pwd || !(pwd.length >= 8 && /[A-Z]/.test(pwd) && /[0-9]/.test(pwd) && /[^A-Za-z0-9]/.test(pwd))) {
+                showError(password, "Weak password");
+                valid = false;
+                errorCount++;
+            }
+            if (!confirm.value || confirm.value !== pwd) {
+                showError(confirm, "Passwords must match");
+                valid = false;
+                errorCount++;
+            }
+
+            // If any errors, prevent submission
+            if (!valid) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.warn(`Form validation failed with ${errorCount} error(s)`);
+                return false;
+            }
+
+            // If valid, allow normal form submission (no spinner, just like login page)
+        }, true); // Use capture phase to catch before other handlers
+
         name.addEventListener("input", function() {
             const val = this.value.trim();
             if (!val) return clearError(this);
@@ -307,31 +347,6 @@
         }
 
         confirm.addEventListener("input", validateConfirm);
-
-        document.querySelector("form").addEventListener("submit", function(e) {
-            let valid = true;
-
-            if (!name.value.trim() || name.value.length < 3) {
-                showError(name, "Valid name required");
-                valid = false;
-            }
-            if (!email.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-                showError(email, "Valid email required");
-                valid = false;
-            }
-
-            const pwd = password.value;
-            if (!pwd || !(pwd.length >= 8 && /[A-Z]/.test(pwd) && /[0-9]/.test(pwd) && /[^A-Za-z0-9]/.test(pwd))) {
-                showError(password, "Weak password");
-                valid = false;
-            }
-            if (!confirm.value || confirm.value !== pwd) {
-                showError(confirm, "Passwords must match");
-                valid = false;
-            }
-
-            if (!valid) e.preventDefault();
-        });
 
         document.querySelectorAll("[data-toggle='password']").forEach(button => {
             button.addEventListener("click", function() {
