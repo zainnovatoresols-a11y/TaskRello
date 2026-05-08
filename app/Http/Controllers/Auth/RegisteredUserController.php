@@ -30,9 +30,12 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // Convert email to lowercase
+        $request->merge(['email' => strtolower($request->email)]);
+
         $request->validate([
             'name' => ['required', 'string', 'max:255','min:3','regex:/^[a-zA-Z\s]+$/',],
-            'email' => ['required', 'string', 'lowercase', 'email:rfc,dns','max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'email:rfc,dns','max:255', 'unique:'.User::class],
             'password' => [
                 'required',
                 'confirmed',

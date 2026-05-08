@@ -203,9 +203,16 @@
                     </div>
 
                     <div class="lx-btn-wrap">
-                        <button type="submit"
-                            class="block w-full py-4 px-4 bg-transparent border border-neutral-500 text-neutral-200 font-sans text-[0.72rem] font-semibold tracking-[0.28em] uppercase cursor-pointer transition-all duration-300 hover:border-neutral-300 hover:text-white hover:bg-white/[0.04] active:scale-[0.99] rounded-none">
-                            {{ __('Register') }}
+                        <button type="submit" id="register-btn"
+                            class="block w-full py-4 px-4 bg-transparent border border-neutral-500 text-neutral-200 font-sans text-[0.72rem] font-semibold tracking-[0.28em] uppercase cursor-pointer transition-all duration-300 hover:border-neutral-300 hover:text-white hover:bg-white/[0.04] active:scale-[0.99] rounded-none disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span id="btn-text">{{ __('Register') }}</span>
+                            <svg id="btn-spinner" class="hidden w-4 h-4 animate-spin ml-2 inline"
+                                viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v8H4z"></path>
+                            </svg>
                         </button>
                     </div>
                 </form>
@@ -262,6 +269,10 @@
 
         // Immediately attach submit listener to prevent any submission
         const form = document.querySelector("form");
+        const registerBtn = document.getElementById("register-btn");
+        const btnText = document.getElementById("btn-text");
+        const btnSpinner = document.getElementById("btn-spinner");
+
         form.addEventListener("submit", function(e) {
             let valid = true;
             let errorCount = 0;
@@ -297,7 +308,10 @@
                 return false;
             }
 
-            // If valid, allow normal form submission (no spinner, just like login page)
+            // If valid, show loading spinner and allow form submission
+            registerBtn.disabled = true;
+            btnText.textContent = "Registering...";
+            btnSpinner.classList.remove("hidden");
         }, true); // Use capture phase to catch before other handlers
 
         name.addEventListener("input", function() {
