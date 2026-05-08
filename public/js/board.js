@@ -41,6 +41,10 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
+function getActivityTimestamp() {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 async function openCardModal(cardId) {
     cardModalDirty = false;
     const modal = document.getElementById('card-modal');
@@ -272,6 +276,28 @@ function startEditTitle(cardId, el) {
             if (boardCard) boardCard.textContent = newTitle;
             cardModalDirty = true;
             showToast('Title updated.');
+
+            // Add activity log for title change
+            const userName = document.querySelector(`[data-card-id="${cardId}"]`).dataset.userName;
+            const activityDiv = document.getElementById(`activity-logs-${cardId}`);
+            if (activityDiv) {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'flex items-start gap-2.5';
+                activityItem.innerHTML = `
+                    <div class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700
+                                flex-shrink-0 flex items-center justify-center
+                                text-gray-600 dark:text-gray-300 text-xs font-bold">
+                        ${userName.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="flex-1 min-w-0 pt-0.5">
+                        <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                            ${userName} changed the title to '${newTitle}'
+                        </p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">${getActivityTimestamp()}</p>
+                    </div>
+                `;
+                activityDiv.insertBefore(activityItem, activityDiv.firstChild);
+            }
         } catch {
             el.textContent = current;
         }
@@ -313,6 +339,36 @@ async function saveCardField(cardId, field, value) {
                 } else if (strip) {
                     strip.remove();
                 }
+            }
+        }
+
+        // Add activity log for the change
+        const userName = document.querySelector(`[data-card-id="${cardId}"]`).dataset.userName;
+        const activityDiv = document.getElementById(`activity-logs-${cardId}`);
+        if (activityDiv) {
+            let description = '';
+            if (field === 'description') {
+                description = `${userName} updated the description`;
+            } else if (field === 'due_date') {
+                description = value ? `${userName} set the due date to ${new Date(value).toLocaleDateString()}` : `${userName} removed the due date`;
+            } else if (field === 'cover_color') {
+                description = value ? `${userName} changed the cover color` : `${userName} removed the cover`;
+            }
+            if (description) {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'flex items-start gap-2.5';
+                activityItem.innerHTML = `
+                    <div class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700
+                                flex-shrink-0 flex items-center justify-center
+                                text-gray-600 dark:text-gray-300 text-xs font-bold">
+                        ${userName.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="flex-1 min-w-0 pt-0.5">
+                        <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">${description}</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">${getActivityTimestamp()}</p>
+                    </div>
+                `;
+                activityDiv.insertBefore(activityItem, activityDiv.firstChild);
             }
         }
     } catch {
@@ -452,6 +508,28 @@ async function postComment(cardId) {
             textarea.value = '';
             cardModalDirty = true;
             showToast('Comment posted.');
+
+            // Add activity log for the comment
+            const activityDiv = document.getElementById(`activity-logs-${cardId}`);
+            if (activityDiv) {
+                const cardTitle = document.querySelector(`[data-card-id="${cardId}"] h2`).textContent.trim();
+                const activityItem = document.createElement('div');
+                activityItem.className = 'flex items-start gap-2.5';
+                activityItem.innerHTML = `
+                    <div class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700
+                                flex-shrink-0 flex items-center justify-center
+                                text-gray-600 dark:text-gray-300 text-xs font-bold">
+                        ${c.author.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="flex-1 min-w-0 pt-0.5">
+                        <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                            ${c.author.name} commented on '${cardTitle}'
+                        </p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">${getActivityTimestamp()}</p>
+                    </div>
+                `;
+                activityDiv.insertBefore(activityItem, activityDiv.firstChild);
+            }
         }
     } catch {
       
@@ -572,12 +650,38 @@ async function attachLabel(cardId, labelId) {
             rebuildLabelChips(cardId, data.labels);
             cardModalDirty = true;
             showToast('Label added.');
+
+            // Add activity log for label attach
+            const userName = document.querySelector(`[data-card-id="${cardId}"]`).dataset.userName;
+            const cardTitle = document.querySelector(`[data-card-id="${cardId}"] h2`).textContent.trim();
+            const select = document.getElementById(`card-label-select-${cardId}`);
+            const option = select.querySelector(`option[value="${labelId}"]`);
+            const labelName = option ? option.textContent.trim() : 'Label';
+            const activityDiv = document.getElementById(`activity-logs-${cardId}`);
+            if (activityDiv) {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'flex items-start gap-2.5';
+                activityItem.innerHTML = `
+                    <div class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700
+                                flex-shrink-0 flex items-center justify-center
+                                text-gray-600 dark:text-gray-300 text-xs font-bold">
+                        ${userName.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="flex-1 min-w-0 pt-0.5">
+                        <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                            ${userName} attached label '${labelName}' to '${cardTitle}'
+                        </p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">${getActivityTimestamp()}</p>
+                    </div>
+                `;
+                activityDiv.insertBefore(activityItem, activityDiv.firstChild);
+            }
         }
     } catch {
     }
 }
 
-async function detachLabel(cardId, labelId) {
+async function detachLabel(cardId, labelId, labelName) {
     try {
         const data = await fetchJSON(
             `/cards/${cardId}/labels/${labelId}`, 'DELETE'
@@ -587,6 +691,29 @@ async function detachLabel(cardId, labelId) {
             rebuildLabelChips(cardId, data.labels);
             cardModalDirty = true;
             showToast('Label removed.');
+
+            // Add activity log for label detach
+            const userName = document.querySelector(`[data-card-id="${cardId}"]`).dataset.userName;
+            const cardTitle = document.querySelector(`[data-card-id="${cardId}"] h2`).textContent.trim();
+            const activityDiv = document.getElementById(`activity-logs-${cardId}`);
+            if (activityDiv) {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'flex items-start gap-2.5';
+                activityItem.innerHTML = `
+                    <div class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700
+                                flex-shrink-0 flex items-center justify-center
+                                text-gray-600 dark:text-gray-300 text-xs font-bold">
+                        ${userName.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="flex-1 min-w-0 pt-0.5">
+                        <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                            ${userName} removed label '${labelName}' from '${cardTitle}'
+                        </p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">${getActivityTimestamp()}</p>
+                    </div>
+                `;
+                activityDiv.insertBefore(activityItem, activityDiv.firstChild);
+            }
         }
     } catch {
       
@@ -670,6 +797,28 @@ async function uploadAttachment(cardId, input) {
             input.value = '';
             cardModalDirty = true;
             showToast('File uploaded.');
+
+            // Add activity log for attachment upload
+            const userName = document.querySelector(`[data-card-id="${cardId}"]`).dataset.userName;
+            const activityDiv = document.getElementById(`activity-logs-${cardId}`);
+            if (activityDiv) {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'flex items-start gap-2.5';
+                activityItem.innerHTML = `
+                    <div class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700
+                                flex-shrink-0 flex items-center justify-center
+                                text-gray-600 dark:text-gray-300 text-xs font-bold">
+                        ${userName.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="flex-1 min-w-0 pt-0.5">
+                        <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                            ${userName} attached '${att.filename}'
+                        </p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">${getActivityTimestamp()}</p>
+                    </div>
+                `;
+                activityDiv.insertBefore(activityItem, activityDiv.firstChild);
+            }
         }
     } catch {
         showToast('Upload failed. Please try again.', 'error');
@@ -687,9 +836,35 @@ async function deleteAttachment(attId) {
 
     try {
         await fetchJSON(`/attachments/${attId}`, 'DELETE');
-        document.getElementById(`att-${attId}`)?.remove();
+        const attDiv = document.getElementById(`att-${attId}`);
+        const filename = attDiv ? attDiv.querySelector('a').textContent.trim() : 'Attachment';
+        attDiv?.remove();
         cardModalDirty = true;
         showToast('Attachment removed.');
+
+        // Add activity log for attachment removal
+        const cardId = document.querySelector('[data-card-id]').dataset.cardId;
+        const userName = document.querySelector(`[data-card-id="${cardId}"]`).dataset.userName;
+        const cardTitle = document.querySelector(`[data-card-id="${cardId}"] h2`).textContent.trim();
+        const activityDiv = document.getElementById(`activity-logs-${cardId}`);
+        if (activityDiv) {
+            const activityItem = document.createElement('div');
+            activityItem.className = 'flex items-start gap-2.5';
+            activityItem.innerHTML = `
+                <div class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700
+                            flex-shrink-0 flex items-center justify-center
+                            text-gray-600 dark:text-gray-300 text-xs font-bold">
+                    ${userName.charAt(0).toUpperCase()}
+                </div>
+                <div class="flex-1 min-w-0 pt-0.5">
+                    <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                        ${userName} removed attachment '${filename}'
+                    </p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">${getActivityTimestamp()}</p>
+                </div>
+            `;
+            activityDiv.insertBefore(activityItem, activityDiv.firstChild);
+        }
     } catch {
 
     }
@@ -1391,6 +1566,29 @@ async function uploadCoverImage(cardId, input) {
             input.value = '';
             cardModalDirty = true;
             showToast('Cover image set.');
+
+            // Add activity log for cover image upload
+            const userName = document.querySelector(`[data-card-id="${cardId}"]`).dataset.userName;
+            const cardTitle = document.querySelector(`[data-card-id="${cardId}"] h2`).textContent.trim();
+            const activityDiv = document.getElementById(`activity-logs-${cardId}`);
+            if (activityDiv) {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'flex items-start gap-2.5';
+                activityItem.innerHTML = `
+                    <div class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700
+                                flex-shrink-0 flex items-center justify-center
+                                text-gray-600 dark:text-gray-300 text-xs font-bold">
+                        ${userName.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="flex-1 min-w-0 pt-0.5">
+                        <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                            ${userName} added a cover image to '${cardTitle}'
+                        </p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">${getActivityTimestamp()}</p>
+                    </div>
+                `;
+                activityDiv.insertBefore(activityItem, activityDiv.firstChild);
+            }
         }
     } catch {
         showToast('Upload failed. Please try again.', 'error');

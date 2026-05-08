@@ -9,7 +9,7 @@
     }
 </style>
 
-<div data-card-id="{{ $card->id }}" class="font-sans">
+<div data-card-id="{{ $card->id }}" data-user-name="{{ auth()->user()->name }}" class="font-sans">
 
     {{-- ── Card title ───────────────────────────────────────── --}}
     <div class="mb-4 pr-10">
@@ -200,7 +200,7 @@
                     </svg>
                     <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Activity</h3>
                 </div>
-                <div class="space-y-3">
+                <div id="activity-logs-{{ $card->id }}" class="space-y-3">
                     @forelse($card->activityLogs->sortByDesc('created_at')->take(15) as $log)
                     <div class="flex items-start gap-2.5">
                         <div class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700
@@ -350,7 +350,7 @@
                         style="background-color: {{ $label->color }}"
                         title="Click to remove"
                         id="card-label-{{ $card->id }}-{{ $label->id }}"
-                        onclick="detachLabel({{ $card->id }}, {{ $label->id }})">
+                        onclick="detachLabel({{ $card->id }}, {{ $label->id }}, '{{ addslashes($label->name) }}')">
                         {{ $label->name }}
                     </span>
                     @endforeach

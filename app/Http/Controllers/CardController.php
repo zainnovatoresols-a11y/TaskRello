@@ -247,7 +247,7 @@ class CardController extends Controller
 
         ActivityLog::log(
             $request->user(),
-            'updated_card',
+            'added_cover_image',
             "{$request->user()->name} added a cover image to '{$card->title}'",
             $card->list->board_id,
             $card->id
@@ -270,6 +270,14 @@ class CardController extends Controller
         }
 
         $card->update(['cover_image' => null]);
+
+        ActivityLog::log(
+            $request->user(),
+            'removed_cover_image',
+            "{$request->user()->name} removed the cover image from '{$card->title}'",
+            $card->list->board_id,
+            $card->id
+        );
 
         return response()->json([
             'success' => true,

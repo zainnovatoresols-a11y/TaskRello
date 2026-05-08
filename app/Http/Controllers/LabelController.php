@@ -90,7 +90,7 @@ class LabelController extends Controller
         $this->authorize('update', $card);
 
         try {
-            $labels = $this->labelService->attach($card, $label);
+            $labels = $this->labelService->attach($card, $label, $request->user());
         } catch (\InvalidArgumentException $e) {
             if ($request->wantsJson()) {
                 return response()->json(['error' => $e->getMessage()], 422);
@@ -109,7 +109,7 @@ class LabelController extends Controller
     {
         $this->authorize('update', $card);
 
-        $labels = $this->labelService->detach($card, $label);
+        $labels = $this->labelService->detach($card, $label, $request->user());
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'labels' => $labels]);

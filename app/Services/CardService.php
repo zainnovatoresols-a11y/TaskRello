@@ -9,6 +9,7 @@ use App\Models\ActivityLog;
 use App\Models\Notification;
 use App\Repositories\Contracts\CardRepositoryInterface;
 
+
 class CardService
 {
     public function __construct(
@@ -46,13 +47,25 @@ class CardService
     {
         $card = $this->cardRepository->update($card, $data);
 
-        ActivityLog::log(
-            $user,
-            'updated_card',
-            "{$user->name} updated card '{$card->title}'",
-            $card->list->board_id,
-            $card->id
-        );
+        foreach ($data as $field => $value) {
+            $description = match($field) {
+                'title' => "{$user->name} changed the title to '{$value}'",
+                'description' => "{$user->name} updated the description",
+                'due_date' => $value ? "{$user->name} set the due date to " . \Carbon\Carbon::parse($value)->format('M j, Y') : "{$user->name} removed the due date",
+                'cover_color' => $value ? "{$user->name} changed the cover color" : "{$user->name} removed the cover",
+                default => null,
+            };
+
+            if ($description) {
+                ActivityLog::log(
+                    $user,
+                    "updated_card_{$field}",
+                    $description,
+                    $card->list->board_id,
+                    $card->id
+                );
+            }
+        }
 
         return $card->fresh()->load('assignees', 'labels');
     }
@@ -61,6 +74,9 @@ class CardService
     {
         $boardId = $card->list->board_id;
         $title   = $card->title;
+
+        // Delete all activity logs related to this card
+        ActivityLog::where('card_id', $card->id)->delete();
 
         $this->cardRepository->delete($card);
 

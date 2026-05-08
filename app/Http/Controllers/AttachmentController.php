@@ -6,6 +6,7 @@ use App\Models\Card;
 use App\Models\Attachment;
 use App\Services\AttachmentService;
 use Illuminate\Http\Request;
+use App\Models\ActivityLog;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Requests\StoreAttachmentRequest;
 
@@ -68,7 +69,7 @@ class AttachmentController extends Controller
     {
         $this->authorize('delete', $attachment);
 
-        $this->attachmentService->delete($attachment);
+        $this->attachmentService->delete($attachment, $request->user());
         return response()->json([
             'success' => true,
             'message' => 'Attachment deleted successfully'

@@ -4,11 +4,13 @@ namespace App\Services;
 
 use App\Models\Card;
 use App\Models\Attachment;
+use App\Models\User;
 use App\Models\ActivityLog;
 use App\Repositories\Contracts\AttachmentRepositoryInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+
 
 class AttachmentService
 {
@@ -49,9 +51,20 @@ class AttachmentService
         }
     }
 
-    public function delete(Attachment $attachment): void
+    public function delete(Attachment $attachment, User $user): void
     {
+        $card = $attachment->card;
+        $board = $card->list->board;
+
         Storage::disk('public')->delete($attachment->file_path);
         $this->attachmentRepository->delete($attachment);
+
+        ActivityLog::log(
+            $user,
+            'removed_attachment',
+            "{$user->name} removed attachment '{$attachment->filename}'",
+            $board->id,
+            $card->id
+        );
     }
 }
