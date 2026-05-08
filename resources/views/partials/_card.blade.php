@@ -52,8 +52,7 @@
     <div class="p-3" onclick="openCardModal({{ $card->id }})">
 
         {{-- Completed badge --}}
-        @if($card->is_completed)
-        <div class="flex items-center gap-1.5 mb-2">
+        <div class="card-completed-badge flex items-center gap-1.5 mb-2 {{ $card->is_completed ? '' : 'hidden' }}">
             <span class="inline-flex items-center gap-1 text-xs font-medium
                              text-green-600 dark:text-green-400
                              bg-green-50 dark:bg-green-900/30
@@ -65,7 +64,6 @@
                 Completed
             </span>
         </div>
-        @endif
 
         {{-- Labels row --}}
         @if($card->labels->isNotEmpty())

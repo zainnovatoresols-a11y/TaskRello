@@ -289,6 +289,60 @@ async function saveCardField(cardId, field, value) {
     }
 }
 
+function getDueDateStatus(dateString) {
+    if (!dateString) return null;
+
+    const parts = dateString.split('-').map(Number);
+    if (parts.length !== 3 || parts.some(isNaN)) return null;
+
+    const [year, month, day] = parts;
+    const dueDate = new Date(year, month - 1, day);
+    dueDate.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (dueDate.getTime() < today.getTime()) {
+        return { text: '⚠ Overdue', className: 'text-red-500' };
+    }
+
+    if (dueDate.getTime() === today.getTime()) {
+        return { text: '⏰ Due today', className: 'text-yellow-600 dark:text-yellow-400' };
+    }
+
+    return { text: '✓ Upcoming', className: 'text-gray-400' };
+}
+
+function refreshCardDueStatus(cardId) {
+    const dueInput = document.getElementById(`due-date-${cardId}`);
+    const statusEl = document.getElementById(`due-date-status-${cardId}`);
+    if (!dueInput || !statusEl) return;
+
+    const status = getDueDateStatus(dueInput.value);
+    if (!status) {
+        statusEl.style.display = 'none';
+        statusEl.textContent = '';
+        return;
+    }
+
+    statusEl.style.display = 'block';
+    statusEl.textContent = status.text;
+    statusEl.className = `text-xs mt-1.5 font-medium ${status.className}`;
+}
+
+function refreshAllCardDueStatuses() {
+    document.querySelectorAll('[id^="due-date-"]').forEach(input => {
+        const match = input.id.match(/^due-date-(\d+)$/);
+        if (match) refreshCardDueStatus(match[1]);
+    });
+}
+
+if (typeof window !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', function () {
+        refreshAllCardDueStatuses();
+        setInterval(refreshAllCardDueStatuses, 60000);
+    });
+}
 
 async function deleteCard(cardId) {
     const confirmed = await showWarningModal({
@@ -983,16 +1037,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
 async function toggleCardComplete(cardId, checkboxWrapper) {
     try {
-        const data = await fetchJSON(`/cards/${cardId}/complete`, 'POST');
+        const response = await fetchJSON(`/cards/${cardId}/complete`, 'POST');
 
-        if (data.success) {
+        if (response.success) {
+            const data = response.data || {};
+            const isCompleted = data.is_completed;
             const tile = document.getElementById(`card-${cardId}`);
             const circle = document.getElementById(`complete-circle-${cardId}`);
             const tick = document.getElementById(`complete-tick-${cardId}`);
             const title = tile?.querySelector('p.text-sm.font-medium');
+            const badge = tile?.querySelector('.card-completed-badge');
 
-            if (data.is_completed) {
-
+            if (isCompleted) {
                 circle?.classList.remove(
                     'bg-white/80', 'dark:bg-gray-700/80',
                     'border-gray-400', 'dark:border-gray-500',
@@ -1004,10 +1060,8 @@ async function toggleCardComplete(cardId, checkboxWrapper) {
                 title?.classList.add('line-through', 'text-gray-400', 'dark:text-gray-500');
                 title?.classList.remove('text-gray-800', 'dark:text-gray-100');
 
+                badge?.classList.remove('hidden');
                 tile?.setAttribute('data-completed', 'true');
-
-                showToast('Card marked as complete.');
-
             } else {
                 circle?.classList.add(
                     'bg-white/80', 'dark:bg-gray-700/80',
@@ -1020,10 +1074,11 @@ async function toggleCardComplete(cardId, checkboxWrapper) {
                 title?.classList.remove('line-through', 'text-gray-400', 'dark:text-gray-500');
                 title?.classList.add('text-gray-800', 'dark:text-gray-100');
 
+                badge?.classList.add('hidden');
                 tile?.setAttribute('data-completed', 'false');
-
-                showToast('Card marked as incomplete.');
             }
+
+            showToast(response.message || (isCompleted ? 'Card marked as complete.' : 'Card marked as incomplete.'));
             applyBoardFilters();
             cardModalDirty = true;
         }
