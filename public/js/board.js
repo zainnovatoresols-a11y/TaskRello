@@ -265,7 +265,10 @@ async function saveCardField(cardId, field, value) {
 
         cardModalDirty = true;
         if (field === 'description') showToast('Description saved.');
-        if (field === 'due_date') showToast('Due date saved.');
+        if (field === 'due_date') {
+            showToast('Due date saved.');
+            refreshCardDueStatus(cardId);
+        }
         if (field === 'cover_color') {
             showToast('Cover updated.');
            
