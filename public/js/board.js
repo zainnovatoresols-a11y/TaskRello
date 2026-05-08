@@ -265,7 +265,10 @@ async function saveCardField(cardId, field, value) {
 
         cardModalDirty = true;
         if (field === 'description') showToast('Description saved.');
-        if (field === 'due_date') showToast('Due date saved.');
+        if (field === 'due_date') {
+            showToast('Due date saved.');
+            refreshCardDueStatus(cardId);
+        }
         if (field === 'cover_color') {
             showToast('Cover updated.');
            
@@ -289,6 +292,60 @@ async function saveCardField(cardId, field, value) {
     }
 }
 
+function getDueDateStatus(dateString) {
+    if (!dateString) return null;
+
+    const parts = dateString.split('-').map(Number);
+    if (parts.length !== 3 || parts.some(isNaN)) return null;
+
+    const [year, month, day] = parts;
+    const dueDate = new Date(year, month - 1, day);
+    dueDate.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (dueDate.getTime() < today.getTime()) {
+        return { text: '⚠ Overdue', className: 'text-red-500' };
+    }
+
+    if (dueDate.getTime() === today.getTime()) {
+        return { text: '⏰ Due today', className: 'text-yellow-600 dark:text-yellow-400' };
+    }
+
+    return { text: '✓ Upcoming', className: 'text-gray-400' };
+}
+
+function refreshCardDueStatus(cardId) {
+    const dueInput = document.getElementById(`due-date-${cardId}`);
+    const statusEl = document.getElementById(`due-date-status-${cardId}`);
+    if (!dueInput || !statusEl) return;
+
+    const status = getDueDateStatus(dueInput.value);
+    if (!status) {
+        statusEl.style.display = 'none';
+        statusEl.textContent = '';
+        return;
+    }
+
+    statusEl.style.display = 'block';
+    statusEl.textContent = status.text;
+    statusEl.className = `text-xs mt-1.5 font-medium ${status.className}`;
+}
+
+function refreshAllCardDueStatuses() {
+    document.querySelectorAll('[id^="due-date-"]').forEach(input => {
+        const match = input.id.match(/^due-date-(\d+)$/);
+        if (match) refreshCardDueStatus(match[1]);
+    });
+}
+
+if (typeof window !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', function () {
+        refreshAllCardDueStatuses();
+        setInterval(refreshAllCardDueStatuses, 60000);
+    });
+}
 
 async function deleteCard(cardId) {
     const confirmed = await showWarningModal({

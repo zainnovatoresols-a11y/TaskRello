@@ -304,12 +304,11 @@
                            text-gray-700 dark:text-gray-200
                            focus:outline-none focus:ring-2 focus:ring-blue-500
                            focus:border-transparent transition">
-                @if($card->due_date)
-                <p class="text-xs mt-1.5 font-medium
-                          {{ $card->isOverdue() ? 'text-red-500' : ($card->isDueSoon() ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400') }}">
-                    {{ $card->isOverdue() ? '⚠ Overdue' : ($card->isDueSoon() ? '⏰ Due today' : '✓ Upcoming') }}
+                <p id="due-date-status-{{ $card->id }}"
+                   class="text-xs mt-1.5 font-medium {{ $card->due_date ? ($card->isOverdue() ? 'text-red-500' : ($card->isDueSoon() ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400')) : 'text-gray-400' }}"
+                   style="{{ $card->due_date ? '' : 'display:none;' }}">
+                    {{ $card->due_date ? ($card->isOverdue() ? '⚠ Overdue' : ($card->isDueSoon() ? '⏰ Due today' : '✓ Upcoming')) : '' }}
                 </p>
-                @endif
             </div>
 
             {{-- Divider --}}
