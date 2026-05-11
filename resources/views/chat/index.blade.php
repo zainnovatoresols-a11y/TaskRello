@@ -582,5 +582,5 @@
     const ACTIVE_CONV_ID       = {{ isset($activeConversation) ? $activeConversation->id : 'null' }};
     const CSRF_TOKEN           = document.querySelector('meta[name="csrf-token"]').content;
 </script>
-<script src="{{ asset('js/chat.js') }}"></script>
+<script src="{{ asset('js/chat.js') }}?v={{ filemtime(public_path('js/chat.js')) }}"></script>
 @endsection

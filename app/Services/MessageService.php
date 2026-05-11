@@ -156,28 +156,22 @@ class MessageService
     }
 
     // ──────────────────────────────────────────────────────────
-    // Load paginated messages for a conversation
-    // Loads oldest first, 50 at a time
+    // Load messages for a conversation
+    // Loads all messages ordered oldest first
     // ──────────────────────────────────────────────────────────
     public function getMessages(
         Conversation $conversation,
-        int          $perPage = 50,
         ?int         $beforeId = null
-        // beforeId = load messages older than this ID
-        // used for infinite scroll upward
-    ): \Illuminate\Contracts\Pagination\LengthAwarePaginator {
+        // beforeId not used since loading all
+    ): \Illuminate\Database\Eloquent\Collection {
 
         $query = Message::where('conversation_id', $conversation->id)
                         ->withTrashed()
                         // include soft-deleted so "deleted" label shows
                         ->with(['sender', 'replyTo.sender'])
-                        ->orderBy('created_at');
+                        ->orderBy('created_at', 'asc');
 
-        if ($beforeId) {
-            $query->where('id', '<', $beforeId);
-        }
-
-        return $query->paginate($perPage);
+        return $query->get();
     }
 
     // ──────────────────────────────────────────────────────────

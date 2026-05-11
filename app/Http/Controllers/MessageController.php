@@ -38,22 +38,19 @@ class MessageController extends Controller
 
         $beforeId = $request->query('before_id');
 
-        $paginated = $this->messageService->getMessages(
+        $messages = $this->messageService->getMessages(
             $conversation,
-            perPage: 50,
             beforeId: $beforeId ? (int) $beforeId : null
         );
 
-        $messages = collect($paginated->items())
+        $messages = $messages
             ->map(fn($msg) => $this->messageService->formatMessage($msg));
 
         return response()->json([
             'success'  => true,
             'data'     => $messages,
-            'has_more' => $paginated->hasMorePages(),
-            'next_before_id' => $paginated->items()
-                ? collect($paginated->items())->first()?->id
-                : null,
+            'has_more' => false,
+            'next_before_id' => null,
         ]);
     }
 
