@@ -11,33 +11,33 @@
 <body class="min-h-screen bg-gray-100 dark:bg-gray-900 font-sans antialiased">
 
 {{-- ── Top navbar (reuse app navbar) ──────────────────────── --}}
-<nav class="bg-blue-700 dark:bg-blue-900 sticky top-0 z-40 shadow-md h-14 flex items-center px-4">
-    <div class="flex items-center justify-between w-full">
+<nav class="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 dark:from-blue-800 dark:via-blue-900 dark:to-indigo-900 sticky top-0 z-40 shadow-2xl backdrop-blur-xl border-b border-white/10">
+    <div class="flex items-center justify-between w-full px-6 py-4">
 
         {{-- Back to boards --}}
         <div class="flex items-center gap-4">
             <a href="{{ route('boards.index') }}"
-               class="text-white/80 hover:text-white transition">
+               class="text-white/80 hover:text-white transition-all duration-200 hover:scale-110 p-2 rounded-xl hover:bg-white/10">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>
             </a>
             <a href="{{ route('boards.index') }}"
-               class="text-white font-bold text-lg tracking-tight hover:opacity-90">
+               class="text-white font-bold text-xl tracking-tight hover:opacity-90 transition-opacity">
                 {{ config('app.name') }}
             </a>
-            <span class="text-white/40">|</span>
-            <span class="text-white/80 text-sm font-medium">Messages</span>
+            <span class="text-white/50">|</span>
+            <span class="text-white/90 text-sm font-medium bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">Messages</span>
         </div>
 
         {{-- User info --}}
-        <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-full bg-white/25 flex items-center
-                        justify-center text-white font-bold text-xs">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-2xl bg-white/20 backdrop-blur-sm ring-2 ring-white/30 flex items-center
+                        justify-center text-white font-bold text-sm shadow-lg">
                 {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
             </div>
-            <span class="text-white text-sm hidden sm:block">
+            <span class="text-white text-sm font-medium hidden sm:block">
                 {{ auth()->user()->name }}
             </span>
         </div>
@@ -45,7 +45,7 @@
 </nav>
 
 {{-- ── Main chat layout (3 panels) ────────────────────────── --}}
-<div class="flex h-[calc(100vh-56px)]">
+<div class="flex h-[calc(100vh-80px)] bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
 
     @yield('chat-content')
 

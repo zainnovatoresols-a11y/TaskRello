@@ -202,14 +202,13 @@ function loadMoreMessages() {
 function buildMessageHTML(msg, isOwnMessage) {
     if (msg.is_deleted) {
         return `
-        <div class="flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3 group" id="msg-${msg.id}">
-            <div class="w-fit max-w-[65%]">
+        <div class="flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-4 group" id="msg-${msg.id}">
+            <div class="w-fit max-w-[70%]">
                 <div class="relative inline-flex">
-                    <div class="bg-gray-700 text-white px-4 py-2 rounded-2xl
-                                rounded-br-sm shadow-sm break-words inline-block w-fit max-w-full">
-                        This was Deleted
+                    <div class="bg-gradient-to-br from-slate-600 to-slate-700 text-white px-5 py-3 rounded-3xl
+                                rounded-br-md shadow-lg break-words inline-block w-fit max-w-full">
+                        This message was deleted
                     </div>
-                    
                 </div>
             </div>
         </div>`;
@@ -217,19 +216,20 @@ function buildMessageHTML(msg, isOwnMessage) {
 
     const time    = msg.time || '';
     const edited  = msg.is_edited
-        ? '<span class="text-xs text-gray-400 dark:text-gray-500 ml-1">(edited)</span>'
+        ? '<span class="text-xs text-slate-400 dark:text-slate-500 ml-2">(edited)</span>'
         : '';
 
     // Reply preview
     let replyHtml = '';
     if (msg.reply_to) {
         replyHtml = `
-        <div class="border-l-2 border-blue-400 pl-2 mb-1.5
-                    bg-blue-50 dark:bg-blue-900/20 rounded py-1 pr-2">
-            <p class="text-xs font-semibold text-blue-600 dark:text-blue-400">
+        <div class="border-l-4 border-blue-400 pl-3 mb-2
+                    bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-900/20 dark:to-indigo-900/20
+                    rounded-2xl py-2 pr-3 shadow-sm backdrop-blur-sm">
+            <p class="text-sm font-semibold text-blue-700 dark:text-blue-400">
                 ${escapeHtmlChat(msg.reply_to.sender)}
             </p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+            <p class="text-sm text-slate-600 dark:text-slate-300 truncate">
                 ${escapeHtmlChat(msg.reply_to.body || 'Attachment')}
             </p>
         </div>`;
@@ -241,15 +241,19 @@ function buildMessageHTML(msg, isOwnMessage) {
         bodyHtml = `
         <img src="${msg.attachment_url}"
              alt="${escapeHtmlChat(msg.attachment_name || 'Image')}"
-             class="max-w-xs max-h-60 rounded-xl object-cover cursor-pointer
-                    hover:opacity-90 transition mt-1"
+             class="max-w-sm max-h-64 rounded-2xl object-cover cursor-pointer
+                    hover:opacity-95 transition-all duration-200 shadow-lg hover:shadow-xl
+                    transform hover:scale-[1.02] mt-2"
              onclick="openImageLightbox('${msg.attachment_url}')">`;
     } else if (msg.type === 'file' && msg.attachment_url) {
         bodyHtml = `
         <a href="${msg.attachment_url}" target="_blank"
-           class="inline-flex items-center gap-2 bg-white/20 dark:bg-black/20
-                  rounded-xl px-3 py-2 text-sm hover:bg-white/30 transition mt-1">
-            <svg class="w-4 h-4 flex-shrink-0" fill="none"
+           class="inline-flex items-center gap-3 bg-gradient-to-r from-slate-100 to-slate-200
+                  dark:from-slate-800 dark:to-slate-700
+                  rounded-2xl px-4 py-3 text-sm hover:from-slate-200 hover:to-slate-300
+                  dark:hover:from-slate-700 dark:hover:to-slate-600
+                  transition-all duration-200 shadow-md hover:shadow-lg mt-2">
+            <svg class="w-5 h-5 flex-shrink-0 text-slate-600 dark:text-slate-300" fill="none"
                  stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round"
                       stroke-width="2"
@@ -257,18 +261,19 @@ function buildMessageHTML(msg, isOwnMessage) {
                          a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486
                          8.486L20.5 13"/>
             </svg>
-            <span class="truncate max-w-[150px]">
+            <span class="truncate max-w-[180px] font-medium text-black">
                 ${escapeHtmlChat(msg.attachment_name || 'File')}
             </span>
-            <span class="text-xs opacity-70 flex-shrink-0">
+            <span class="text-xs opacity-75 flex-shrink-0">
                 ${msg.formatted_size || ''}
             </span>
         </a>`;
     } else if (msg.type === 'system') {
         return `
-        <div class="flex justify-center my-2" id="msg-${msg.id}">
-            <span class="text-xs text-gray-400 dark:text-gray-500
-                         bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
+        <div class="flex justify-center my-3" id="msg-${msg.id}">
+            <span class="text-sm text-slate-500 dark:text-slate-400
+                         bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700
+                         px-4 py-2 rounded-full shadow-sm backdrop-blur-sm">
                 ${escapeHtmlChat(msg.body)}
             </span>
         </div>`;
@@ -281,40 +286,43 @@ function buildMessageHTML(msg, isOwnMessage) {
 
     if (isOwnMessage) {
         return `
-        <div class="flex justify-end mb-3 group" id="msg-${msg.id}">
-            <div class="w-fit max-w-[65%]">
+        <div class="flex justify-end mb-4 group" id="msg-${msg.id}">
+            <div class="w-fit max-w-[70%]">
                 ${replyHtml}
                 <div class="relative inline-flex">
-                    <div class="bg-blue-700 text-white px-4 py-2 rounded-2xl
-                                rounded-br-sm shadow-sm break-words inline-block w-fit max-w-full">
+                    <div class="bg-gradient-to-br from-blue-600 to-indigo-600 text-white px-5 py-3 rounded-3xl
+                                rounded-br-md shadow-lg break-words inline-block w-fit max-w-full
+                                hover:shadow-xl transition-all duration-200">
                         ${bodyHtml}
                     </div>
-                    <div class="absolute -left-20 top-1/2 -translate-y-1/2
-                                hidden group-hover:flex items-center gap-1">
+                    <div class="absolute -left-12 top-1/2 -translate-y-1/2
+                                hidden group-hover:flex items-center gap-2">
                         <button onclick="setReply(${msg.id}, '${escapeHtmlChat(CURRENT_USER_NAME)}', '${escapeHtmlChat((msg.body || 'Attachment').substring(0, 50))}')"
-                                class="w-6 h-6 bg-white dark:bg-gray-700 rounded-full
-                                       shadow flex items-center justify-center
-                                       text-gray-400 hover:text-blue-600 transition"
+                                class="w-8 h-8 bg-white dark:bg-slate-700 rounded-2xl
+                                       shadow-lg flex items-center justify-center
+                                       text-slate-400 hover:text-blue-600 transition-all duration-200
+                                       transform hover:scale-110"
                                 title="Reply">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                       stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
                             </svg>
                         </button>
                         <button onclick="deleteMessage(${msg.id})"
-                                class="w-6 h-6 bg-white dark:bg-gray-700 rounded-full
-                                       shadow flex items-center justify-center
-                                       text-gray-400 hover:text-red-500 transition"
+                                class="w-8 h-8 bg-white dark:bg-slate-700 rounded-2xl
+                                       shadow-lg flex items-center justify-center
+                                       text-slate-400 hover:text-red-500 transition-all duration-200
+                                       transform hover:scale-110"
                                 title="Delete">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                       stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                         </button>
                     </div>
                 </div>
-                <div class="flex items-center justify-end gap-1 mt-0.5 pr-1">
-                    <span class="text-xs text-gray-400 dark:text-gray-500">
+                <div class="flex items-center justify-end gap-2 mt-1 pr-2">
+                    <span class="text-xs text-slate-500 dark:text-slate-400">
                         ${time}
                     </span>
                     ${edited}
@@ -324,42 +332,44 @@ function buildMessageHTML(msg, isOwnMessage) {
     } else {
         const initial = (msg.sender?.name || '?').charAt(0).toUpperCase();
         return `
-        <div class="flex items-end gap-2 mb-3 group" id="msg-${msg.id}">
-            <div class="w-7 h-7 rounded-full bg-blue-600 flex-shrink-0
+        <div class="flex items-end gap-4 mb-4 group" id="msg-${msg.id}">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-slate-500 to-slate-600 flex-shrink-0
                         flex items-center justify-center text-white
-                        text-xs font-bold mb-0.5"
+                        text-sm font-bold shadow-lg"
                  title="${escapeHtmlChat(msg.sender?.name || '')}">
                 ${initial}
             </div>
-            <div class="w-fit max-w-[65%]">
-                <p class="text-xs text-gray-500 dark:text-gray-400
-                           font-medium mb-0.5 ml-1">
+            <div class="w-fit max-w-[70%]">
+                <p class="text-sm text-slate-600 dark:text-slate-300
+                           font-semibold mb-1 ml-1">
                     ${escapeHtmlChat(msg.sender?.name || '')}
                 </p>
                 ${replyHtml}
                 <div class="relative inline-flex">
-                    <div class="bg-white dark:bg-gray-800 text-gray-800
-                                dark:text-gray-100 px-4 py-2 rounded-2xl
-                                rounded-bl-sm shadow-sm border
-                                border-gray-100 dark:border-gray-700 break-words inline-block w-fit max-w-full">
+                    <div class="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-700
+                                text-slate-900 dark:text-slate-100 px-5 py-3 rounded-3xl
+                                rounded-bl-md shadow-lg border border-slate-200/50 dark:border-slate-700/50
+                                break-words inline-block w-fit max-w-full
+                                hover:shadow-xl transition-all duration-200 backdrop-blur-sm">
                         ${bodyHtml}
                     </div>
-                    <div class="absolute -right-14 top-1/2 -translate-y-1/2
-                                hidden group-hover:flex items-center gap-1">
+                    <div class="absolute -right-12 top-1/2 -translate-y-1/2
+                                hidden group-hover:flex items-center gap-2">
                         <button onclick="setReply(${msg.id}, '${escapeHtmlChat(msg.sender?.name || '')}', '${escapeHtmlChat((msg.body || 'Attachment').substring(0, 50))}')"
-                                class="w-6 h-6 bg-white dark:bg-gray-700 rounded-full
-                                       shadow flex items-center justify-center
-                                       text-gray-400 hover:text-blue-600 transition"
+                                class="w-8 h-8 bg-white dark:bg-slate-700 rounded-2xl
+                                       shadow-lg flex items-center justify-center
+                                       text-slate-400 hover:text-blue-600 transition-all duration-200
+                                       transform hover:scale-110"
                                 title="Reply">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                       stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
                             </svg>
                         </button>
                     </div>
                 </div>
-                <div class="flex items-center gap-1 mt-0.5 ml-1">
-                    <span class="text-xs text-gray-400 dark:text-gray-500">
+                <div class="flex items-center gap-2 mt-1 ml-1">
+                    <span class="text-xs text-slate-500 dark:text-slate-400">
                         ${time}
                     </span>
                     ${edited}
@@ -737,21 +747,24 @@ function searchUsers(query) {
 
             container.innerHTML = data.data.map(u => `
                 <button onclick="startDirectChat(${u.id})"
-                        class="w-full flex items-center gap-3 px-3 py-2.5
-                               rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700
-                               transition text-left">
-                    <div class="w-9 h-9 rounded-full bg-blue-700 flex items-center
-                                justify-center text-white font-bold text-sm flex-shrink-0">
+                        class="w-full flex items-center gap-4 px-4 py-3.5
+                               rounded-2xl hover:bg-slate-50/80 dark:hover:bg-slate-700/50
+                               transition-all duration-200 text-left group">
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center
+                                justify-center text-white font-bold text-sm flex-shrink-0 shadow-lg">
                         ${u.name.charAt(0).toUpperCase()}
                     </div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-900 dark:text-white">
+                        <p class="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                             ${escapeHtmlChat(u.name)}
                         </p>
-                        <p class="text-xs text-gray-400 dark:text-gray-500 truncate">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
                             ${escapeHtmlChat(u.email)}
                         </p>
                     </div>
+                    <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
                 </button>`
             ).join('');
 
@@ -837,20 +850,20 @@ function searchGroupUsers(query) {
             container.innerHTML = data.data.map(u => `
                 <button onclick="toggleGroupMember(${u.id}, '${escapeHtmlChat(u.name)}')"
                         id="group-user-btn-${u.id}"
-                        class="w-full flex items-center gap-3 px-3 py-2
-                               rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700
-                               transition text-left
-                               ${groupSelectedUsers[u.id] ? 'bg-blue-50 dark:bg-blue-900/20' : ''}">
-                    <div class="w-8 h-8 rounded-full bg-blue-700 flex items-center
-                                justify-center text-white font-bold text-xs flex-shrink-0">
+                        class="w-full flex items-center gap-4 px-4 py-3
+                               rounded-2xl hover:bg-slate-50/80 dark:hover:bg-slate-700/50
+                               transition-all duration-200 text-left group
+                               ${groupSelectedUsers[u.id] ? 'bg-blue-50/50 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-800/50' : ''}">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center
+                                justify-center text-white font-bold text-sm flex-shrink-0 shadow-md">
                         ${u.name.charAt(0).toUpperCase()}
                     </div>
-                    <span class="text-sm text-gray-900 dark:text-white flex-1">
+                    <span class="text-sm text-slate-900 dark:text-white flex-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         ${escapeHtmlChat(u.name)}
                     </span>
                     ${groupSelectedUsers[u.id]
-                        ? '<span class="text-blue-700 dark:text-blue-400 text-xs font-medium">Added ✓</span>'
-                        : ''}
+                        ? '<div class="w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></div>'
+                        : '<div class="w-6 h-6 border-2 border-slate-300 dark:border-slate-600 rounded-full group-hover:border-blue-400 transition-colors"></div>'}
                 </button>`
             ).join('');
 
@@ -870,12 +883,15 @@ function toggleGroupMember(userId, userName) {
     // Refresh selected members chips
     const chips = document.getElementById('selected-members');
     chips.innerHTML = Object.entries(groupSelectedUsers).map(([id, name]) => `
-        <span class="inline-flex items-center gap-1 bg-blue-100 dark:bg-blue-900/40
-                     text-blue-700 dark:text-blue-300 text-xs font-medium
-                     px-2.5 py-1 rounded-full">
+        <span class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40
+                     text-blue-700 dark:text-blue-300 text-sm font-medium
+                     px-3 py-2 rounded-2xl shadow-sm border border-blue-200/50 dark:border-blue-800/50">
+            <div class="w-5 h-5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                ${name.charAt(0).toUpperCase()}
+            </div>
             ${escapeHtmlChat(name)}
             <button onclick="toggleGroupMember(${id}, '${escapeHtmlChat(name)}')"
-                    class="ml-0.5 hover:text-blue-900 dark:hover:text-blue-100">
+                    class="ml-1 hover:text-blue-900 dark:hover:text-blue-100 text-lg hover:scale-110 transition-transform">
                 &times;
             </button>
         </span>`
@@ -972,19 +988,22 @@ function searchAddMember(query) {
 
             container.innerHTML = data.data.map(u => `
                 <button onclick="addMemberToConversation(${convId}, ${u.id}, '${escapeHtmlChat(u.name)}')"
-                        class="w-full flex items-center gap-3 px-3 py-2.5
-                               rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700
-                               transition text-left">
-                    <div class="w-8 h-8 rounded-full bg-blue-700 flex items-center
-                                justify-center text-white font-bold text-xs flex-shrink-0">
+                        class="w-full flex items-center gap-4 px-4 py-3.5
+                               rounded-2xl hover:bg-slate-50/80 dark:hover:bg-slate-700/50
+                               transition-all duration-200 text-left group">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center
+                                justify-center text-white font-bold text-sm flex-shrink-0 shadow-md">
                         ${u.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white">
+                        <p class="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                             ${escapeHtmlChat(u.name)}
                         </p>
-                        <p class="text-xs text-gray-400">${escapeHtmlChat(u.email)}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">${escapeHtmlChat(u.email)}</p>
                     </div>
+                    <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
                 </button>`
             ).join('');
 
@@ -1153,16 +1172,17 @@ function openImageLightbox(url) {
     const lightbox = document.createElement('div');
     lightbox.id    = 'chat-lightbox';
     lightbox.className = 'fixed inset-0 z-[9999] flex items-center justify-center px-4';
-    lightbox.style.backgroundColor = 'rgba(0,0,0,0.88)';
+    lightbox.style.backgroundColor = 'rgba(0,0,0,0.85)';
+    lightbox.style.backdropFilter = 'blur(12px)';
     lightbox.innerHTML = `
-        <div class="relative max-w-4xl w-full">
+        <div class="relative max-w-5xl w-full">
             <button onclick="document.getElementById('chat-lightbox').remove()"
-                    class="absolute -top-10 right-0 text-white/70
-                           hover:text-white text-3xl font-bold transition">
+                    class="absolute -top-12 right-0 text-white/80 hover:text-white text-3xl font-bold
+                           hover:scale-110 transition-all duration-200 shadow-lg bg-black/20 rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-sm">
                 &times;
             </button>
             <img src="${url}" alt="Full size"
-                 class="w-full max-h-[85vh] object-contain rounded-xl">
+                 class="w-full max-h-[85vh] object-contain rounded-3xl shadow-2xl border border-white/10">
         </div>`;
 
     lightbox.addEventListener('click', function (e) {
@@ -1180,16 +1200,16 @@ function showChatToast(message, type = 'success') {
     document.querySelectorAll('.chat-toast').forEach(t => t.remove());
 
     const toast = document.createElement('div');
-    toast.className = 'chat-toast fixed bottom-6 right-6 z-[9999] px-4 py-3 '
-        + 'rounded-xl text-white text-sm font-medium shadow-xl '
-        + 'transition-all duration-300 '
-        + (type === 'error' ? 'bg-red-600' : 'bg-gray-900 dark:bg-gray-700');
+    toast.className = 'chat-toast fixed bottom-6 right-6 z-[9999] px-6 py-4 '
+        + 'rounded-2xl text-white text-sm font-semibold shadow-2xl backdrop-blur-xl '
+        + 'transition-all duration-300 border border-white/20 '
+        + (type === 'error' ? 'bg-gradient-to-r from-red-500 to-pink-500' : 'bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-700 dark:to-slate-600');
     toast.textContent = message;
     document.body.appendChild(toast);
 
     setTimeout(() => {
         toast.style.opacity   = '0';
-        toast.style.transform = 'translateY(8px)';
+        toast.style.transform = 'translateY(8px) scale(0.95)';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }

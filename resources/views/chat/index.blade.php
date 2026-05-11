@@ -5,22 +5,21 @@
 {{-- ══════════════════════════════════════════════════════════ --}}
 {{-- LEFT SIDEBAR — Conversation list                          --}}
 {{-- ══════════════════════════════════════════════════════════ --}}
-<aside class="w-full max-w-[26rem] flex-shrink-0 bg-white/95 dark:bg-slate-950/95
-              border-r border-slate-200/80 dark:border-slate-800
-              flex flex-col h-full shadow-xl backdrop-blur-xl">
+<aside class="w-full max-w-[28rem] flex-shrink-0 bg-gradient-to-b from-white to-slate-50/50 dark:from-slate-950 dark:to-slate-900/50
+              border-r border-slate-200/60 dark:border-slate-800/60
+              flex flex-col h-full shadow-2xl backdrop-blur-2xl">
 
     {{-- Sidebar header --}}
-    <div class="px-4 py-4 border-b border-gray-100 dark:border-gray-700">
-        <div class="flex items-center justify-between mb-3">
-            <h2 class="font-bold text-gray-900 dark:text-white text-base">
+    <div class="px-5 py-5 border-b border-slate-200/50 dark:border-slate-700/50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="font-bold text-slate-900 dark:text-white text-lg tracking-tight">
                 Messages
             </h2>
             {{-- New group button --}}
             <button onclick="openNewGroupModal()"
-                    class="w-8 h-8 flex items-center justify-center rounded-lg
-                           bg-blue-50 dark:bg-blue-900/30 text-blue-700
-                           dark:text-blue-400 hover:bg-blue-100
-                           dark:hover:bg-blue-900/50 transition"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl
+                           bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700
+                           text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                     title="New group conversation">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -31,9 +30,8 @@
 
         {{-- Search conversations --}}
         <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center
-                        pointer-events-none">
-                <svg class="w-4 h-4 text-gray-400" fill="none"
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg class="w-4 h-4 text-slate-400" fill="none"
                      stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -43,26 +41,27 @@
                    id="conv-search"
                    placeholder="Search conversations..."
                    oninput="filterConversations(this.value)"
-                   class="w-full bg-gray-100 dark:bg-gray-700 border-0
-                          rounded-lg pl-9 pr-3 py-2 text-sm
-                          text-gray-900 dark:text-gray-100
-                          placeholder-gray-400 dark:placeholder-gray-500
-                          focus:outline-none focus:ring-2 focus:ring-blue-500">
+                   class="w-full bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50
+                          rounded-2xl pl-11 pr-4 py-3 text-sm
+                          text-slate-900 dark:text-slate-100
+                          placeholder-slate-500 dark:placeholder-slate-400
+                          focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50
+                          transition-all duration-200 backdrop-blur-sm">
         </div>
     </div>
 
     {{-- Conversation list --}}
-    <div class="flex-1 overflow-y-auto" id="conversation-list">
+    <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent" id="conversation-list">
 
         @forelse($conversations as $conv)
             <a href="{{ route('chat.show', $conv['id']) }}"
                id="conv-item-{{ $conv['id'] }}"
-               class="conv-item flex items-center gap-3 px-4 py-3 cursor-pointer
-                      rounded-3xl transition-all duration-200
-                      hover:bg-slate-100 dark:hover:bg-slate-900
-                      border border-transparent
+               class="conv-item flex items-center gap-4 px-5 py-4 cursor-pointer
+                      rounded-3xl mx-2 my-1 transition-all duration-200
+                      hover:bg-slate-100/80 dark:hover:bg-slate-800/50 hover:shadow-md
+                      border border-transparent hover:border-slate-200/50 dark:hover:border-slate-700/50
                       {{ isset($activeId) && $activeId == $conv['id']
-                          ? 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm'
+                          ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-blue-200 dark:border-blue-800 shadow-lg'
                           : '' }}"
                data-name="{{ strtolower($conv['name']) }}">
 
@@ -75,17 +74,17 @@
                         @endphp
                         @if($other && !empty($other['avatar']))
                             <img src="{{ asset('storage/' . $other['avatar']) }}"
-                                 class="w-10 h-10 rounded-full object-cover"
+                                 class="w-12 h-12 rounded-2xl object-cover ring-2 ring-white dark:ring-slate-800 shadow-sm"
                                  alt="{{ $other['name'] }}">
                         @else
-                            <div class="w-10 h-10 rounded-full bg-blue-700 flex items-center
-                                        justify-center text-white font-bold text-sm">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center
+                                        justify-center text-white font-bold text-sm shadow-lg">
                                 {{ strtoupper(substr($conv['name'], 0, 2)) }}
                             </div>
                         @endif
                     @elseif($conv['type'] === 'board')
-                        <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center
-                                    justify-center text-white font-bold text-sm">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center
+                                    justify-center text-white font-bold shadow-lg">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                       stroke-width="2"
@@ -93,18 +92,18 @@
                             </svg>
                         </div>
                     @else
-                        <div class="w-10 h-10 rounded-full bg-green-600 flex items-center
-                                    justify-center text-white font-bold text-sm">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 flex items-center
+                                    justify-center text-white font-bold shadow-lg">
                             {{ strtoupper(substr($conv['name'], 0, 2)) }}
                         </div>
                     @endif
 
                     {{-- Type badge --}}
                     @if($conv['type'] === 'group')
-                        <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500
-                                    rounded-full border-2 border-white dark:border-gray-800
-                                    flex items-center justify-center">
-                            <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500
+                                    rounded-full border-2 border-white dark:border-slate-800
+                                    flex items-center justify-center shadow-sm">
+                            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
                             </svg>
                         </div>
@@ -113,44 +112,41 @@
 
                 {{-- Content --}}
                 <div class="flex-1 min-w-0">
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm font-semibold text-gray-900
-                                     dark:text-white truncate max-w-[140px]">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm font-semibold text-slate-900 dark:text-white truncate max-w-[160px]">
                             {{ $conv['name'] }}
                         </span>
-                        <span class="text-xs text-gray-400 dark:text-gray-500
-                                     flex-shrink-0 ml-1">
+                        <span class="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0 ml-2">
                             {{ $conv['last_message']
                                 ? $conv['last_message']['created_at']
                                 : '' }}
                         </span>
                     </div>
-                    <div class="flex items-center justify-between mt-0.5">
-                        <p class="text-xs text-gray-500 dark:text-gray-400
-                                  truncate max-w-[160px]">
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs text-slate-600 dark:text-slate-300 truncate max-w-[180px]">
                             @if($conv['last_message'])
                                 @if($conv['type'] !== 'direct')
-                                    <span class="font-medium">
+                                    <span class="font-medium text-slate-700 dark:text-slate-200">
                                         {{ $conv['last_message']['sender_name'] }}:
                                     </span>
                                 @endif
                                 {{ $conv['last_message']['body'] }}
                             @else
-                                <span class="italic">No messages yet</span>
+                                <span class="italic text-slate-500 dark:text-slate-400">No messages yet</span>
                             @endif
                         </p>
                         {{-- Unread badge --}}
                         @if($conv['unread_count'] > 0)
-                            <span class="ml-1 flex-shrink-0 w-5 h-5 bg-blue-700
+                            <span class="ml-2 flex-shrink-0 w-6 h-6 bg-gradient-to-r from-red-500 to-pink-500
                                          text-white text-xs font-bold rounded-full
-                                         flex items-center justify-center"
+                                         flex items-center justify-center shadow-lg animate-pulse"
                                   id="unread-{{ $conv['id'] }}">
                                 {{ $conv['unread_count'] > 9 ? '9+' : $conv['unread_count'] }}
                             </span>
                         @else
-                            <span class="hidden ml-1 flex-shrink-0 w-5 h-5 bg-blue-700
+                            <span class="hidden ml-2 flex-shrink-0 w-6 h-6 bg-gradient-to-r from-red-500 to-pink-500
                                          text-white text-xs font-bold rounded-full
-                                         flex items-center justify-center"
+                                         flex items-center justify-center shadow-lg"
                                   id="unread-{{ $conv['id'] }}">
                             </span>
                         @endif
@@ -158,10 +154,10 @@
                 </div>
             </a>
         @empty
-            <div class="flex flex-col items-center justify-center py-16 px-4 text-center">
-                <div class="w-14 h-14 bg-gray-100 dark:bg-gray-700 rounded-full
-                            flex items-center justify-center mb-3">
-                    <svg class="w-7 h-7 text-gray-400" fill="none"
+            <div class="flex flex-col items-center justify-center py-20 px-6 text-center">
+                <div class="w-16 h-16 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 rounded-3xl
+                            flex items-center justify-center mb-4 shadow-lg">
+                    <svg class="w-8 h-8 text-slate-500" fill="none"
                          stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               stroke-width="1.5"
@@ -171,22 +167,23 @@
                                  3.582 9 8z"/>
                     </svg>
                 </div>
-                <p class="text-sm font-medium text-gray-600 dark:text-gray-300">
+                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
                     No conversations yet
                 </p>
-                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                    Start a chat with a team member
+                <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
+                    Start a chat with a team member to begin collaborating
                 </p>
             </div>
         @endforelse
     </div>
 
     {{-- New direct message button --}}
-    <div class="px-4 py-3 border-t border-gray-100 dark:border-gray-700">
+    <div class="px-5 py-4 border-t border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-950/60 backdrop-blur-sm">
         <button onclick="openNewDirectModal()"
-                class="w-full flex items-center justify-center gap-2
-                       bg-blue-700 hover:bg-blue-800 text-white text-sm
-                       font-medium py-2.5 rounded-xl transition">
+                class="w-full flex items-center justify-center gap-3
+                       bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700
+                       text-white text-sm font-semibold py-3 rounded-2xl
+                       shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -199,30 +196,30 @@
 {{-- ══════════════════════════════════════════════════════════ --}}
 {{-- MAIN AREA — Active conversation or empty state            --}}
 {{-- ══════════════════════════════════════════════════════════ --}}
-<main class="flex-1 flex flex-col h-full bg-slate-100 dark:bg-slate-950 min-w-0">
+<main class="flex-1 flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 min-w-0">
 
     @if(isset($activeConversation))
 
         {{-- ── Conversation top bar ────────────────────────── --}}
-        <div class="flex items-center justify-between px-5 py-3 bg-white
-                    dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800
-                    flex-shrink-0 shadow-sm">
+        <div class="flex items-center justify-between px-6 py-4 bg-white/90 dark:bg-slate-950/90
+                    border-b border-slate-200/60 dark:border-slate-800/60
+                    flex-shrink-0 shadow-lg backdrop-blur-xl">
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-4">
                 {{-- Avatar --}}
                 @php
                     $convName = $activeConversation->getDisplayNameFor(auth()->user());
                 @endphp
-                <div class="w-9 h-9 rounded-full bg-blue-700 flex items-center
-                            justify-center text-white font-bold text-sm flex-shrink-0">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center
+                            justify-center text-white font-bold text-sm flex-shrink-0 shadow-lg">
                     {{ strtoupper(substr($convName, 0, 2)) }}
                 </div>
 
                 <div>
-                    <h3 class="font-semibold text-gray-900 dark:text-white text-sm">
+                    <h3 class="font-semibold text-slate-900 dark:text-white text-base">
                         {{ $convName }}
                     </h3>
-                    <p class="text-xs text-gray-400 dark:text-gray-500">
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
                         @if($activeConversation->type === 'direct')
                             Direct message
                         @elseif($activeConversation->type === 'board')
@@ -235,13 +232,13 @@
             </div>
 
             {{-- Right actions --}}
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3">
                 {{-- Participant avatars --}}
-                <div class="flex -space-x-1.5 mr-2">
+                <div class="flex -space-x-2 mr-3">
                     @foreach($activeConversation->users->take(4) as $p)
-                        <div class="w-7 h-7 rounded-full bg-blue-600 ring-2
-                                    ring-white dark:ring-gray-800 flex items-center
-                                    justify-center text-white text-xs font-bold"
+                        <div class="w-8 h-8 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 ring-2
+                                    ring-white dark:ring-slate-800 flex items-center
+                                    justify-center text-white text-xs font-bold shadow-md"
                              title="{{ $p->name }}">
                             {{ strtoupper(substr($p->name, 0, 1)) }}
                         </div>
@@ -250,9 +247,10 @@
 
                 {{-- Mute button --}}
                 <button onclick="toggleMute({{ $activeConversation->id }})"
-                        class="w-8 h-8 flex items-center justify-center rounded-lg
-                               text-gray-400 hover:text-gray-600 dark:hover:text-gray-200
-                               hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                        class="w-9 h-9 flex items-center justify-center rounded-xl
+                               text-slate-500 hover:text-slate-700 dark:hover:text-slate-200
+                               hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200
+                               shadow-sm hover:shadow-md"
                         title="Mute conversation"
                         id="mute-btn">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -269,9 +267,10 @@
                 {{-- Add member (group only) --}}
                 @if($activeConversation->type === 'group')
                     <button onclick="openAddMemberModal({{ $activeConversation->id }})"
-                            class="w-8 h-8 flex items-center justify-center rounded-lg
-                                   text-gray-400 hover:text-gray-600 dark:hover:text-gray-200
-                                   hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                            class="w-9 h-9 flex items-center justify-center rounded-xl
+                                   text-slate-500 hover:text-slate-700 dark:hover:text-slate-200
+                                   hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200
+                                   shadow-sm hover:shadow-md"
                             title="Add member">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -285,58 +284,59 @@
         </div>
 
         {{-- ── Message thread ──────────────────────────────── --}}
-        <div class="flex-1 overflow-y-auto px-5 py-4 space-y-1 bg-white dark:bg-slate-900
-                    rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-inner"
+        <div class="flex-1 overflow-y-auto px-6 py-6 space-y-2 bg-gradient-to-b from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-800/50
+                    rounded-[3rem] border border-slate-200/40 dark:border-slate-800/40 shadow-inner mx-2 my-2"
              id="message-thread"
              data-conversation-id="{{ $activeConversation->id }}">
 
             {{-- Load more button --}}
-            <div class="text-center mb-4" id="load-more-wrap">
+            <div class="text-center mb-6" id="load-more-wrap">
                 <button onclick="loadMoreMessages()"
                         id="load-more-btn"
-                        class="text-xs text-blue-600 dark:text-blue-400
-                               hover:underline hidden">
+                        class="text-sm text-blue-600 dark:text-blue-400
+                               hover:text-blue-700 dark:hover:text-blue-300
+                               hover:underline hidden font-medium transition-colors">
                     Load older messages
                 </button>
             </div>
 
             {{-- Messages rendered by JS on load --}}
-            <div id="messages-container" class="space-y-3">
-                <div class="flex items-start gap-3 animate-pulse">
-                    <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700"></div>
-                    <div class="space-y-2 w-full max-w-2xl">
-                        <div class="w-48 h-3 rounded-full bg-gray-200 dark:bg-gray-700"></div>
-                        <div class="w-full h-16 rounded-3xl bg-gray-200 dark:bg-gray-700"></div>
+            <div id="messages-container" class="space-y-4">
+                <div class="flex items-start gap-4 animate-pulse">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-700"></div>
+                    <div class="space-y-3 w-full max-w-2xl">
+                        <div class="w-48 h-4 rounded-2xl bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="w-full h-20 rounded-3xl bg-slate-200 dark:bg-slate-700"></div>
                     </div>
                 </div>
-                <div class="flex items-end justify-end gap-3 animate-pulse">
-                    <div class="space-y-2 w-full max-w-2xl text-right">
-                        <div class="mx-auto w-3/4 h-3 rounded-full bg-gray-200 dark:bg-gray-700"></div>
-                        <div class="mx-auto w-full h-16 rounded-3xl bg-gray-200 dark:bg-gray-700"></div>
+                <div class="flex items-end justify-end gap-4 animate-pulse">
+                    <div class="space-y-3 w-full max-w-2xl text-right">
+                        <div class="mx-auto w-3/4 h-4 rounded-2xl bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="mx-auto w-full h-20 rounded-3xl bg-slate-200 dark:bg-slate-700"></div>
                     </div>
-                    <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-700"></div>
                 </div>
-                <div class="flex items-start gap-3 animate-pulse">
-                    <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700"></div>
-                    <div class="space-y-2 w-full max-w-2xl">
-                        <div class="w-40 h-3 rounded-full bg-gray-200 dark:bg-gray-700"></div>
-                        <div class="w-4/5 h-16 rounded-3xl bg-gray-200 dark:bg-gray-700"></div>
+                <div class="flex items-start gap-4 animate-pulse">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-700"></div>
+                    <div class="space-y-3 w-full max-w-2xl">
+                        <div class="w-44 h-4 rounded-2xl bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="w-5/6 h-20 rounded-3xl bg-slate-200 dark:bg-slate-700"></div>
                     </div>
                 </div>
             </div>
 
             {{-- Typing indicator --}}
-            <div id="typing-indicator" class="hidden flex items-center gap-2 py-1">
-                <div class="flex gap-1 items-center bg-white dark:bg-gray-800
-                            rounded-2xl px-3 py-2 shadow-sm">
-                    <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+            <div id="typing-indicator" class="hidden flex items-center gap-3 py-2">
+                <div class="flex gap-1.5 items-center bg-white/80 dark:bg-slate-800/80
+                            rounded-2xl px-4 py-3 shadow-lg backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50">
+                    <span class="w-2 h-2 bg-slate-400 rounded-full animate-bounce"
                           style="animation-delay: 0ms"></span>
-                    <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+                    <span class="w-2 h-2 bg-slate-400 rounded-full animate-bounce"
                           style="animation-delay: 150ms"></span>
-                    <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+                    <span class="w-2 h-2 bg-slate-400 rounded-full animate-bounce"
                           style="animation-delay: 300ms"></span>
                 </div>
-                <span class="text-xs text-gray-400 dark:text-gray-500"
+                <span class="text-sm text-slate-500 dark:text-slate-400 font-medium"
                       id="typing-text">
                 </span>
             </div>
@@ -344,39 +344,39 @@
 
         {{-- ── Reply preview bar ───────────────────────────── --}}
         <div id="reply-bar"
-             class="hidden mx-5 mb-0 bg-slate-50 dark:bg-slate-900/80
-                    border border-slate-200 dark:border-slate-800
-                    rounded-2xl px-4 py-3 flex items-center
-                    justify-between shadow-sm">
+             class="hidden mx-6 mb-2 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30
+                    border border-blue-200/50 dark:border-blue-800/50
+                    rounded-2xl px-5 py-4 flex items-center
+                    justify-between shadow-lg backdrop-blur-sm">
             <div class="flex-1 min-w-0">
-                <p class="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-0.5">
+                <p class="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-1">
                     Replying to
                     <span id="reply-to-name"></span>
                 </p>
-                <p class="text-xs text-gray-600 dark:text-gray-300 truncate"
+                <p class="text-sm text-slate-600 dark:text-slate-300 truncate"
                    id="reply-to-body">
                 </p>
             </div>
             <button onclick="cancelReply()"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200
-                           text-xl ml-3 flex-shrink-0">
+                    class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200
+                           text-2xl ml-4 flex-shrink-0 hover:scale-110 transition-transform">
                 &times;
             </button>
         </div>
 
         {{-- ── Message input ───────────────────────────────── --}}
-        <div class="px-5 py-4 bg-slate-50 dark:bg-slate-950
-                    border-t border-slate-200 dark:border-slate-800
-                    flex-shrink-0 shadow-lg">
+        <div class="px-6 py-5 bg-white/90 dark:bg-slate-950/90
+                    border-t border-slate-200/60 dark:border-slate-800/60
+                    flex-shrink-0 shadow-2xl backdrop-blur-xl mx-2 mb-2 rounded-3xl">
 
-            <div class="flex items-end gap-3">
+            <div class="flex items-end gap-4">
 
                 {{-- Attachment button --}}
-                <label class="flex-shrink-0 w-9 h-9 flex items-center justify-center
+                <label class="flex-shrink-0 w-11 h-11 flex items-center justify-center
                               rounded-2xl text-slate-500 hover:text-blue-600
                               dark:text-slate-300 dark:hover:text-blue-400 bg-slate-100
-                              dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800
-                              cursor-pointer transition">
+                              dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-blue-900/30
+                              cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               stroke-width="2"
@@ -393,28 +393,28 @@
                 {{-- Textarea --}}
                 <div class="flex-1 relative">
                     <textarea id="message-input"
-                              placeholder="Type a message... (Enter to send, Shift+Enter for new line)"
+                              placeholder="Type a message..."
                               rows="1"
                               data-conversation-id="{{ $activeConversation->id }}"
                               onkeydown="handleMessageKeydown(event, {{ $activeConversation->id }})"
                               oninput="handleTypingInput({{ $activeConversation->id }})"
-                              class="w-full border border-slate-200 dark:border-slate-800
-                                     rounded-2xl px-4 py-3 text-sm resize-none
+                              class="w-full border border-slate-200/60 dark:border-slate-700/60
+                                     rounded-2xl px-5 py-4 text-sm resize-none
                                      bg-white dark:bg-slate-900
                                      text-slate-900 dark:text-slate-100
                                      placeholder-slate-400 dark:placeholder-slate-500
-                                     focus:outline-none focus:ring-2 focus:ring-blue-500
-                                     focus:border-transparent transition
-                                     max-h-32 overflow-y-auto">
-                    </textarea>
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50
+                                     transition-all duration-200 shadow-sm focus:shadow-lg
+                                     max-h-32 overflow-y-auto"></textarea>
                 </div>
 
                 {{-- Send button --}}
                 <button onclick="sendMessage({{ $activeConversation->id }})"
-                        class="flex-shrink-0 w-11 h-11 flex items-center justify-center
-                               bg-gradient-to-br from-blue-600 to-sky-500 hover:from-blue-700 hover:to-sky-600
-                               text-white rounded-2xl shadow-lg transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="flex-shrink-0 w-12 h-12 flex items-center justify-center
+                               bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700
+                               text-white rounded-2xl shadow-lg hover:shadow-xl
+                               transition-all duration-200 transform hover:scale-105">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                     </svg>
@@ -425,11 +425,10 @@
     @else
 
         {{-- ── Empty state (no active conversation) ──────── --}}
-        <div class="flex-1 flex flex-col items-center justify-center
-                    text-center px-8">
-            <div class="w-20 h-20 bg-blue-50 dark:bg-blue-900/30 rounded-full
-                        flex items-center justify-center mb-5">
-                <svg class="w-10 h-10 text-blue-400" fill="none"
+        <div class="flex-1 flex flex-col items-center justify-center text-center px-8">
+            <div class="w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-3xl
+                        flex items-center justify-center mb-6 shadow-2xl">
+                <svg class="w-12 h-12 text-blue-500" fill="none"
                      stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="1.5"
@@ -439,16 +438,17 @@
                              3.582 9 8z"/>
                 </svg>
             </div>
-            <h2 class="text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-3">
                 Your messages
             </h2>
-            <p class="text-sm text-gray-400 dark:text-gray-500 max-w-xs mb-6">
+            <p class="text-sm text-slate-600 dark:text-slate-300 max-w-sm mb-8 leading-relaxed">
                 Send private messages or start group conversations
-                with your team members
+                with your team members to collaborate effectively
             </p>
             <button onclick="openNewDirectModal()"
-                    class="bg-blue-700 hover:bg-blue-800 text-white text-sm
-                           font-medium px-5 py-2.5 rounded-xl transition">
+                    class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700
+                           text-white text-sm font-semibold px-6 py-3 rounded-2xl
+                           shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
                 Start a conversation
             </button>
         </div>
@@ -463,38 +463,38 @@
 {{-- New Direct Message Modal --}}
 <div id="new-direct-modal"
      class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
-     style="background-color: rgba(0,0,0,0.55);">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6">
-        <div class="flex items-center justify-between mb-5">
-            <h3 class="font-semibold text-gray-900 dark:text-white text-base">
+     style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(8px);">
+    <div class="bg-white/95 dark:bg-slate-800/95 rounded-3xl shadow-2xl w-full max-w-md p-8 backdrop-blur-2xl border border-white/20 dark:border-slate-700/50">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-bold text-slate-900 dark:text-white text-xl">
                 New message
             </h3>
             <button onclick="closeNewDirectModal()"
-                    class="text-gray-400 hover:text-gray-600
-                           dark:hover:text-gray-200 text-2xl font-bold">
+                    class="text-slate-400 hover:text-slate-600
+                           dark:hover:text-slate-200 text-2xl font-bold hover:scale-110 transition-transform">
                 &times;
             </button>
         </div>
 
         {{-- User search --}}
-        <div class="relative mb-3">
+        <div class="relative mb-4">
             <input type="text"
                    id="user-search-input"
                    placeholder="Search by name or email..."
                    oninput="searchUsers(this.value)"
-                   class="w-full border border-gray-300 dark:border-gray-600
-                          rounded-xl px-4 py-2.5 text-sm
-                          bg-white dark:bg-gray-900
-                          text-gray-900 dark:text-gray-100
-                          placeholder-gray-400
-                          focus:outline-none focus:ring-2 focus:ring-blue-500
-                          focus:border-transparent">
+                   class="w-full border border-slate-200/60 dark:border-slate-700/60
+                          rounded-2xl px-5 py-4 text-sm
+                          bg-white/80 dark:bg-slate-900/80
+                          text-slate-900 dark:text-slate-100
+                          placeholder-slate-500 dark:placeholder-slate-400
+                          focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50
+                          transition-all duration-200 backdrop-blur-sm shadow-sm">
         </div>
 
         {{-- Search results --}}
         <div id="user-search-results"
-             class="max-h-64 overflow-y-auto space-y-1">
-            <p class="text-sm text-gray-400 dark:text-gray-500 text-center py-6 italic">
+             class="max-h-72 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
+            <p class="text-sm text-slate-500 dark:text-slate-400 text-center py-8 italic">
                 Start typing to search users
             </p>
         </div>
@@ -504,15 +504,15 @@
 {{-- New Group Modal --}}
 <div id="new-group-modal"
      class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
-     style="background-color: rgba(0,0,0,0.55);">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6">
-        <div class="flex items-center justify-between mb-5">
-            <h3 class="font-semibold text-gray-900 dark:text-white text-base">
+     style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(8px);">
+    <div class="bg-white/95 dark:bg-slate-800/95 rounded-3xl shadow-2xl w-full max-w-md p-8 backdrop-blur-2xl border border-white/20 dark:border-slate-700/50">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-bold text-slate-900 dark:text-white text-xl">
                 New group conversation
             </h3>
             <button onclick="closeNewGroupModal()"
-                    class="text-gray-400 hover:text-gray-600
-                           dark:hover:text-gray-200 text-2xl font-bold">
+                    class="text-slate-400 hover:text-slate-600
+                           dark:hover:text-slate-200 text-2xl font-bold hover:scale-110 transition-transform">
                 &times;
             </button>
         </div>
@@ -521,17 +521,17 @@
                id="group-name-input"
                placeholder="Group name..."
                maxlength="255"
-               class="w-full border border-gray-300 dark:border-gray-600
-                      rounded-xl px-4 py-2.5 text-sm mb-3
-                      bg-white dark:bg-gray-900
-                      text-gray-900 dark:text-gray-100
-                      placeholder-gray-400
-                      focus:outline-none focus:ring-2 focus:ring-blue-500
-                      focus:border-transparent">
+               class="w-full border border-slate-200/60 dark:border-slate-700/60
+                      rounded-2xl px-5 py-4 text-sm mb-4
+                      bg-white/80 dark:bg-slate-900/80
+                      text-slate-900 dark:text-slate-100
+                      placeholder-slate-500 dark:placeholder-slate-400
+                      focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50
+                      transition-all duration-200 backdrop-blur-sm shadow-sm">
 
         {{-- Selected members --}}
         <div id="selected-members"
-             class="flex flex-wrap gap-2 mb-3 min-h-[32px]">
+             class="flex flex-wrap gap-2 mb-4 min-h-[40px] p-2 rounded-2xl bg-slate-50/50 dark:bg-slate-800/50">
         </div>
 
         {{-- Member search --}}
@@ -539,21 +539,22 @@
                id="group-user-search"
                placeholder="Search and add members..."
                oninput="searchGroupUsers(this.value)"
-               class="w-full border border-gray-300 dark:border-gray-600
-                      rounded-xl px-4 py-2.5 text-sm mb-3
-                      bg-white dark:bg-gray-900
-                      text-gray-900 dark:text-gray-100
-                      placeholder-gray-400
-                      focus:outline-none focus:ring-2 focus:ring-blue-500
-                      focus:border-transparent">
+               class="w-full border border-slate-200/60 dark:border-slate-700/60
+                      rounded-2xl px-5 py-4 text-sm mb-4
+                      bg-white/80 dark:bg-slate-900/80
+                      text-slate-900 dark:text-slate-100
+                      placeholder-slate-500 dark:placeholder-slate-400
+                      focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50
+                      transition-all duration-200 backdrop-blur-sm shadow-sm">
 
         <div id="group-user-results"
-             class="max-h-40 overflow-y-auto space-y-1 mb-4">
+             class="max-h-48 overflow-y-auto space-y-2 mb-6 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
         </div>
 
         <button onclick="createGroup()"
-                class="w-full bg-blue-700 hover:bg-blue-800 text-white
-                       font-medium py-2.5 rounded-xl text-sm transition">
+                class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700
+                       text-white font-semibold py-4 rounded-2xl text-sm
+                       shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]">
             Create group
         </button>
     </div>
@@ -562,15 +563,15 @@
 {{-- Add Member Modal --}}
 <div id="add-member-modal"
      class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
-     style="background-color: rgba(0,0,0,0.55);">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-6">
-        <div class="flex items-center justify-between mb-5">
-            <h3 class="font-semibold text-gray-900 dark:text-white text-base">
+     style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(8px);">
+    <div class="bg-white/95 dark:bg-slate-800/95 rounded-3xl shadow-2xl w-full max-w-sm p-8 backdrop-blur-2xl border border-white/20 dark:border-slate-700/50">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-bold text-slate-900 dark:text-white text-xl">
                 Add member
             </h3>
             <button onclick="closeAddMemberModal()"
-                    class="text-gray-400 hover:text-gray-600
-                           dark:hover:text-gray-200 text-2xl font-bold">
+                    class="text-slate-400 hover:text-slate-600
+                           dark:hover:text-slate-200 text-2xl font-bold hover:scale-110 transition-transform">
                 &times;
             </button>
         </div>
@@ -579,15 +580,15 @@
                id="add-member-search"
                placeholder="Search users..."
                oninput="searchAddMember(this.value)"
-               class="w-full border border-gray-300 dark:border-gray-600
-                      rounded-xl px-4 py-2.5 text-sm mb-3
-                      bg-white dark:bg-gray-900
-                      text-gray-900 dark:text-gray-100
-                      placeholder-gray-400
-                      focus:outline-none focus:ring-2 focus:ring-blue-500
-                      focus:border-transparent">
+               class="w-full border border-slate-200/60 dark:border-slate-700/60
+                      rounded-2xl px-5 py-4 text-sm mb-4
+                      bg-white/80 dark:bg-slate-900/80
+                      text-slate-900 dark:text-slate-100
+                      placeholder-slate-500 dark:placeholder-slate-400
+                      focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50
+                      transition-all duration-200 backdrop-blur-sm shadow-sm">
         <div id="add-member-results"
-             class="max-h-56 overflow-y-auto space-y-1">
+             class="max-h-64 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
         </div>
     </div>
 </div>
