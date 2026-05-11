@@ -367,8 +367,8 @@ async function sendMessage(conversationId) {
 
     if (!body) return;
 
-    // Optimistically clear input
-    input.value       = '';
+    // Clear input immediately
+    input.value        = '';
     input.style.height = 'auto';
 
     // Stop typing indicator
@@ -378,32 +378,45 @@ async function sendMessage(conversationId) {
         const payload = { body };
         if (replyToId) payload.reply_to_id = replyToId;
 
+        // ── Get socket ID from Echo ───────────────────────────
+        // This tells Reverb to skip broadcasting back to THIS
+        // socket so we don't receive our own message via Echo
+        const socketId = window.Echo?.socketId?.() || null;
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'Accept':       'application/json',
+            'X-CSRF-TOKEN': chatCsrf,
+        };
+
+        // Only add socket header if Echo is connected
+        if (socketId) {
+            headers['X-Socket-ID'] = socketId;
+        }
+
         const res  = await fetch(
             `/chat/conversations/${conversationId}/messages`,
             {
-                method:  'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept':       'application/json',
-                    'X-CSRF-TOKEN': chatCsrf,
-                },
-                body: JSON.stringify(payload),
+                method: 'POST',
+                headers,
+                body:   JSON.stringify(payload),
             }
         );
 
         const data = await res.json();
 
         if (data.success) {
-            // Append own message immediately (Echo only fires toOthers)
+            // Append OWN message immediately via HTTP response
+            // Echo will NOT fire for sender because of X-Socket-ID
             appendMessage(data.data, false);
             scrollToBottom();
             cancelReply();
             updateSidebarLastMessage(conversationId, data.data);
         }
+
     } catch (err) {
         console.error('Send message error:', err);
         showChatToast('Failed to send message.', 'error');
-        // Restore the message in input if failed
         if (input) input.value = body;
     }
 }
@@ -437,13 +450,21 @@ async function sendAttachment(conversationId, input) {
 
     showChatToast('Uploading...');
 
+    // Get socket ID to prevent echo back to sender
+    const socketId = window.Echo?.socketId?.() || null;
+
+    const headers = { 'Accept': 'application/json' };
+    if (socketId) {
+        headers['X-Socket-ID'] = socketId;
+    }
+
     try {
         const res  = await fetch(
             `/chat/conversations/${conversationId}/messages`,
             {
-                method:  'POST',
-                body:    formData,
-                headers: { 'Accept': 'application/json' },
+                method: 'POST',
+                body:   formData,
+                headers,
             }
         );
 
@@ -456,7 +477,7 @@ async function sendAttachment(conversationId, input) {
             updateSidebarLastMessage(conversationId, data.data);
             showChatToast('File sent.');
         }
-    } catch (err) {
+    } catch {
         showChatToast('Upload failed.', 'error');
     }
 
