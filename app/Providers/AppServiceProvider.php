@@ -25,6 +25,8 @@ use App\Repositories\CommentRepository;
 use App\Repositories\Contracts\CommentRepositoryInterface;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Services\ConversationService;
+use App\Services\MessageService;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -44,6 +46,8 @@ class AppServiceProvider extends ServiceProvider
             AttachmentRepositoryInterface::class,
             AttachmentRepository::class
         );
+        $this->app->singleton(ConversationService::class);
+        $this->app->singleton(MessageService::class);
     }
 
     /**
@@ -68,6 +72,4 @@ class AppServiceProvider extends ServiceProvider
                 ]);
         });
     }
-
-    
 }

@@ -10,6 +10,8 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\LabelController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\MessageController;
 
 
 
@@ -83,6 +85,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
     Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
+
+    Route::prefix('chat')->name('chat.')->group(function () {
+
+        Route::get('/', [ConversationController::class, 'index'])->name('index');
+
+        Route::get('/users/search', [ConversationController::class, 'searchUsers'])->name('users.search');
+        Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
+        Route::post('/conversations/direct', [ConversationController::class, 'direct'])->name('conversations.direct');
+        Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('show');
+        Route::post('/conversations/{conversation}/mute', [ConversationController::class, 'toggleMute'])->name('conversations.mute');
+        Route::post('/conversations/{conversation}/members', [ConversationController::class, 'addMember'])->name('conversations.members.add');
+        Route::delete('/conversations/{conversation}/members/{user}', [ConversationController::class, 'removeMember'])->name('conversations.members.remove');
+        Route::get('/conversations/{conversation}/messages', [MessageController::class, 'index'])->name('messages.index');
+        Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
+        Route::put('/messages/{message}', [MessageController::class, 'update'])->name('messages.update');
+        Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
+        Route::post('/conversations/{conversation}/read', [MessageController::class, 'markRead'])->name('messages.read');
+        Route::post('/conversations/{conversation}/typing', [MessageController::class, 'typing'])->name('messages.typing');
+    });
 });
 
 require __DIR__ . '/auth.php';

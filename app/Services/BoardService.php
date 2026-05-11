@@ -25,13 +25,17 @@ class BoardService
     public function create(User $user, array $data): Board
     {
         $board = $this->boardRepository->create([
-            'user_id'=> $user->id,
-            'name'=> $data['name'],
-            'description'=> $data['description'] ?? null,
-            'background_color'=> $data['background_color'] ?? '#0052CC',
+            'user_id' => $user->id,
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+            'background_color' => $data['background_color'] ?? '#0052CC',
         ]);
 
         $this->boardRepository->attachMember($board, $user->id, 'owner');
+
+        // Auto-create board conversation
+        app(\App\Services\ConversationService::class)
+            ->findOrCreateBoardConversation($board);
 
         ActivityLog::log(
             $user,
@@ -90,6 +94,10 @@ class BoardService
         DB::transaction(function () use ($board, $actor, $user) {
             $this->boardRepository->attachMember($board, $user->id, 'member', 'pending');
 
+            // Sync new member to board conversation
+            app(\App\Services\ConversationService::class)
+                ->syncBoardParticipant($board, $user, 'add');
+
             Notification::notify(
                 userId: $user->id,
                 actor: $actor,
@@ -145,6 +153,10 @@ class BoardService
             $this->boardRepository->unassignFromAllCards($board, $user->id);
             $this->boardRepository->detachMember($board, $user->id);
 
+            // Remove from board conversation
+            app(\App\Services\ConversationService::class)
+                ->syncBoardParticipant($board, $user, 'remove');
+
             Notification::notify(
                 userId: $user->id,
                 actor: $actor,
@@ -166,4 +178,3 @@ class BoardService
         return null;
     }
 }
-

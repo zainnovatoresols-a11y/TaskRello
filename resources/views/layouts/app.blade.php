@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'Trello Clone') }} — @yield('title', 'Dashboard')</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/echo.js'])
 </head>
 
 <body class="h-full bg-gray-100 dark:bg-gray-900 font-sans antialiased">
@@ -30,7 +30,39 @@
                     </svg>
                     New board
                 </a>
+                {{-- ── Chat icon ────────────────────────────────────────────── --}}
+                <a href="{{ route('chat.index') }}"
+                    class="relative flex items-center justify-center
+          w-9 h-9 rounded-full text-white/80 hover:text-white
+          hover:bg-white/10 transition"
+                    title="Messages">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03
+                 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72
+                 C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9
+                 3.582 9 8z" />
+                    </svg>
 
+                    {{-- Unread badge --}}
+                    @php
+                    $totalUnread = auth()->user()->totalUnreadCount();
+                    @endphp
+                    @if($totalUnread > 0)
+                    <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500
+                     text-white text-xs font-bold rounded-full
+                     flex items-center justify-center leading-none"
+                        id="chat-unread-badge">
+                        {{ $totalUnread > 9 ? '9+' : $totalUnread }}
+                    </span>
+                    @else
+                    <span class="hidden absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500
+                     text-white text-xs font-bold rounded-full
+                     flex items-center justify-center leading-none"
+                        id="chat-unread-badge">
+                    </span>
+                    @endif
+                </a>
                 <div x-data="{ open: false }" class="relative">
 
                     <button @click="open = !open; window.notificationsOpen = open; if(open) loadNotifications()"
@@ -238,8 +270,13 @@
 
         <style>
             @keyframes shimmer {
-                0% { transform: translateX(-100%); }
-                100% { transform: translateX(100%); }
+                0% {
+                    transform: translateX(-100%);
+                }
+
+                100% {
+                    transform: translateX(100%);
+                }
             }
         </style>
     </div>
@@ -324,12 +361,15 @@
     </div>
     @endif
 
+    {{-- ── Laravel Echo + Reverb connection ──────────────────────── --}}
+    <script src="{{ asset('js/echo-init.js') }}"></script>
+
     <main>
         @yield('content')
     </main>
     <script src="{{ asset('js/notifications.js') }}"></script>
     <script>
-        (function () {
+        (function() {
             const themeKey = 'taskrelloThemeMode';
             const root = document.documentElement;
             const lightButton = document.getElementById('theme-light-btn');
@@ -360,7 +400,7 @@
                     light: lightButton,
                     system: systemButton,
                     dark: darkButton,
-                }[mode] || systemButton;
+                } [mode] || systemButton;
 
                 active.classList.add('bg-white/15', 'text-black');
             }
@@ -376,7 +416,7 @@
                 }
             }
 
-            document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('DOMContentLoaded', function() {
                 if (lightButton) lightButton.addEventListener('click', () => setTheme('light'));
                 if (systemButton) systemButton.addEventListener('click', () => setTheme('system'));
                 if (darkButton) darkButton.addEventListener('click', () => setTheme('dark'));

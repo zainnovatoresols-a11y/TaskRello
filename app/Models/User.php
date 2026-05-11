@@ -117,9 +117,47 @@ class User extends Authenticatable implements MustVerifyEmail
             ? Storage::url($this->avatar)
             : null;
     }
-    
+
     public function sendEmailVerificationNotification()
     {
         $this->notify(new VerifyEmailCustom());
+    }
+
+    public function conversations()
+    {
+        return $this->belongsToMany(
+            Conversation::class,
+            'conversation_participants'
+        )
+            ->withPivot(['role', 'last_read_at', 'joined_at', 'is_muted'])
+            ->withTimestamps()
+            ->orderByDesc('last_message_at');
+    }
+
+    public function sentMessages()
+    {
+        return $this->hasMany(Message::class);
+    }
+
+    public function conversationParticipants()
+    {
+        return $this->hasMany(ConversationParticipant::class);
+    }
+
+    public function totalUnreadCount(): int
+    {
+        return $this->conversationParticipants()
+            ->with('conversation.messages')
+            ->get()
+            ->sum(function ($participant) {
+                if (!$participant->last_read_at) {
+                    return $participant->conversation->messages()->count();
+                }
+                return $participant->conversation
+                    ->messages()
+                    ->where('created_at', '>', $participant->last_read_at)
+                    ->where('user_id', '!=', $this->id)
+                    ->count();
+            });
     }
 }

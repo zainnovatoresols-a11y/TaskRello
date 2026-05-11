@@ -114,6 +114,33 @@
 
         {{-- Right side actions --}}
         <div class="ml-auto flex items-center gap-3">
+            {{-- Board chat button --}}
+            @if($board->conversation)
+            <a href="{{ route('chat.show', $board->conversation) }}"
+                class="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30
+              text-white text-xs font-medium px-3 py-1.5 rounded-lg transition
+              relative">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03
+                     8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72
+                     C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9
+                     3.582 9 8z" />
+                </svg>
+                Board Chat
+                @php
+                $boardUnread = $board->conversation
+                ->unreadCountFor(auth()->user());
+                @endphp
+                @if($boardUnread > 0)
+                <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500
+                         text-white text-xs font-bold rounded-full
+                         flex items-center justify-center">
+                    {{ $boardUnread > 9 ? '9+' : $boardUnread }}
+                </span>
+                @endif
+            </a>
+            @endif
 
             {{-- Board settings (owner/member) --}}
             @can('update', $board)

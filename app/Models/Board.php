@@ -20,7 +20,7 @@ class Board extends Model
         'name',
         'description',
         'background_color',
-         'background_image',
+        'background_image',
         'is_archived',
     ];
 
@@ -96,5 +96,11 @@ class Board extends Model
     public function isOwner(User $user): bool
     {
         return $this->user_id === $user->id;
+    }
+
+    public function conversation()
+    {
+        return $this->hasOne(Conversation::class)
+            ->where('type', 'board');
     }
 }
