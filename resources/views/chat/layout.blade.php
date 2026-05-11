@@ -8,7 +8,7 @@
     <title>Chat — {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/echo.js'])
 </head>
-<body class="h-full bg-gray-100 dark:bg-gray-900 font-sans antialiased overflow-hidden">
+<body class="min-h-screen bg-gray-100 dark:bg-gray-900 font-sans antialiased">
 
 {{-- ── Top navbar (reuse app navbar) ──────────────────────── --}}
 <nav class="bg-blue-700 dark:bg-blue-900 sticky top-0 z-40 shadow-md h-14 flex items-center px-4">

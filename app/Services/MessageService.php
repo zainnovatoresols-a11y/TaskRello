@@ -169,9 +169,10 @@ class MessageService
                         ->withTrashed()
                         // include soft-deleted so "deleted" label shows
                         ->with(['sender', 'replyTo.sender'])
-                        ->orderBy('created_at', 'asc');
-
-        return $query->get();
+                        ->orderBy('created_at', 'asc')
+                        ->get();
+                        return $query;
+         
     }
 
     // ──────────────────────────────────────────────────────────

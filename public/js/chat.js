@@ -95,8 +95,42 @@ function subscribeToPersonalChannel() {
 // MESSAGES — Load messages via fetch
 // ============================================================
 
+function renderMessageSkeletons() {
+    const container = document.getElementById('messages-container');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="space-y-3 px-1">
+            <div class="flex items-start gap-3 animate-pulse">
+                <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                <div class="space-y-2 w-full max-w-2xl">
+                    <div class="w-48 h-3 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="w-full h-16 rounded-3xl bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+            </div>
+            <div class="flex items-end justify-end gap-3 animate-pulse">
+                <div class="space-y-2 w-full max-w-2xl text-right">
+                    <div class="mx-auto w-3/4 h-3 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="mx-auto w-full h-16 rounded-3xl bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div class="flex items-start gap-3 animate-pulse">
+                <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                <div class="space-y-2 w-full max-w-2xl">
+                    <div class="w-40 h-3 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="w-4/5 h-16 rounded-3xl bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+            </div>
+        </div>`;
+}
+
 async function loadMessages(conversationId, beforeId = null) {
     try {
+        if (!beforeId) {
+            renderMessageSkeletons();
+        }
+
         let url = `/chat/conversations/${conversationId}/messages`;
         if (beforeId) url += `?before_id=${beforeId}`;
 
@@ -127,7 +161,7 @@ async function loadMessages(conversationId, beforeId = null) {
                     </div>`;
                 return;
             }
-
+            console.log('Loaded messages:', data.data);
             data.data.forEach(msg => appendMessage(msg, true));
             scrollToBottom(smooth = false);
 
@@ -168,12 +202,16 @@ function loadMoreMessages() {
 function buildMessageHTML(msg, isOwnMessage) {
     if (msg.is_deleted) {
         return `
-        <div class="flex ${isOwnMessage ? 'justify-end' : 'justify-start'}
-                    mb-1" id="msg-${msg.id}">
-            <p class="text-xs text-gray-400 dark:text-gray-600 italic px-3 py-1.5
-                       bg-gray-100 dark:bg-gray-800 rounded-xl">
-                This message was deleted
-            </p>
+        <div class="flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3 group" id="msg-${msg.id}">
+            <div class="w-fit max-w-[65%]">
+                <div class="relative inline-flex">
+                    <div class="bg-gray-700 text-white px-4 py-2 rounded-2xl
+                                rounded-br-sm shadow-sm break-words inline-block w-fit max-w-full">
+                        This was Deleted
+                    </div>
+                    
+                </div>
+            </div>
         </div>`;
     }
 
@@ -237,18 +275,18 @@ function buildMessageHTML(msg, isOwnMessage) {
     } else {
         bodyHtml = `
         <p class="text-sm leading-relaxed break-words whitespace-pre-wrap">
-            ${escapeHtmlChat(msg.body || '')}
+            ${escapeHtmlChat(msg.body)}
         </p>`;
     }
 
     if (isOwnMessage) {
         return `
-        <div class="flex justify-end mb-1 group" id="msg-${msg.id}">
-            <div class="max-w-xs lg:max-w-md">
+        <div class="flex justify-end mb-3 group" id="msg-${msg.id}">
+            <div class="w-fit max-w-[65%]">
                 ${replyHtml}
-                <div class="relative">
-                    <div class="bg-blue-700 text-white px-4 py-2.5 rounded-2xl
-                                rounded-br-sm shadow-sm">
+                <div class="relative inline-flex">
+                    <div class="bg-blue-700 text-white px-4 py-2 rounded-2xl
+                                rounded-br-sm shadow-sm break-words inline-block w-fit max-w-full">
                         ${bodyHtml}
                     </div>
                     <div class="absolute -left-20 top-1/2 -translate-y-1/2
@@ -286,24 +324,24 @@ function buildMessageHTML(msg, isOwnMessage) {
     } else {
         const initial = (msg.sender?.name || '?').charAt(0).toUpperCase();
         return `
-        <div class="flex items-end gap-2 mb-1 group" id="msg-${msg.id}">
+        <div class="flex items-end gap-2 mb-3 group" id="msg-${msg.id}">
             <div class="w-7 h-7 rounded-full bg-blue-600 flex-shrink-0
                         flex items-center justify-center text-white
                         text-xs font-bold mb-0.5"
                  title="${escapeHtmlChat(msg.sender?.name || '')}">
                 ${initial}
             </div>
-            <div class="max-w-xs lg:max-w-md">
+            <div class="w-fit max-w-[65%]">
                 <p class="text-xs text-gray-500 dark:text-gray-400
                            font-medium mb-0.5 ml-1">
                     ${escapeHtmlChat(msg.sender?.name || '')}
                 </p>
                 ${replyHtml}
-                <div class="relative">
+                <div class="relative inline-flex">
                     <div class="bg-white dark:bg-gray-800 text-gray-800
-                                dark:text-gray-100 px-4 py-2.5 rounded-2xl
+                                dark:text-gray-100 px-4 py-2 rounded-2xl
                                 rounded-bl-sm shadow-sm border
-                                border-gray-100 dark:border-gray-700">
+                                border-gray-100 dark:border-gray-700 break-words inline-block w-fit max-w-full">
                         ${bodyHtml}
                     </div>
                     <div class="absolute -right-14 top-1/2 -translate-y-1/2

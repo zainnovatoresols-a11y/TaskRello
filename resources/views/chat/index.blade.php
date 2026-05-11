@@ -5,9 +5,9 @@
 {{-- ══════════════════════════════════════════════════════════ --}}
 {{-- LEFT SIDEBAR — Conversation list                          --}}
 {{-- ══════════════════════════════════════════════════════════ --}}
-<aside class="w-80 flex-shrink-0 bg-white dark:bg-gray-800
-              border-r border-gray-200 dark:border-gray-700
-              flex flex-col h-full">
+<aside class="w-full max-w-[26rem] flex-shrink-0 bg-white/95 dark:bg-slate-950/95
+              border-r border-slate-200/80 dark:border-slate-800
+              flex flex-col h-full shadow-xl backdrop-blur-xl">
 
     {{-- Sidebar header --}}
     <div class="px-4 py-4 border-b border-gray-100 dark:border-gray-700">
@@ -58,10 +58,11 @@
             <a href="{{ route('chat.show', $conv['id']) }}"
                id="conv-item-{{ $conv['id'] }}"
                class="conv-item flex items-center gap-3 px-4 py-3 cursor-pointer
-                      hover:bg-gray-50 dark:hover:bg-gray-700/50 transition
-                      border-b border-gray-50 dark:border-gray-700/50
+                      rounded-3xl transition-all duration-200
+                      hover:bg-slate-100 dark:hover:bg-slate-900
+                      border border-transparent
                       {{ isset($activeId) && $activeId == $conv['id']
-                          ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-700'
+                          ? 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm'
                           : '' }}"
                data-name="{{ strtolower($conv['name']) }}">
 
@@ -198,14 +199,14 @@
 {{-- ══════════════════════════════════════════════════════════ --}}
 {{-- MAIN AREA — Active conversation or empty state            --}}
 {{-- ══════════════════════════════════════════════════════════ --}}
-<main class="flex-1 flex flex-col h-full bg-gray-50 dark:bg-gray-900 min-w-0">
+<main class="flex-1 flex flex-col h-full bg-slate-100 dark:bg-slate-950 min-w-0">
 
     @if(isset($activeConversation))
 
         {{-- ── Conversation top bar ────────────────────────── --}}
         <div class="flex items-center justify-between px-5 py-3 bg-white
-                    dark:bg-gray-800 border-b border-gray-200
-                    dark:border-gray-700 flex-shrink-0">
+                    dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800
+                    flex-shrink-0 shadow-sm">
 
             <div class="flex items-center gap-3">
                 {{-- Avatar --}}
@@ -284,7 +285,8 @@
         </div>
 
         {{-- ── Message thread ──────────────────────────────── --}}
-        <div class="flex-1 overflow-y-auto px-5 py-4 space-y-1"
+        <div class="flex-1 overflow-y-auto px-5 py-4 space-y-1 bg-white dark:bg-slate-900
+                    rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-inner"
              id="message-thread"
              data-conversation-id="{{ $activeConversation->id }}">
 
@@ -299,10 +301,27 @@
             </div>
 
             {{-- Messages rendered by JS on load --}}
-            <div id="messages-container" class="space-y-1">
-                <div class="flex items-center justify-center py-8">
-                    <div class="w-5 h-5 border-2 border-blue-600 border-t-transparent
-                                rounded-full animate-spin"></div>
+            <div id="messages-container" class="space-y-3">
+                <div class="flex items-start gap-3 animate-pulse">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="space-y-2 w-full max-w-2xl">
+                        <div class="w-48 h-3 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                        <div class="w-full h-16 rounded-3xl bg-gray-200 dark:bg-gray-700"></div>
+                    </div>
+                </div>
+                <div class="flex items-end justify-end gap-3 animate-pulse">
+                    <div class="space-y-2 w-full max-w-2xl text-right">
+                        <div class="mx-auto w-3/4 h-3 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                        <div class="mx-auto w-full h-16 rounded-3xl bg-gray-200 dark:bg-gray-700"></div>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+                <div class="flex items-start gap-3 animate-pulse">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="space-y-2 w-full max-w-2xl">
+                        <div class="w-40 h-3 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                        <div class="w-4/5 h-16 rounded-3xl bg-gray-200 dark:bg-gray-700"></div>
+                    </div>
                 </div>
             </div>
 
@@ -325,10 +344,10 @@
 
         {{-- ── Reply preview bar ───────────────────────────── --}}
         <div id="reply-bar"
-             class="hidden mx-5 mb-0 bg-blue-50 dark:bg-blue-900/20
-                    border border-blue-200 dark:border-blue-800
-                    rounded-t-xl px-4 py-2 flex items-center
-                    justify-between">
+             class="hidden mx-5 mb-0 bg-slate-50 dark:bg-slate-900/80
+                    border border-slate-200 dark:border-slate-800
+                    rounded-2xl px-4 py-3 flex items-center
+                    justify-between shadow-sm">
             <div class="flex-1 min-w-0">
                 <p class="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-0.5">
                     Replying to
@@ -346,17 +365,18 @@
         </div>
 
         {{-- ── Message input ───────────────────────────────── --}}
-        <div class="px-5 py-3 bg-white dark:bg-gray-800
-                    border-t border-gray-200 dark:border-gray-700
-                    flex-shrink-0">
+        <div class="px-5 py-4 bg-slate-50 dark:bg-slate-950
+                    border-t border-slate-200 dark:border-slate-800
+                    flex-shrink-0 shadow-lg">
 
             <div class="flex items-end gap-3">
 
                 {{-- Attachment button --}}
                 <label class="flex-shrink-0 w-9 h-9 flex items-center justify-center
-                              rounded-xl text-gray-400 hover:text-blue-600
-                              dark:hover:text-blue-400 hover:bg-gray-100
-                              dark:hover:bg-gray-700 cursor-pointer transition">
+                              rounded-2xl text-slate-500 hover:text-blue-600
+                              dark:text-slate-300 dark:hover:text-blue-400 bg-slate-100
+                              dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800
+                              cursor-pointer transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               stroke-width="2"
@@ -378,23 +398,22 @@
                               data-conversation-id="{{ $activeConversation->id }}"
                               onkeydown="handleMessageKeydown(event, {{ $activeConversation->id }})"
                               oninput="handleTypingInput({{ $activeConversation->id }})"
-                              class="w-full border border-gray-200 dark:border-gray-600
-                                     rounded-xl px-4 py-2.5 text-sm resize-none
-                                     bg-gray-50 dark:bg-gray-700/50
-                                     text-gray-900 dark:text-gray-100
-                                     placeholder-gray-400 dark:placeholder-gray-500
+                              class="w-full border border-slate-200 dark:border-slate-800
+                                     rounded-2xl px-4 py-3 text-sm resize-none
+                                     bg-white dark:bg-slate-900
+                                     text-slate-900 dark:text-slate-100
+                                     placeholder-slate-400 dark:placeholder-slate-500
                                      focus:outline-none focus:ring-2 focus:ring-blue-500
-                                     focus:border-transparent focus:bg-white
-                                     dark:focus:bg-gray-700 transition
+                                     focus:border-transparent transition
                                      max-h-32 overflow-y-auto">
                     </textarea>
                 </div>
 
                 {{-- Send button --}}
                 <button onclick="sendMessage({{ $activeConversation->id }})"
-                        class="flex-shrink-0 w-9 h-9 flex items-center justify-center
-                               bg-blue-700 hover:bg-blue-800 text-white rounded-xl
-                               transition shadow-sm">
+                        class="flex-shrink-0 w-11 h-11 flex items-center justify-center
+                               bg-gradient-to-br from-blue-600 to-sky-500 hover:from-blue-700 hover:to-sky-600
+                               text-white rounded-2xl shadow-lg transition">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
