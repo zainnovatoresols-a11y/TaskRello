@@ -12,10 +12,109 @@ let   echoChannel     = null;
 const groupSelectedUsers = {};
 
 // ============================================================
+// THEME MANAGEMENT — Light/Dark/System Mode
+// ============================================================
+
+const THEME_KEY = 'taskrelloThemeMode';  // Use same key as app layout
+let currentTheme = 'system';
+let systemThemeListener = null;
+
+// Initialize theme on page load
+function initializeTheme() {
+    const savedTheme = localStorage.getItem(THEME_KEY) || 'system';
+    setTheme(savedTheme);
+}
+
+// Set theme mode
+function setTheme(mode) {
+    currentTheme = mode;
+    localStorage.setItem(THEME_KEY, mode);
+
+    const root = document.documentElement;
+
+    // Remove existing system theme listener
+    if (systemThemeListener) {
+        window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', systemThemeListener);
+        systemThemeListener = null;
+    }
+
+    if (mode === 'dark') {
+        root.classList.add('dark');
+    } else if (mode === 'light') {
+        root.classList.remove('dark');
+    } else if (mode === 'system') {
+        // Check system preference
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDark) {
+            root.classList.add('dark');
+        } else {
+            root.classList.remove('dark');
+        }
+
+        // Listen for system theme changes
+        systemThemeListener = (e) => {
+            if (currentTheme === 'system') {
+                if (e.matches) {
+                    root.classList.add('dark');
+                } else {
+                    root.classList.remove('dark');
+                }
+            }
+        };
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', systemThemeListener);
+    }
+}
+
+// Theme toggle functions (to be called from profile/edit buttons)
+function setLightMode() {
+    setTheme('light');
+}
+
+function setDarkMode() {
+    setTheme('dark');
+}
+
+function setSystemMode() {
+    setTheme('system');
+}
+
+// Get current theme
+function getCurrentTheme() {
+    return currentTheme;
+}
+
+// Get current applied theme (considering system preference)
+function getAppliedTheme() {
+    if (currentTheme === 'system') {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return currentTheme;
+}
+
+// Check if dark mode is currently applied
+function isDarkMode() {
+    return document.documentElement.classList.contains('dark');
+}
+
+// Export theme functions to window for global access
+window.ChatTheme = {
+    setLightMode,
+    setDarkMode,
+    setSystemMode,
+    getCurrentTheme,
+    getAppliedTheme,
+    isDarkMode,
+    initializeTheme
+};
+
+// ============================================================
 // BOOT — runs when page loads
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function () {
+
+    // Initialize theme
+    initializeTheme();
 
     // If a conversation is active load messages and subscribe
     if (ACTIVE_CONV_ID) {
@@ -1224,3 +1323,56 @@ function escapeHtmlChat(str) {
     div.textContent = String(str);
     return div.innerHTML;
 }
+
+// ============================================================
+// MOBILE SIDEBAR FUNCTIONALITY
+// ============================================================
+
+function toggleMobileSidebar() {
+    const sidebar = document.getElementById('conversation-sidebar');
+    const backdrop = document.getElementById('mobile-sidebar-backdrop');
+    const isOpen = !sidebar.classList.contains('-translate-x-full');
+
+    if (isOpen) {
+        closeMobileSidebar();
+    } else {
+        openMobileSidebar();
+    }
+}
+
+function openMobileSidebar() {
+    const sidebar = document.getElementById('conversation-sidebar');
+    const backdrop = document.getElementById('mobile-sidebar-backdrop');
+
+    sidebar.classList.remove('-translate-x-full');
+    backdrop.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeMobileSidebar() {
+    const sidebar = document.getElementById('conversation-sidebar');
+    const backdrop = document.getElementById('mobile-sidebar-backdrop');
+
+    sidebar.classList.add('-translate-x-full');
+    backdrop.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+// Initialize mobile functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click handlers to conversation items for mobile
+    document.addEventListener('click', function(e) {
+        const convItem = e.target.closest('.conv-item');
+        if (convItem && window.innerWidth < 1024) {
+            // Small delay to allow navigation to happen
+            setTimeout(closeMobileSidebar, 100);
+        }
+    });
+
+    // Close sidebar on window resize if now on desktop
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 1024) {
+            closeMobileSidebar();
+        }
+    });
+});

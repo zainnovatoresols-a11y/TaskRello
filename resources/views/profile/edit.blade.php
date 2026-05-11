@@ -417,6 +417,65 @@
     <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100
                 dark:border-gray-700 shadow-sm p-6 mb-6">
 
+        <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100 mb-1">
+            Theme preferences
+        </h2>
+        <p class="text-xs text-gray-400 dark:text-gray-500 mb-5">
+            Choose how the application looks to you
+        </p>
+
+        <div class="flex gap-3">
+            <button id="theme-light"
+                onclick="setThemeLight()"
+                class="flex-1 flex items-center justify-center gap-2 px-4 py-3
+                       rounded-xl border-2 border-gray-200 dark:border-gray-600
+                       bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300
+                       hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20
+                       transition-all duration-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <span class="text-sm font-medium">Light</span>
+            </button>
+
+            <button id="theme-dark"
+                onclick="setThemeDark()"
+                class="flex-1 flex items-center justify-center gap-2 px-4 py-3
+                       rounded-xl border-2 border-gray-200 dark:border-gray-600
+                       bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300
+                       hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20
+                       transition-all duration-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+                <span class="text-sm font-medium">Dark</span>
+            </button>
+
+            <button id="theme-system"
+                onclick="setThemeSystem()"
+                class="flex-1 flex items-center justify-center gap-2 px-4 py-3
+                       rounded-xl border-2 border-gray-200 dark:border-gray-600
+                       bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300
+                       hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20
+                       transition-all duration-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <span class="text-sm font-medium">System</span>
+            </button>
+        </div>
+
+        <p class="text-xs text-gray-400 dark:text-gray-500 mt-3">
+            System mode automatically switches between light and dark based on your device settings.
+        </p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100
+                dark:border-gray-700 shadow-sm p-6 mb-6">
+
         <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100 mb-5">
             Your activity
         </h2>
@@ -800,5 +859,72 @@
 
         return await modalData.$data.show(options);
     }
+
+    // Theme management functions with fallbacks
+    function setThemeLight() {
+        localStorage.setItem('taskrelloThemeMode', 'light');
+        document.documentElement.classList.remove('dark');
+        if (typeof window.ChatTheme !== 'undefined' && window.ChatTheme.setLightMode) {
+            window.ChatTheme.setLightMode();
+        }
+        updateThemeButtons();
+    }
+
+    function setThemeDark() {
+        localStorage.setItem('taskrelloThemeMode', 'dark');
+        document.documentElement.classList.add('dark');
+        if (typeof window.ChatTheme !== 'undefined' && window.ChatTheme.setDarkMode) {
+            window.ChatTheme.setDarkMode();
+        }
+        updateThemeButtons();
+    }
+
+    function setThemeSystem() {
+        localStorage.setItem('taskrelloThemeMode', 'system');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDark) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        if (typeof window.ChatTheme !== 'undefined' && window.ChatTheme.setSystemMode) {
+            window.ChatTheme.setSystemMode();
+        }
+        updateThemeButtons();
+    }
+
+    // Initialize theme buttons on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateThemeButtons();
+    });
+
+    // Function to update theme button states
+    function updateThemeButtons() {
+        const currentTheme = localStorage.getItem('taskrelloThemeMode') || 'system';
+        const buttons = {
+            'light': document.getElementById('theme-light'),
+            'dark': document.getElementById('theme-dark'),
+            'system': document.getElementById('theme-system')
+        };
+
+        // Reset all buttons
+        Object.values(buttons).forEach(btn => {
+            if (btn) {
+                btn.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
+                btn.classList.add('border-gray-200', 'dark:border-gray-600');
+            }
+        });
+
+        // Highlight active button
+        const activeBtn = buttons[currentTheme];
+        if (activeBtn) {
+            activeBtn.classList.remove('border-gray-200', 'dark:border-gray-600');
+            activeBtn.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
+        }
+    }
 </script>
+@endsection
+
+@section('scripts')
+<script src="{{ asset('js/chat.js') }}"></script>
 @endsection
