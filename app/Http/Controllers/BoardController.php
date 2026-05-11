@@ -299,6 +299,10 @@ class BoardController extends Controller
         DB::transaction(function () use ($board, $user, $notificationId) {
             $board->allMembers()->detach($user->id);
 
+            // Remove from board conversation
+            app(\App\Services\ConversationService::class)
+                ->syncBoardParticipant($board, $user, 'remove');
+
             $notificationQuery = Notification::where('user_id', $user->id)
                 ->where('type', 'board_invite')
                 ->where('board_id', $board->id);

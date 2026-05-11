@@ -23,8 +23,17 @@ class MessageController extends Controller
     // ──────────────────────────────────────────────────────────
     public function index(Request $request, Conversation $conversation)
     {
-        if (!$conversation->hasParticipant($request->user())) {
-            abort(403, 'You are not a participant in this conversation.');
+        $user = $request->user();
+
+        // For board conversations, check if user is an accepted member
+        if ($conversation->type === 'board') {
+            if (!$conversation->board->isMember($user)) {
+                abort(403, 'You are not an accepted member of this board.');
+            }
+        } else {
+            if (!$conversation->hasParticipant($user)) {
+                abort(403, 'You are not a participant in this conversation.');
+            }
         }
 
         $beforeId = $request->query('before_id');
@@ -56,8 +65,17 @@ class MessageController extends Controller
     // ──────────────────────────────────────────────────────────
     public function store(Request $request, Conversation $conversation)
     {
-        if (!$conversation->hasParticipant($request->user())) {
-            abort(403, 'You are not a participant in this conversation.');
+        $user = $request->user();
+
+        // For board conversations, check if user is an accepted member
+        if ($conversation->type === 'board') {
+            if (!$conversation->board->isMember($user)) {
+                abort(403, 'You are not an accepted member of this board.');
+            }
+        } else {
+            if (!$conversation->hasParticipant($user)) {
+                abort(403, 'You are not a participant in this conversation.');
+            }
         }
 
         // Handle file attachment
@@ -155,6 +173,17 @@ class MessageController extends Controller
         $isSender     = $message->user_id === $user->id;
         $conversation = $message->conversation;
 
+        // For board conversations, check if user is an accepted member
+        if ($conversation->type === 'board') {
+            if (!$conversation->board->isMember($user)) {
+                abort(403, 'You are not an accepted member of this board.');
+            }
+        } else {
+            if (!$conversation->hasParticipant($user)) {
+                abort(403, 'You are not a participant in this conversation.');
+            }
+        }
+
         $isAdmin = $conversation->participants()
                                 ->where('user_id', $user->id)
                                 ->where('role', 'admin')
@@ -180,8 +209,17 @@ class MessageController extends Controller
     // ──────────────────────────────────────────────────────────
     public function markRead(Request $request, Conversation $conversation)
     {
-        if (!$conversation->hasParticipant($request->user())) {
-            abort(403);
+        $user = $request->user();
+
+        // For board conversations, check if user is an accepted member
+        if ($conversation->type === 'board') {
+            if (!$conversation->board->isMember($user)) {
+                abort(403);
+            }
+        } else {
+            if (!$conversation->hasParticipant($user)) {
+                abort(403);
+            }
         }
 
         $this->messageService->markAsRead($conversation, $request->user());
@@ -200,8 +238,17 @@ class MessageController extends Controller
     // ──────────────────────────────────────────────────────────
     public function typing(Request $request, Conversation $conversation)
     {
-        if (!$conversation->hasParticipant($request->user())) {
-            abort(403);
+        $user = $request->user();
+
+        // For board conversations, check if user is an accepted member
+        if ($conversation->type === 'board') {
+            if (!$conversation->board->isMember($user)) {
+                abort(403);
+            }
+        } else {
+            if (!$conversation->hasParticipant($user)) {
+                abort(403);
+            }
         }
 
         $request->validate([

@@ -30,6 +30,36 @@ class Board extends Model
 
     protected $appends = ['background_image_url'];
 
+    // ── Events ────────────────────────────────────────────────
+    protected static function booted(): void
+    {
+        static::deleting(function (Board $board) {
+            // Cascade delete related data
+            // Delete all lists and their cards (which cascade to comments, attachments, etc.)
+            $board->lists()->delete();
+
+            // Delete all labels
+            $board->labels()->delete();
+
+            // Delete activity logs
+            $board->activityLogs()->delete();
+
+            // Delete the board conversation and all related data
+            // (participants, messages, message_reads all cascade delete)
+            $board->conversation()?->delete();
+
+            // Detach all members
+            $board->allMembers()->detach();
+
+            // Delete background image if exists
+            if ($board->background_image) {
+                Storage::delete($board->background_image);
+            }
+        });
+    }
+
+    // ── Relationships ────────────────────────────────────────────
+
     public function getBackgroundImageUrlAttribute(): ?string
     {
         return $this->background_image

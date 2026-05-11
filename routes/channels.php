@@ -9,6 +9,15 @@ use Illuminate\Support\Facades\Broadcast;
 // Used for ALL conversation types: direct, group, board
 // Authorization: user must be a participant
 Broadcast::channel('conversation.{conversationId}', function (User $user, int $conversationId) {
+    $conversation = Conversation::find($conversationId);
+    if (!$conversation) return false;
+
+    // For board conversations, check if user is an accepted member
+    if ($conversation->type === 'board') {
+        return $conversation->board->isMember($user);
+    }
+
+    // For other types, check participant
     return ConversationParticipant::where('conversation_id', $conversationId)
                                   ->where('user_id', $user->id)
                                   ->exists();

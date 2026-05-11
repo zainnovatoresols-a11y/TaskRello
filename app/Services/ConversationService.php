@@ -196,9 +196,17 @@ class ConversationService
                         'users',
                         'lastMessage.sender',
                         'participants' => fn($q) => $q->where('user_id', $user->id),
+                        'board',
                     ])
                     ->orderByDesc('last_message_at')
                     ->get()
+                    ->filter(function (Conversation $conv) use ($user) {
+                        // For board conversations, only include if user is accepted member
+                        if ($conv->type === 'board' && $conv->board) {
+                            return $conv->board->isMember($user);
+                        }
+                        return true;
+                    })
                     ->map(function (Conversation $conv) use ($user) {
                         return [
                             'id'              => $conv->id,
@@ -232,8 +240,18 @@ class ConversationService
     public function getTotalUnread(User $user): int
     {
         return ConversationParticipant::where('user_id', $user->id)
+            ->with('conversation.board')
             ->get()
             ->sum(function ($participant) use ($user) {
+                $conversation = $participant->conversation;
+
+                // For board conversations, only count if user is accepted member
+                if ($conversation->type === 'board' && $conversation->board) {
+                    if (!$conversation->board->isMember($user)) {
+                        return 0;
+                    }
+                }
+
                 $query = \App\Models\Message::where(
                     'conversation_id',
                     $participant->conversation_id

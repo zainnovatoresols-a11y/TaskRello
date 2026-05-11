@@ -43,9 +43,17 @@ class ConversationController extends Controller
     // ──────────────────────────────────────────────────────────
     public function show(Request $request, Conversation $conversation)
     {
-        // Ensure user is a participant
-        if (!$conversation->hasParticipant($request->user())) {
-            abort(403, 'You are not a participant in this conversation.');
+        $user = $request->user();
+
+        // For board conversations, check if user is an accepted member
+        if ($conversation->type === 'board') {
+            if (!$conversation->board->isMember($user)) {
+                abort(403, 'You are not an accepted member of this board.');
+            }
+        } else {
+            if (!$conversation->hasParticipant($user)) {
+                abort(403, 'You are not a participant in this conversation.');
+            }
         }
 
         // Mark as read when conversation is opened
