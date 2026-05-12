@@ -302,10 +302,10 @@ function buildMessageHTML(msg, isOwnMessage) {
     if (msg.is_deleted) {
         return `
         <div class="flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-4 group" id="msg-${msg.id}">
-            <div class="w-fit max-w-[70%]">
-                <div class="relative inline-flex">
-                    <div class="bg-gradient-to-br from-slate-600 to-slate-700 text-white px-5 py-3 rounded-3xl
-                                rounded-br-md shadow-lg break-words inline-block w-fit max-w-full">
+            <div class="w-fit max-w-[72vw] sm:max-w-[65%]">
+                <div class="relative inline-block align-top">
+                    <div class="bg-gradient-to-br from-slate-600 to-slate-700 text-white px-3 py-1.5 rounded-3xl
+                                rounded-br-md shadow-lg break-words inline-block w-fit max-w-[72vw] sm:max-w-[65vw] text-left">
                         This message was deleted
                     </div>
                 </div>
@@ -324,7 +324,7 @@ function buildMessageHTML(msg, isOwnMessage) {
         replyHtml = `
         <div class="border-l-4 border-blue-400 pl-3 mb-2
                     bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-900/20 dark:to-indigo-900/20
-                    rounded-2xl py-2 pr-3 shadow-sm backdrop-blur-sm">
+                    rounded-2xl py-1 pr-3 shadow-sm backdrop-blur-sm">
             <p class="text-sm font-semibold text-blue-700 dark:text-blue-400">
                 ${escapeHtmlChat(msg.reply_to.sender)}
             </p>
@@ -378,7 +378,7 @@ function buildMessageHTML(msg, isOwnMessage) {
         </div>`;
     } else {
         bodyHtml = `
-        <p class="text-sm leading-relaxed break-words whitespace-pre-wrap">
+        <p class="text-sm leading-snug text-left break-words whitespace-pre-wrap">
             ${escapeHtmlChat(msg.body)}
         </p>`;
     }
@@ -386,12 +386,12 @@ function buildMessageHTML(msg, isOwnMessage) {
     if (isOwnMessage) {
         return `
         <div class="flex justify-end mb-4 group" id="msg-${msg.id}">
-            <div class="w-fit max-w-[70%]">
+            <div class="w-fit max-w-[72vw] sm:max-w-[65%]">
                 ${replyHtml}
-                <div class="relative inline-flex">
-                    <div class="bg-gradient-to-br from-blue-600 to-indigo-600 text-white px-5 py-3 rounded-3xl
-                                rounded-br-md shadow-lg break-words inline-block w-fit max-w-full
-                                hover:shadow-xl transition-all duration-200">
+                <div class="relative inline-block align-top">
+                    <div class="bg-gradient-to-br from-blue-600 to-indigo-600 text-white px-3 py-1.5 rounded-3xl
+                                rounded-br-md shadow-lg break-words inline-block w-fit max-w-[72vw] sm:max-w-[65vw]
+                                hover:shadow-xl transition-all duration-200 text-left">
                         ${bodyHtml}
                     </div>
                     <div class="absolute -left-12 top-1/2 -translate-y-1/2
@@ -438,18 +438,18 @@ function buildMessageHTML(msg, isOwnMessage) {
                  title="${escapeHtmlChat(msg.sender?.name || '')}">
                 ${initial}
             </div>
-            <div class="w-fit max-w-[70%]">
+            <div class="w-fit max-w-[72vw] sm:max-w-[65%]">
                 <p class="text-sm text-slate-600 dark:text-slate-300
                            font-semibold mb-1 ml-1">
                     ${escapeHtmlChat(msg.sender?.name || '')}
                 </p>
                 ${replyHtml}
-                <div class="relative inline-flex">
+                <div class="relative inline-block align-top">
                     <div class="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-700
-                                text-slate-900 dark:text-slate-100 px-5 py-3 rounded-3xl
+                                text-slate-900 dark:text-slate-100 px-3 py-1.5 rounded-3xl
                                 rounded-bl-md shadow-lg border border-slate-200/50 dark:border-slate-700/50
-                                break-words inline-block w-fit max-w-full
-                                hover:shadow-xl transition-all duration-200 backdrop-blur-sm">
+                                break-words inline-block w-fit max-w-[72vw] sm:max-w-[65vw]
+                                hover:shadow-xl transition-all duration-200 backdrop-blur-sm text-left">
                         ${bodyHtml}
                     </div>
                     <div class="absolute -right-12 top-1/2 -translate-y-1/2

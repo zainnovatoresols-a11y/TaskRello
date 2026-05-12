@@ -361,9 +361,6 @@
     </div>
     @endif
 
-    {{-- ── Laravel Echo + Reverb connection ──────────────────────── --}}
-    <script src="{{ asset('js/echo-init.js') }}"></script>
-
     <main>
         @yield('content')
     </main>
