@@ -2,13 +2,13 @@
 // CHAT.JS — Real-time chat with Laravel Echo + Reverb
 // ============================================================
 
-const chatCsrf        = document.querySelector('meta[name="csrf-token"]').content;
-let   replyToId       = null;
-let   typingTimer     = null;
-let   isTyping        = false;
-let   oldestMessageId = null;
-let   hasMoreMessages = true;
-let   echoChannel     = null;
+const chatCsrf = document.querySelector('meta[name="csrf-token"]').content;
+let replyToId = null;
+let typingTimer = null;
+let isTyping = false;
+let oldestMessageId = null;
+let hasMoreMessages = true;
+let echoChannel = null;
 const groupSelectedUsers = {};
 
 // ============================================================
@@ -233,9 +233,9 @@ async function loadMessages(conversationId, beforeId = null) {
         let url = `/chat/conversations/${conversationId}/messages`;
         if (beforeId) url += `?before_id=${beforeId}`;
 
-        const res  = await fetch(url, {
+        const res = await fetch(url, {
             headers: {
-                'Accept':       'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': chatCsrf,
             },
         });
@@ -276,9 +276,9 @@ async function loadMessages(conversationId, beforeId = null) {
         }
 
         // Show/hide load more button
-        hasMoreMessages       = data.has_more;
-        oldestMessageId       = data.next_before_id;
-        const loadMoreBtn     = document.getElementById('load-more-btn');
+        hasMoreMessages = data.has_more;
+        oldestMessageId = data.next_before_id;
+        const loadMoreBtn = document.getElementById('load-more-btn');
         if (loadMoreBtn) {
             loadMoreBtn.classList.toggle('hidden', !hasMoreMessages);
         }
@@ -298,209 +298,254 @@ function loadMoreMessages() {
 // MESSAGES — Render a single message bubble
 // ============================================================
 
-function buildMessageHTML(msg, isOwnMessage) {
+function buildMessageHTML(msg, isOwnMessage, showAvatar = true, showName = true) {
     if (msg.is_deleted) {
         return `
-        <div class="flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-4 group" id="msg-${msg.id}">
-            <div class="w-fit max-w-[72vw] sm:max-w-[65%]">
-                <div class="relative inline-block align-top">
-                    <div class="bg-gradient-to-br from-slate-600 to-slate-700 text-white px-3 py-1.5 rounded-3xl
-                                rounded-br-md shadow-lg break-words inline-block w-fit max-w-[72vw] sm:max-w-[65vw] text-left">
-                        This message was deleted
-                    </div>
-                </div>
-            </div>
+        <div class="flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-1 ">
+            <span class="text-xs text-white dark:text-white  px-3 py-1.5
+                       bg-gray-100 dark:bg-gray-800/60 rounded-2xl">
+                🚫 This message was deleted
+            </span>
         </div>`;
     }
 
-    const time    = msg.time || '';
-    const edited  = msg.is_edited
-        ? '<span class="text-xs text-slate-400 dark:text-slate-500 ml-2">(edited)</span>'
+    const time = msg.time || '';
+    const edited = msg.is_edited
+        ? '<span class="text-[10px] text-slate-400 dark:text-slate-500 ml-1">(edited)</span>'
         : '';
 
     // Reply preview
     let replyHtml = '';
     if (msg.reply_to) {
         replyHtml = `
-        <div class="border-l-4 border-blue-400 pl-3 mb-2
-                    bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-900/20 dark:to-indigo-900/20
-                    rounded-2xl py-1 pr-3 shadow-sm backdrop-blur-sm">
-            <p class="text-sm font-semibold text-blue-700 dark:text-blue-400">
+        <div class="border-l-2 border-blue-400 pl-2 mb-1.5
+                    bg-blue-50/60 dark:bg-blue-900/20 rounded-xl py-1 pr-2">
+            <p class="text-[11px] font-semibold text-blue-600 dark:text-blue-400 truncate">
                 ${escapeHtmlChat(msg.reply_to.sender)}
             </p>
-            <p class="text-sm text-slate-600 dark:text-slate-300 truncate">
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                 ${escapeHtmlChat(msg.reply_to.body || 'Attachment')}
             </p>
         </div>`;
     }
 
-    // Attachment content
+    // Attachment / body HTML
     let bodyHtml = '';
     if (msg.type === 'image' && msg.attachment_url) {
         bodyHtml = `
         <img src="${msg.attachment_url}"
              alt="${escapeHtmlChat(msg.attachment_name || 'Image')}"
-             class="max-w-sm max-h-64 rounded-2xl object-cover cursor-pointer
-                    hover:opacity-95 transition-all duration-200 shadow-lg hover:shadow-xl
-                    transform hover:scale-[1.02] mt-2"
+             class="max-w-xs max-h-56 rounded-2xl object-cover cursor-pointer
+                    hover:opacity-90 transition-opacity mt-1 block"
              onclick="openImageLightbox('${msg.attachment_url}')">`;
     } else if (msg.type === 'file' && msg.attachment_url) {
         bodyHtml = `
         <a href="${msg.attachment_url}" target="_blank"
-           class="inline-flex items-center gap-3 bg-gradient-to-r from-slate-100 to-slate-200
-                  dark:from-slate-800 dark:to-slate-700
-                  rounded-2xl px-4 py-3 text-sm hover:from-slate-200 hover:to-slate-300
-                  dark:hover:from-slate-700 dark:hover:to-slate-600
-                  transition-all duration-200 shadow-md hover:shadow-lg mt-2">
-            <svg class="w-5 h-5 flex-shrink-0 text-slate-600 dark:text-slate-300" fill="none"
-                 stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      stroke-width="2"
+           class="inline-flex items-center gap-2 bg-black/10 dark:bg-white/10
+                  rounded-xl px-3 py-2 text-sm hover:bg-black/20 dark:hover:bg-white/20
+                  transition-colors mt-1">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586
-                         a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486
-                         8.486L20.5 13"/>
+                         a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
             </svg>
-            <span class="truncate max-w-[180px] font-medium text-black">
+            <span class="truncate max-w-[160px] font-medium text-sm">
                 ${escapeHtmlChat(msg.attachment_name || 'File')}
             </span>
-            <span class="text-xs opacity-75 flex-shrink-0">
-                ${msg.formatted_size || ''}
-            </span>
+            <span class="text-[11px] opacity-70 flex-shrink-0">${msg.formatted_size || ''}</span>
         </a>`;
     } else if (msg.type === 'system') {
         return `
-        <div class="flex justify-center my-3" id="msg-${msg.id}">
-            <span class="text-sm text-slate-500 dark:text-slate-400
-                         bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700
-                         px-4 py-2 rounded-full shadow-sm backdrop-blur-sm">
+        <div class="flex justify-center my-4" id="msg-${msg.id}">
+            <span class="text-[11px] text-slate-400 dark:text-slate-500
+                         bg-slate-100 dark:bg-slate-800 px-4 py-1.5 rounded-full">
                 ${escapeHtmlChat(msg.body)}
             </span>
         </div>`;
     } else {
         bodyHtml = `
-        <p class="text-sm leading-snug text-left break-words whitespace-pre-wrap">
+        <p class="text-sm leading-relaxed break-words whitespace-pre-wrap text-left">
             ${escapeHtmlChat(msg.body)}
         </p>`;
     }
 
+    // ── OWN MESSAGE ──────────────────────────────────────────
     if (isOwnMessage) {
+        const mb = showAvatar ? 'mb-0.5' : 'mb-0.5';
         return `
-        <div class="flex justify-end mb-4 group" id="msg-${msg.id}">
-            <div class="w-fit max-w-[72vw] sm:max-w-[65%]">
+        <div class="flex justify-end items-end gap-2 ${mb} group" id="msg-${msg.id}">
+
+            <!-- Hover actions -->
+            <div class="hidden group-hover:flex items-center gap-1 self-end pb-1">
+                <button onclick="setReply(${msg.id}, '${escapeHtmlChat(CURRENT_USER_NAME)}', '${escapeHtmlChat((msg.body || 'Attachment').substring(0, 50))}')"
+                        class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-700
+                               flex items-center justify-center text-slate-400
+                               hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30
+                               transition-all"
+                        title="Reply">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                    </svg>
+                </button>
+                <button onclick="deleteMessage(${msg.id})"
+                        class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-700
+                               flex items-center justify-center text-slate-400
+                               hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30
+                               transition-all"
+                        title="Delete">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Bubble -->
+            <div class="max-w-[65%] sm:max-w-[55%]">
                 ${replyHtml}
-                <div class="relative inline-block align-top">
-                    <div class="bg-gradient-to-br from-blue-600 to-indigo-600 text-white px-3 py-1.5 rounded-3xl
-                                rounded-br-md shadow-lg break-words inline-block w-fit max-w-[72vw] sm:max-w-[65vw]
-                                hover:shadow-xl transition-all duration-200 text-left">
-                        ${bodyHtml}
-                    </div>
-                    <div class="absolute -left-12 top-1/2 -translate-y-1/2
-                                hidden group-hover:flex items-center gap-2">
-                        <button onclick="setReply(${msg.id}, '${escapeHtmlChat(CURRENT_USER_NAME)}', '${escapeHtmlChat((msg.body || 'Attachment').substring(0, 50))}')"
-                                class="w-8 h-8 bg-white dark:bg-slate-700 rounded-2xl
-                                       shadow-lg flex items-center justify-center
-                                       text-slate-400 hover:text-blue-600 transition-all duration-200
-                                       transform hover:scale-110"
-                                title="Reply">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
-                            </svg>
-                        </button>
-                        <button onclick="deleteMessage(${msg.id})"
-                                class="w-8 h-8 bg-white dark:bg-slate-700 rounded-2xl
-                                       shadow-lg flex items-center justify-center
-                                       text-slate-400 hover:text-red-500 transition-all duration-200
-                                       transform hover:scale-110"
-                                title="Delete">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
+                <div class="bg-blue-600 text-white px-3.5 py-2 rounded-2xl rounded-br-md
+                            text-sm leading-relaxed break-words">
+                    ${bodyHtml}
                 </div>
-                <div class="flex items-center justify-end gap-2 mt-1 pr-2">
-                    <span class="text-xs text-slate-500 dark:text-slate-400">
-                        ${time}
-                    </span>
+                ${showAvatar ? `
+                <div class="flex items-center justify-end gap-1 mt-0.5 pr-1">
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500">${time}</span>
                     ${edited}
-                </div>
-            </div>
-        </div>`;
-    } else {
-        const initial = (msg.sender?.name || '?').charAt(0).toUpperCase();
-        return `
-        <div class="flex items-end gap-4 mb-4 group" id="msg-${msg.id}">
-            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-slate-500 to-slate-600 flex-shrink-0
-                        flex items-center justify-center text-white
-                        text-sm font-bold shadow-lg"
-                 title="${escapeHtmlChat(msg.sender?.name || '')}">
-                ${initial}
-            </div>
-            <div class="w-fit max-w-[72vw] sm:max-w-[65%]">
-                <p class="text-sm text-slate-600 dark:text-slate-300
-                           font-semibold mb-1 ml-1">
-                    ${escapeHtmlChat(msg.sender?.name || '')}
-                </p>
-                ${replyHtml}
-                <div class="relative inline-block align-top">
-                    <div class="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-700
-                                text-slate-900 dark:text-slate-100 px-3 py-1.5 rounded-3xl
-                                rounded-bl-md shadow-lg border border-slate-200/50 dark:border-slate-700/50
-                                break-words inline-block w-fit max-w-[72vw] sm:max-w-[65vw]
-                                hover:shadow-xl transition-all duration-200 backdrop-blur-sm text-left">
-                        ${bodyHtml}
-                    </div>
-                    <div class="absolute -right-12 top-1/2 -translate-y-1/2
-                                hidden group-hover:flex items-center gap-2">
-                        <button onclick="setReply(${msg.id}, '${escapeHtmlChat(msg.sender?.name || '')}', '${escapeHtmlChat((msg.body || 'Attachment').substring(0, 50))}')"
-                                class="w-8 h-8 bg-white dark:bg-slate-700 rounded-2xl
-                                       shadow-lg flex items-center justify-center
-                                       text-slate-400 hover:text-blue-600 transition-all duration-200
-                                       transform hover:scale-110"
-                                title="Reply">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 mt-1 ml-1">
-                    <span class="text-xs text-slate-500 dark:text-slate-400">
-                        ${time}
-                    </span>
+                    <!-- Read receipt ticks -->
+                    <svg class="w-3.5 h-3.5 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M18 7l-8 8-4-4-1.4 1.4L10 17.8 19.4 8.4z"/>
+                    </svg>
+                </div>` : `<div class="flex items-center justify-end gap-1 mt-0.5 pr-1">
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500">${time}</span>
                     ${edited}
-                </div>
+                </div>`}
             </div>
+
+            <!-- Own avatar (only on last in group) -->
+            ${showAvatar ? `
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex-shrink-0
+                        flex items-center justify-center text-white text-[11px] font-bold self-end">
+                ${(CURRENT_USER_NAME || 'Y').charAt(0).toUpperCase()}
+            </div>` : `<div class="w-7 flex-shrink-0"></div>`}
         </div>`;
     }
-}
 
+    // ── OTHER USER MESSAGE ──────────────────────────────────
+    const initial = (msg.sender?.name || '?').charAt(0).toUpperCase();
+    return `
+    <div class="flex items-end gap-2 mb-0.5 group" id="msg-${msg.id}">
+
+        <!-- Other avatar (only on last in group) -->
+        ${showAvatar ? `
+        <div class="w-7 h-7 rounded-full bg-slate-500 dark:bg-slate-600 flex-shrink-0
+                    flex items-center justify-center text-white text-[11px] font-bold self-end"
+             title="${escapeHtmlChat(msg.sender?.name || '')}">
+            ${initial}
+        </div>` : `<div class="w-7 flex-shrink-0"></div>`}
+
+        <!-- Bubble -->
+        <div class="max-w-[65%] sm:max-w-[55%]">
+            ${showName ? `
+            <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-0.5 ml-1">
+                ${escapeHtmlChat(msg.sender?.name || '')}
+            </p>` : ''}
+            ${replyHtml}
+            <div class="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100
+                        px-3.5 py-2 rounded-2xl rounded-bl-md
+                        border border-slate-200 dark:border-slate-600/50
+                        text-sm leading-relaxed break-words">
+                ${bodyHtml}
+            </div>
+            ${showAvatar ? `
+            <div class="flex items-center gap-1 mt-0.5 ml-1">
+                <span class="text-[10px] text-slate-400 dark:text-slate-500">${time}</span>
+                ${edited}
+            </div>` : ''}
+        </div>
+
+        <!-- Hover actions -->
+        <div class="hidden group-hover:flex items-center gap-1 self-end pb-1">
+            <button onclick="setReply(${msg.id}, '${escapeHtmlChat(msg.sender?.name || '')}', '${escapeHtmlChat((msg.body || 'Attachment').substring(0, 50))}')"
+                    class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-700
+                           flex items-center justify-center text-slate-400
+                           hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30
+                           transition-all"
+                    title="Reply">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                </svg>
+            </button>
+        </div>
+    </div>`;
+}
 // ── Append message at the bottom ─────────────────────────────
 function appendMessage(msg, isHistoryLoad = false) {
-    const container   = document.getElementById('messages-container');
+    const container = document.getElementById('messages-container');
     if (!container) return;
 
-    // Remove empty state if present
     const empty = container.querySelector('.italic');
     if (empty) empty.closest('div')?.remove();
 
-    const isOwn  = msg.sender?.id === CURRENT_USER_ID;
-    const html   = buildMessageHTML(msg, isOwn);
-    container.insertAdjacentHTML('beforeend', html);
+    const isOwn = msg.sender?.id === CURRENT_USER_ID;
+
+    // Check if previous message is from same sender (for grouping)
+    const allMsgs     = container.querySelectorAll('[id^="msg-"]');
+    const lastMsgEl   = allMsgs[allMsgs.length - 1];
+    const lastSenderId = lastMsgEl?.dataset.senderId;
+    const isSameSender = lastSenderId && String(lastSenderId) === String(msg.sender?.id);
+
+    // Check if we need a date separator
+    const msgDate  = msg.created_at ? new Date(msg.created_at).toDateString() : null;
+    const lastDate = container.dataset.lastDate || null;
+
+    if (msgDate && msgDate !== lastDate) {
+        container.dataset.lastDate = msgDate;
+        const label = getDateLabel(msg.created_at);
+        container.insertAdjacentHTML('beforeend', `
+            <div class="flex items-center gap-3 my-4">
+                <div class="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+                <span class="text-[11px] text-slate-400 dark:text-slate-500 font-medium px-2">${label}</span>
+                <div class="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+            </div>`);
+    }
+
+    // Show avatar/name only if last in a group or different sender
+    const showAvatar = true; // always show for simplicity; set false for grouping
+    const showName   = !isSameSender;
+    const html = buildMessageHTML(msg, isOwn, showAvatar, showName);
+
+    // Add spacing between groups (different senders)
+    const wrapper = document.createElement('div');
+    wrapper.dataset.senderId = msg.sender?.id || '';
+    if (!isSameSender && allMsgs.length > 0) {
+        wrapper.style.marginTop = '10px';
+    }
+    wrapper.innerHTML = html;
+    container.appendChild(wrapper);
 
     if (!isHistoryLoad) scrollToBottom();
 }
 
+function getDateLabel(dateStr) {
+    if (!dateStr) return '';
+    const d     = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    if (d.toDateString() === today.toDateString())     return 'Today';
+    if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    return d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+}
 // ── Prepend message at the top (infinite scroll) ─────────────
 function prependMessage(msg) {
     const container = document.getElementById('messages-container');
     if (!container) return;
 
     const isOwn = msg.sender?.id === CURRENT_USER_ID;
-    const html  = buildMessageHTML(msg, isOwn);
+    const html = buildMessageHTML(msg, isOwn);
     container.insertAdjacentHTML('afterbegin', html);
 }
 
@@ -510,12 +555,12 @@ function prependMessage(msg) {
 
 async function sendMessage(conversationId) {
     const input = document.getElementById('message-input');
-    const body  = input?.value.trim();
+    const body = input?.value.trim();
 
     if (!body) return;
 
     // Clear input immediately
-    input.value        = '';
+    input.value = '';
     input.style.height = 'auto';
 
     // Stop typing indicator
@@ -525,36 +570,30 @@ async function sendMessage(conversationId) {
         const payload = { body };
         if (replyToId) payload.reply_to_id = replyToId;
 
-        // ── Get socket ID from Echo ───────────────────────────
-        // This tells Reverb to skip broadcasting back to THIS
-        // socket so we don't receive our own message via Echo
         const socketId = window.Echo?.socketId?.() || null;
 
         const headers = {
             'Content-Type': 'application/json',
-            'Accept':       'application/json',
+            'Accept': 'application/json',
             'X-CSRF-TOKEN': chatCsrf,
         };
 
-        // Only add socket header if Echo is connected
         if (socketId) {
             headers['X-Socket-ID'] = socketId;
         }
 
-        const res  = await fetch(
+        const res = await fetch(
             `/chat/conversations/${conversationId}/messages`,
             {
                 method: 'POST',
                 headers,
-                body:   JSON.stringify(payload),
+                body: JSON.stringify(payload),
             }
         );
 
         const data = await res.json();
 
         if (data.success) {
-            // Append OWN message immediately via HTTP response
-            // Echo will NOT fire for sender because of X-Socket-ID
             appendMessage(data.data, false);
             scrollToBottom();
             cancelReply();
@@ -568,7 +607,6 @@ async function sendMessage(conversationId) {
     }
 }
 
-// ── Handle Enter key in textarea ─────────────────────────────
 function handleMessageKeydown(event, conversationId) {
     if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
@@ -576,9 +614,6 @@ function handleMessageKeydown(event, conversationId) {
     }
 }
 
-// ============================================================
-// SEND ATTACHMENT
-// ============================================================
 
 async function sendAttachment(conversationId, input) {
     const file = input.files[0];
@@ -606,11 +641,11 @@ async function sendAttachment(conversationId, input) {
     }
 
     try {
-        const res  = await fetch(
+        const res = await fetch(
             `/chat/conversations/${conversationId}/messages`,
             {
                 method: 'POST',
-                body:   formData,
+                body: formData,
                 headers,
             }
         );
@@ -639,10 +674,10 @@ async function deleteMessage(messageId) {
     if (!confirm('Delete this message?')) return;
 
     try {
-        const res  = await fetch(`/chat/messages/${messageId}`, {
-            method:  'DELETE',
+        const res = await fetch(`/chat/messages/${messageId}`, {
+            method: 'DELETE',
             headers: {
-                'Accept':       'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': chatCsrf,
             },
         });
@@ -655,10 +690,9 @@ async function deleteMessage(messageId) {
             if (el) {
                 el.outerHTML = `
                 <div class="flex justify-end mb-1" id="msg-${messageId}">
-                    <p class="text-xs text-gray-400 dark:text-gray-600 italic
-                               px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-xl">
-                        This message was deleted
-                    </p>
+                    <span class="text-xs text-white dark:text-white  px-3 py-1.5 bg-gray-100 dark:bg-gray-800/60 rounded-2xl">
+                        🚫 This message was deleted
+                    </span>
                 </div>`;
             }
         }
@@ -674,11 +708,11 @@ async function deleteMessage(messageId) {
 function setReply(messageId, senderName, bodyPreview) {
     replyToId = messageId;
 
-    const bar  = document.getElementById('reply-bar');
+    const bar = document.getElementById('reply-bar');
     const name = document.getElementById('reply-to-name');
     const body = document.getElementById('reply-to-body');
 
-    if (bar)  bar.classList.remove('hidden');
+    if (bar) bar.classList.remove('hidden');
     if (name) name.textContent = senderName;
     if (body) body.textContent = bodyPreview;
 
@@ -714,10 +748,10 @@ function handleTypingInput(conversationId) {
 async function broadcastTyping(conversationId, typing) {
     try {
         await fetch(`/chat/conversations/${conversationId}/typing`, {
-            method:  'POST',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept':       'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': chatCsrf,
             },
             body: JSON.stringify({ is_typing: typing }),
@@ -729,7 +763,7 @@ async function broadcastTyping(conversationId, typing) {
 
 function showTypingIndicator(userName, isTyping) {
     const indicator = document.getElementById('typing-indicator');
-    const text      = document.getElementById('typing-text');
+    const text = document.getElementById('typing-text');
 
     if (!indicator) return;
 
@@ -749,9 +783,9 @@ function showTypingIndicator(userName, isTyping) {
 async function markAsRead(conversationId) {
     try {
         await fetch(`/chat/conversations/${conversationId}/read`, {
-            method:  'POST',
+            method: 'POST',
             headers: {
-                'Accept':       'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': chatCsrf,
             },
         });
@@ -770,12 +804,12 @@ async function markAsRead(conversationId) {
 
 async function toggleMute(conversationId) {
     try {
-        const res  = await fetch(
+        const res = await fetch(
             `/chat/conversations/${conversationId}/mute`,
             {
-                method:  'POST',
+                method: 'POST',
                 headers: {
-                    'Accept':       'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': chatCsrf,
                 },
             }
@@ -801,7 +835,7 @@ function openNewDirectModal() {
 
 function closeNewDirectModal() {
     document.getElementById('new-direct-modal')?.classList.add('hidden');
-    document.getElementById('user-search-input').value      = '';
+    document.getElementById('user-search-input').value = '';
     document.getElementById('user-search-results').innerHTML = `
         <p class="text-sm text-gray-400 dark:text-gray-500 text-center py-6 italic">
             Start typing to search users
@@ -823,11 +857,11 @@ function searchUsers(query) {
 
     userSearchTimer = setTimeout(async () => {
         try {
-            const res  = await fetch(
+            const res = await fetch(
                 `/chat/users/search?query=${encodeURIComponent(query)}`,
                 {
                     headers: {
-                        'Accept':       'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': chatCsrf,
                     },
                 }
@@ -875,11 +909,11 @@ function searchUsers(query) {
 
 async function startDirectChat(userId) {
     try {
-        const res  = await fetch('/chat/conversations/direct', {
-            method:  'POST',
+        const res = await fetch('/chat/conversations/direct', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept':       'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': chatCsrf,
             },
             body: JSON.stringify({ user_id: userId }),
@@ -907,10 +941,10 @@ function openNewGroupModal() {
 
 function closeNewGroupModal() {
     document.getElementById('new-group-modal')?.classList.add('hidden');
-    document.getElementById('group-name-input').value        = '';
-    document.getElementById('group-user-search').value       = '';
-    document.getElementById('group-user-results').innerHTML  = '';
-    document.getElementById('selected-members').innerHTML    = '';
+    document.getElementById('group-name-input').value = '';
+    document.getElementById('group-user-search').value = '';
+    document.getElementById('group-user-results').innerHTML = '';
+    document.getElementById('selected-members').innerHTML = '';
     Object.keys(groupSelectedUsers).forEach(k => delete groupSelectedUsers[k]);
 }
 
@@ -925,17 +959,17 @@ function searchGroupUsers(query) {
 
     groupSearchTimer = setTimeout(async () => {
         try {
-            const res  = await fetch(
+            const res = await fetch(
                 `/chat/users/search?query=${encodeURIComponent(query)}`,
                 {
                     headers: {
-                        'Accept':       'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': chatCsrf,
                     },
                 }
             );
 
-            const data      = await res.json();
+            const data = await res.json();
             const container = document.getElementById('group-user-results');
 
             if (!data.data?.length) {
@@ -961,8 +995,8 @@ function searchGroupUsers(query) {
                         ${escapeHtmlChat(u.name)}
                     </span>
                     ${groupSelectedUsers[u.id]
-                        ? '<div class="w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></div>'
-                        : '<div class="w-6 h-6 border-2 border-slate-300 dark:border-slate-600 rounded-full group-hover:border-blue-400 transition-colors"></div>'}
+                    ? '<div class="w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></div>'
+                    : '<div class="w-6 h-6 border-2 border-slate-300 dark:border-slate-600 rounded-full group-hover:border-blue-400 transition-colors"></div>'}
                 </button>`
             ).join('');
 
@@ -1001,7 +1035,7 @@ function toggleGroupMember(userId, userName) {
 }
 
 async function createGroup() {
-    const name    = document.getElementById('group-name-input').value.trim();
+    const name = document.getElementById('group-name-input').value.trim();
     const userIds = Object.keys(groupSelectedUsers).map(Number);
 
     if (!name) {
@@ -1015,11 +1049,11 @@ async function createGroup() {
     }
 
     try {
-        const res  = await fetch('/chat/conversations', {
-            method:  'POST',
+        const res = await fetch('/chat/conversations', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept':       'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': chatCsrf,
             },
             body: JSON.stringify({ name, user_ids: userIds }),
@@ -1048,7 +1082,7 @@ function openAddMemberModal(conversationId) {
 
 function closeAddMemberModal() {
     document.getElementById('add-member-modal')?.classList.add('hidden');
-    document.getElementById('add-member-search').value      = '';
+    document.getElementById('add-member-search').value = '';
     document.getElementById('add-member-results').innerHTML = '';
 }
 
@@ -1063,19 +1097,19 @@ function searchAddMember(query) {
 
     addMemberTimer = setTimeout(async () => {
         try {
-            const res  = await fetch(
+            const res = await fetch(
                 `/chat/users/search?query=${encodeURIComponent(query)}`,
                 {
                     headers: {
-                        'Accept':       'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': chatCsrf,
                     },
                 }
             );
 
-            const data      = await res.json();
+            const data = await res.json();
             const container = document.getElementById('add-member-results');
-            const convId    = document.getElementById('add-member-conv-id').value;
+            const convId = document.getElementById('add-member-conv-id').value;
 
             if (!data.data?.length) {
                 container.innerHTML = `
@@ -1114,13 +1148,13 @@ function searchAddMember(query) {
 
 async function addMemberToConversation(conversationId, userId, userName) {
     try {
-        const res  = await fetch(
+        const res = await fetch(
             `/chat/conversations/${conversationId}/members`,
             {
-                method:  'POST',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept':       'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': chatCsrf,
                 },
                 body: JSON.stringify({ user_id: userId }),
@@ -1147,7 +1181,7 @@ async function addMemberToConversation(conversationId, userId, userName) {
 // Filter conversations by search input
 function filterConversations(query) {
     const items = document.querySelectorAll('.conv-item');
-    const q     = query.trim().toLowerCase();
+    const q = query.trim().toLowerCase();
 
     items.forEach(item => {
         const name = item.dataset.name || '';
@@ -1193,7 +1227,7 @@ function updateChatUnreadBadge(conversationId, count) {
 // Recalculate total unread for navbar badge
 function updateNavChatBadge() {
     const badges = document.querySelectorAll('[id^="unread-"]');
-    let   total  = 0;
+    let total = 0;
 
     badges.forEach(b => {
         if (!b.classList.contains('hidden')) {
@@ -1219,7 +1253,7 @@ function prependConversationToSidebar(conv) {
     if (!list) return;
 
     const initial = (conv.name || 'D').charAt(0).toUpperCase();
-    const html    = `
+    const html = `
     <a href="/chat/conversations/${conv.id}"
        id="conv-item-${conv.id}"
        class="conv-item flex items-center gap-3 px-4 py-3 cursor-pointer
@@ -1255,7 +1289,7 @@ function scrollToBottom(smooth = true) {
     if (!thread) return;
 
     thread.scrollTo({
-        top:      thread.scrollHeight,
+        top: thread.scrollHeight,
         behavior: smooth ? 'smooth' : 'auto',
     });
 }
@@ -1269,7 +1303,7 @@ function openImageLightbox(url) {
     if (existing) existing.remove();
 
     const lightbox = document.createElement('div');
-    lightbox.id    = 'chat-lightbox';
+    lightbox.id = 'chat-lightbox';
     lightbox.className = 'fixed inset-0 z-[9999] flex items-center justify-center px-4';
     lightbox.style.backgroundColor = 'rgba(0,0,0,0.85)';
     lightbox.style.backdropFilter = 'blur(12px)';
@@ -1307,7 +1341,7 @@ function showChatToast(message, type = 'success') {
     document.body.appendChild(toast);
 
     setTimeout(() => {
-        toast.style.opacity   = '0';
+        toast.style.opacity = '0';
         toast.style.transform = 'translateY(8px) scale(0.95)';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
@@ -1319,7 +1353,7 @@ function showChatToast(message, type = 'success') {
 
 function escapeHtmlChat(str) {
     if (!str) return '';
-    const div   = document.createElement('div');
+    const div = document.createElement('div');
     div.textContent = String(str);
     return div.innerHTML;
 }
@@ -1359,9 +1393,9 @@ function closeMobileSidebar() {
 }
 
 // Initialize mobile functionality
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Add click handlers to conversation items for mobile
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const convItem = e.target.closest('.conv-item');
         if (convItem && window.innerWidth < 1024) {
             // Small delay to allow navigation to happen
@@ -1370,7 +1404,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Close sidebar on window resize if now on desktop
-    window.addEventListener('resize', function() {
+    window.addEventListener('resize', function () {
         if (window.innerWidth >= 1024) {
             closeMobileSidebar();
         }
