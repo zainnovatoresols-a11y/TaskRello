@@ -34,7 +34,7 @@ class Card extends Model
         'due_date'     => 'date',
     ];
 
-    protected $appends = ['cover_image_url']; // ← removed 'url' and 'is_image'
+    protected $appends = ['cover_image_url', 'total_time_seconds', 'total_time_formatted',];
 
     public function getCoverImageUrlAttribute(): ?string
     {
@@ -101,5 +101,54 @@ class Card extends Model
     {
         return $this->hasMany(CardDescriptionImage::class)
             ->latest('created_at');
+    }
+
+    public function timeLogs()
+    {
+        return $this->hasMany(CardTimeLog::class)
+            ->orderByDesc('started_at');
+    }
+
+    public function completedTimeLogs()
+    {
+        return $this->hasMany(CardTimeLog::class)
+            ->whereNotNull('ended_at')
+            ->orderByDesc('started_at');
+    }
+
+    public function activeTimeLogs()
+    {
+        return $this->hasMany(CardTimeLog::class)
+            ->whereNull('ended_at');
+    }
+
+    public function getTotalTimeSecondsAttribute(): int
+    {
+        return (int) $this->completedTimeLogs()->sum('duration');
+    }
+
+    public function getTotalTimeFormattedAttribute(): string
+    {
+        $seconds = $this->total_time_seconds;
+
+        if ($seconds <= 0) {
+            return '0m';
+        }
+
+        return CardTimeLog::formatSeconds($seconds);
+    }
+
+    public function hasActiveSessionFor(User $user): bool
+    {
+        return $this->activeTimeLogs()
+            ->where('user_id', $user->id)
+            ->exists();
+    }
+
+    public function getActiveSessionFor(User $user): ?CardTimeLog
+    {
+        return $this->activeTimeLogs()
+            ->where('user_id', $user->id)
+            ->first();
     }
 }

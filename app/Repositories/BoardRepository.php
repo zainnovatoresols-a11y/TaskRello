@@ -52,6 +52,7 @@ class BoardRepository implements BoardRepositoryInterface
         return $board->load([
             'lists.cards.assignees',
             'lists.cards.labels',
+            'lists.cards.timeLogs',
             'members',
             'labels',
         ]);

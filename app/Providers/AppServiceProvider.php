@@ -48,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
         );
         $this->app->singleton(ConversationService::class);
         $this->app->singleton(MessageService::class);
+        $this->app->singleton(TimeTrackerService::class);
     }
 
     /**

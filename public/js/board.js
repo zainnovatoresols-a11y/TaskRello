@@ -2138,7 +2138,6 @@ function showBgStatus(message, type = 'info') {
     }
 }
 
-// Warning Modal Helper Function
 async function showWarningModal(options) {
     const modal = document.getElementById('warning-modal');
     if (!modal) {
@@ -2151,4 +2150,303 @@ async function showWarningModal(options) {
     }
 
     return await modalData.$data.show(options);
+}
+
+const activeTimers = {};
+
+const timerSeconds = {};
+
+document.addEventListener('DOMContentLoaded', function () {
+    resumeActiveTimers();
+});
+
+async function resumeActiveTimers() {
+
+    const cardTiles = document.querySelectorAll('.card-item[data-id]');
+    if (!cardTiles.length) return;
+
+    cardTiles.forEach(tile => {
+        const cardId       = tile.dataset.id;
+        const isRunning    = tile.dataset.isRunning === 'true';
+        const elapsed      = parseInt(tile.dataset.elapsed) || 0;
+
+        if (isRunning && cardId) {
+            timerSeconds[cardId] = elapsed;
+            startTimerInterval(cardId);
+            setCardRunningState(cardId, true);
+        }
+    });
+}
+
+async function startTimeTracker(cardId) {
+    try {
+        const data = await fetchJSON(
+            `/cards/${cardId}/time-tracker/start`,
+            'POST'
+        );
+
+        if (data.success) {
+            timerSeconds[cardId] = 0;
+            startTimerInterval(cardId);
+            setCardRunningState(cardId, true);
+            showToast('Timer started. Task in progress.');
+            cardModalDirty = true;
+
+        } else {
+            showToast(data.message || 'Could not start timer.', 'error');
+        }
+
+    } catch {
+    }
+}
+
+
+async function stopTimeTracker(cardId) {
+    try {
+        const data = await fetchJSON(
+            `/cards/${cardId}/time-tracker/stop`,
+            'POST'
+        );
+
+        if (data.success) {
+            stopTimerInterval(cardId);
+            setCardRunningState(cardId, false);
+
+            updateTotalTimeBadge(
+                cardId,
+                data.total_formatted,
+                data.total_seconds
+            );
+
+            if (data.is_completed) {
+                markCardCompleteInUI(cardId);
+            }
+
+            showToast(
+                `Task completed. Time logged: ${data.duration_formatted}`
+            );
+
+            cardModalDirty = true;
+
+        } else {
+            showToast(data.message || 'Could not stop timer.', 'error');
+        }
+
+    } catch {
+    }
+}
+
+function startTimerInterval(cardId) {
+    stopTimerInterval(cardId);
+
+    activeTimers[cardId] = setInterval(() => {
+        timerSeconds[cardId] = (timerSeconds[cardId] || 0) + 1;
+        const formatted = formatTimerDisplay(timerSeconds[cardId]);
+
+        const tileCount = document.getElementById(
+            `timer-count-${cardId}`
+        );
+        if (tileCount) tileCount.textContent = formatted;
+
+        const modalCount = document.getElementById(
+            `modal-timer-count-${cardId}`
+        );
+        if (modalCount) modalCount.textContent = formatted;
+
+    }, 1000);
+}
+
+function stopTimerInterval(cardId) {
+    if (activeTimers[cardId]) {
+        clearInterval(activeTimers[cardId]);
+        delete activeTimers[cardId];
+    }
+    delete timerSeconds[cardId];
+}
+
+function formatTimerDisplay(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+
+    const hh = String(h).padStart(2, '0');
+    const mm = String(m).padStart(2, '0');
+    const ss = String(s).padStart(2, '0');
+
+    return `${hh}:${mm}:${ss}`;
+}
+
+
+function setCardRunningState(cardId, isRunning) {
+
+    const tileBtn     = document.getElementById(`timer-btn-${cardId}`);
+    const tileDisplay = document.getElementById(`timer-display-${cardId}`);
+
+    const modalBtn     = document.getElementById(`modal-timer-btn-${cardId}`);
+    const modalDisplay = document.getElementById(`modal-timer-display-${cardId}`);
+
+    if (isRunning) {
+
+        if (tileBtn) {
+            tileBtn.onclick    = () => stopTimeTracker(cardId);
+            tileBtn.innerHTML  = `
+                <span class="w-2 h-2 bg-red-500 rounded-sm flex-shrink-0">
+                </span>
+                End Task`;
+            tileBtn.className  = tileBtn.className
+                .replace('bg-gray-100', 'bg-red-100')
+                .replace('dark:bg-gray-700', 'dark:bg-red-900/30')
+                .replace('text-gray-600', 'text-red-600')
+                .replace('dark:text-gray-300', 'dark:text-red-400')
+                .replace('hover:bg-green-100', '')
+                .replace('dark:hover:bg-green-900/30', '')
+                .replace('hover:text-green-700', '')
+                .replace('dark:hover:text-green-400', '');
+        }
+
+        if (tileDisplay) {
+            tileDisplay.classList.remove('hidden');
+        }
+
+        if (modalBtn) {
+            modalBtn.onclick   = () => stopTimeTracker(cardId);
+            modalBtn.innerHTML = `
+                <span class="w-2.5 h-2.5 bg-white rounded-sm
+                             flex-shrink-0"></span>
+                End Task`;
+            modalBtn.className = 'w-full inline-flex items-center '
+                + 'justify-center gap-2 text-sm font-medium bg-red-600 '
+                + 'hover:bg-red-700 text-white px-3 py-2.5 '
+                + 'rounded-xl transition shadow-sm';
+        }
+
+        if (modalDisplay) {
+            modalDisplay.classList.remove('hidden');
+        }
+
+    } else {
+
+        if (tileBtn) {
+            tileBtn.onclick   = () => startTimeTracker(cardId);
+            tileBtn.innerHTML = `
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+                Start Task`;
+            tileBtn.className = 'inline-flex items-center gap-1.5 '
+                + 'text-xs font-medium bg-gray-100 dark:bg-gray-700 '
+                + 'text-gray-600 dark:text-gray-300 hover:bg-green-100 '
+                + 'dark:hover:bg-green-900/30 hover:text-green-700 '
+                + 'dark:hover:text-green-400 px-2.5 py-1.5 '
+                + 'rounded-lg transition';
+        }
+
+        if (tileDisplay) {
+            tileDisplay.classList.add('hidden');
+            const count = document.getElementById(`timer-count-${cardId}`);
+            if (count) count.textContent = '00:00:00';
+        }
+
+        if (modalBtn) {
+            modalBtn.onclick   = () => startTimeTracker(cardId);
+            modalBtn.innerHTML = `
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+                Start Task`;
+            modalBtn.className = 'w-full inline-flex items-center '
+                + 'justify-center gap-2 text-sm font-medium bg-green-600 '
+                + 'hover:bg-green-700 text-white px-3 py-2.5 '
+                + 'rounded-xl transition shadow-sm';
+        }
+
+        if (modalDisplay) {
+            modalDisplay.classList.add('hidden');
+            const count = document.getElementById(`modal-timer-count-${cardId}`);
+            if (count) count.textContent = '00:00:00';
+        }
+    }
+}
+
+function updateTotalTimeBadge(cardId, formatted, totalSeconds) {
+    const badge = document.getElementById(`total-time-badge-${cardId}`);
+    const text  = document.getElementById(`total-time-text-${cardId}`);
+
+    if (text) text.textContent = formatted;
+
+    if (badge && totalSeconds > 0) {
+        badge.classList.remove('hidden');
+    }
+
+    const modalTotal = document.getElementById(
+        `modal-total-time-${cardId}`
+    );
+
+    if (modalTotal) {
+        modalTotal.textContent = formatted;
+        modalTotal.className   = modalTotal.className
+            .replace('text-gray-400', 'text-purple-600')
+            .replace('dark:text-gray-500', 'dark:text-purple-400');
+    }
+}
+
+function markCardCompleteInUI(cardId) {
+    const tile   = document.getElementById(`card-${cardId}`);
+    const circle = document.getElementById(`complete-circle-${cardId}`);
+    const tick   = document.getElementById(`complete-tick-${cardId}`);
+    const title  = tile?.querySelector('p.text-sm.font-medium');
+
+    if (circle) {
+        circle.classList.remove(
+            'bg-white/80', 'dark:bg-gray-700/80',
+            'border-gray-400', 'dark:border-gray-500',
+            'hover:border-green-400'
+        );
+        circle.classList.add('bg-green-500', 'border-green-500');
+    }
+
+    if (tick) {
+        tick.classList.remove('hidden');
+    }
+
+    if (title) {
+        title.classList.add(
+            'line-through',
+            'text-gray-400',
+            'dark:text-gray-500'
+        );
+        title.classList.remove(
+            'text-gray-800',
+            'dark:text-gray-100'
+        );
+    }
+
+    if (tile) {
+        tile.setAttribute('data-completed', 'true');
+        tile.setAttribute('data-is-running', 'false');
+    }
+
+    const tileBtn  = document.getElementById(`timer-btn-${cardId}`);
+    const modalBtn = document.getElementById(`modal-timer-btn-${cardId}`);
+
+    if (tileBtn) {
+        tileBtn.closest('div')?.remove();
+    }
+
+    if (modalBtn) {
+        modalBtn.outerHTML = `
+            <div class="flex items-center gap-2 bg-gray-50
+                        dark:bg-gray-700/50 rounded-xl px-3 py-2.5">
+                <svg class="w-4 h-4 text-green-500 flex-shrink-0"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                    Task completed
+                </span>
+            </div>`;
+    }
+
+    applyBoardFilters();
 }

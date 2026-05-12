@@ -193,6 +193,101 @@
 
             {{-- Activity log --}}
             <div>
+                {{-- ── Time log history ───────────────────────────────── --}}
+                @if($card->timeLogs->isNotEmpty())
+                <div class="mb-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <svg class="w-4 h-4 text-gray-400 flex-shrink-0"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 class="text-xs font-semibold text-gray-500
+                   dark:text-gray-400 uppercase tracking-wider">
+                            Time Log
+                            <span class="ml-1 font-normal normal-case text-gray-400">
+                                ({{ $card->total_time_formatted }} total)
+                            </span>
+                        </h3>
+                    </div>
+
+                    {{-- Log entries --}}
+                    <div class="space-y-2" id="time-log-list-{{ $card->id }}">
+                        @foreach($card->timeLogs->take(10) as $log)
+                        <div class="flex items-start justify-between bg-gray-50
+                        dark:bg-gray-700/50 rounded-xl px-3 py-2.5
+                        border border-gray-100 dark:border-gray-700">
+                            <div class="flex items-start gap-2.5 flex-1 min-w-0">
+
+                                {{-- User avatar --}}
+                                <div class="w-6 h-6 rounded-full bg-blue-700
+                                flex-shrink-0 flex items-center
+                                justify-center text-white text-xs font-bold
+                                mt-0.5">
+                                    {{ strtoupper(substr($log->user->name, 0, 1)) }}
+                                </div>
+
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-xs font-semibold text-gray-700
+                                         dark:text-gray-200">
+                                            {{ $log->user->name }}
+                                        </span>
+
+                                        {{-- Duration badge --}}
+                                        @if($log->is_running)
+                                        <span class="inline-flex items-center gap-1
+                                             text-xs text-green-600
+                                             dark:text-green-400 font-medium
+                                             bg-green-50 dark:bg-green-900/20
+                                             px-2 py-0.5 rounded-full">
+                                            <span class="w-1.5 h-1.5 bg-green-500
+                                                 rounded-full animate-pulse">
+                                            </span>
+                                            In progress
+                                        </span>
+                                        @else
+                                        <span class="text-xs text-purple-600
+                                             dark:text-purple-400 font-semibold
+                                             bg-purple-50 dark:bg-purple-900/20
+                                             px-2 py-0.5 rounded-full">
+                                            {{ $log->duration_formatted }}
+                                        </span>
+                                        @endif
+                                    </div>
+
+                                    {{-- Time range --}}
+                                    <p class="text-xs text-gray-400 dark:text-gray-500
+                                  mt-0.5">
+                                        {{ $log->started_at->format('M d, g:i A') }}
+                                        @if($log->ended_at)
+                                        → {{ $log->ended_at->format('g:i A') }}
+                                        @endif
+                                    </p>
+
+                                    {{-- Notes if any --}}
+                                    @if($log->notes)
+                                    <p class="text-xs text-gray-500
+                                      dark:text-gray-400 mt-1 italic">
+                                        "{{ $log->notes }}"
+                                    </p>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+
+                        {{-- Show more if more than 10 logs --}}
+                        @if($card->timeLogs->count() > 10)
+                        <p class="text-xs text-center text-gray-400
+                      dark:text-gray-500 pt-1">
+                            +{{ $card->timeLogs->count() - 10 }} more sessions
+                        </p>
+                        @endif
+                    </div>
+                </div>
+                @endif
                 <div class="flex items-center gap-2 mb-3">
                     <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -305,10 +400,102 @@
                            focus:outline-none focus:ring-2 focus:ring-blue-500
                            focus:border-transparent transition">
                 <p id="due-date-status-{{ $card->id }}"
-                   class="text-xs mt-1.5 font-medium {{ $card->due_date ? ($card->isOverdue() ? 'text-red-500' : ($card->isDueSoon() ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400')) : 'text-gray-400' }}"
-                   style="{{ $card->due_date ? '' : 'display:none;' }}">
+                    class="text-xs mt-1.5 font-medium {{ $card->due_date ? ($card->isOverdue() ? 'text-red-500' : ($card->isDueSoon() ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400')) : 'text-gray-400' }}"
+                    style="{{ $card->due_date ? '' : 'display:none;' }}">
                     {{ $card->due_date ? ($card->isOverdue() ? '⚠ Overdue' : ($card->isDueSoon() ? '⏰ Due today' : '✓ Upcoming')) : '' }}
                 </p>
+            </div>
+
+            {{-- Divider --}}
+            <div class="border-t border-gray-100 dark:border-gray-700"></div>
+
+            {{-- ── Time tracker ────────────────────────────────────── --}}
+            <div>
+                <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400
+               uppercase tracking-wider mb-2 flex items-center
+               justify-between">
+                    <span>Time Tracked</span>
+                    @if($card->total_time_seconds > 0)
+                    <span class="text-purple-600 dark:text-purple-400 font-bold
+                         normal-case text-xs"
+                        id="modal-total-time-{{ $card->id }}">
+                        {{ $card->total_time_formatted }}
+                    </span>
+                    @else
+                    <span class="text-gray-400 dark:text-gray-500 font-normal
+                         normal-case text-xs"
+                        id="modal-total-time-{{ $card->id }}">
+                        0m
+                    </span>
+                    @endif
+                </h4>
+
+                @php
+                $activeSession = $card->getActiveSessionFor(auth()->user());
+                $isRunning = (bool) $activeSession;
+                $elapsedSeconds = $activeSession?->elapsed_seconds ?? 0;
+                @endphp
+
+                {{-- Live timer display --}}
+                <div id="modal-timer-display-{{ $card->id }}"
+                    class="{{ $isRunning ? '' : 'hidden' }}
+                flex items-center gap-2 mb-3 bg-green-50
+                dark:bg-green-900/20 border border-green-200
+                dark:border-green-800 rounded-xl px-3 py-2.5">
+                    <span class="w-2 h-2 bg-green-500 rounded-full
+                     animate-pulse flex-shrink-0"></span>
+                    <div class="flex-1">
+                        <p class="text-xs text-green-600 dark:text-green-400
+                      font-medium">
+                            Task in progress
+                        </p>
+                        <p class="text-lg font-mono font-bold text-green-700
+                      dark:text-green-300 leading-tight"
+                            id="modal-timer-count-{{ $card->id }}">
+                            {{ $isRunning ? gmdate('H:i:s', $elapsedSeconds) : '00:00:00' }}
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Start / End Task button --}}
+                @if(!$card->is_completed)
+                @if($isRunning)
+                <button onclick="stopTimeTracker({{ $card->id }})"
+                    id="modal-timer-btn-{{ $card->id }}"
+                    class="w-full inline-flex items-center justify-center
+                           gap-2 text-sm font-medium bg-red-600
+                           hover:bg-red-700 text-white px-3 py-2.5
+                           rounded-xl transition shadow-sm">
+                    <span class="w-2.5 h-2.5 bg-white rounded-sm
+                             flex-shrink-0"></span>
+                    End Task
+                </button>
+                @else
+                <button onclick="startTimeTracker({{ $card->id }})"
+                    id="modal-timer-btn-{{ $card->id }}"
+                    class="w-full inline-flex items-center justify-center
+                           gap-2 text-sm font-medium bg-green-600
+                           hover:bg-green-700 text-white px-3 py-2.5
+                           rounded-xl transition shadow-sm">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                    </svg>
+                    Start Task
+                </button>
+                @endif
+                @else
+                <div class="flex items-center gap-2 bg-gray-50 dark:bg-gray-700/50
+                    rounded-xl px-3 py-2.5">
+                    <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                        Task completed
+                    </span>
+                </div>
+                @endif
             </div>
 
             {{-- Divider --}}
@@ -356,12 +543,12 @@
                     @endforeach
                 </div>
                 <select id="card-label-select-{{ $card->id }}"
-                        class="js-label-select modal-select w-full border border-gray-200 dark:border-gray-600 rounded-lg
+                    class="js-label-select modal-select w-full border border-gray-200 dark:border-gray-600 rounded-lg
                                px-2 py-1.5 text-xs bg-white dark:bg-gray-700
                                text-gray-700 dark:text-gray-200
                                focus:outline-none focus:ring-2 focus:ring-blue-500
                                focus:border-transparent transition cursor-pointer"
-                        onchange="attachLabel({{ $card->id }}, this.value); this.selectedIndex=0;">
+                    onchange="attachLabel({{ $card->id }}, this.value); this.selectedIndex=0;">
                     <option value="" disabled selected hidden>Add label...</option>
                     @foreach($card->list->board->labels as $label)
                     <option value="{{ $label->id }}">{{ $label->name }}</option>

@@ -40,6 +40,7 @@ class CardRepository implements CardRepositoryInterface
             'activityLogs.user',
             'list.board.members',
             'descriptionImages',
+             'timeLogs.user',  
         ]);
     }
 

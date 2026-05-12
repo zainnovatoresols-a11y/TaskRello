@@ -3,6 +3,12 @@
     Usage: @include('partials._card', ['card' => $card])
 --}}
 
+@php
+$activeSession = $card->getActiveSessionFor(auth()->user());
+$isRunning = (bool) $activeSession;
+$elapsedSeconds = $activeSession?->elapsed_seconds ?? 0;
+@endphp
+
 <div class="card-item bg-white dark:bg-gray-800 rounded-lg shadow-sm
             border border-gray-200 dark:border-gray-600
             cursor-pointer hover:shadow-md hover:border-gray-300
@@ -11,6 +17,9 @@
     data-title="{{ strtolower($card->title) }}"
     data-description="{{ strtolower($card->description ?? '') }}"
     data-completed="{{ $card->is_completed ? 'true' : 'false' }}"
+    data-is-running="{{ $isRunning ? 'true' : 'false' }}"
+    data-elapsed="{{ $elapsedSeconds }}"
+    data-total-time="{{ $card->total_time_seconds }}"
     id="card-{{ $card->id }}">
 
     {{-- ── Completion checkbox (visible on hover) ──────────── --}}
@@ -85,7 +94,54 @@
                       : 'text-gray-800 dark:text-gray-100' }}">
             {{ $card->title }}
         </p>
+        {{-- ── Time tracker button + live timer ──────────────── --}}
+        @if(!$card->is_completed)
+        <div class="flex items-center justify-between mb-2"
+            onclick="event.stopPropagation()">
 
+            {{-- Start / End Task button --}}
+            @if($isRunning)
+            {{-- Currently running — show End Task --}}
+            <button onclick="stopTimeTracker({{ $card->id }})"
+                id="timer-btn-{{ $card->id }}"
+                class="inline-flex items-center gap-1.5 text-xs font-medium
+                           bg-red-100 dark:bg-red-900/30 text-red-600
+                           dark:text-red-400 hover:bg-red-200
+                           dark:hover:bg-red-900/50 px-2.5 py-1.5
+                           rounded-lg transition">
+                <span class="w-2 h-2 bg-red-500 rounded-sm flex-shrink-0"></span>
+                End Task
+            </button>
+            @else
+            {{-- Not running — show Start Task --}}
+            <button onclick="startTimeTracker({{ $card->id }})"
+                id="timer-btn-{{ $card->id }}"
+                class="inline-flex items-center gap-1.5 text-xs font-medium
+                           bg-gray-100 dark:bg-gray-700 text-gray-600
+                           dark:text-gray-300 hover:bg-green-100
+                           dark:hover:bg-green-900/30 hover:text-green-700
+                           dark:hover:text-green-400 px-2.5 py-1.5
+                           rounded-lg transition">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                </svg>
+                Start Task
+            </button>
+            @endif
+
+            {{-- Live timer display --}}
+            <div id="timer-display-{{ $card->id }}"
+                class="flex items-center gap-1.5 {{ $isRunning ? '' : 'hidden' }}">
+                <span class="w-1.5 h-1.5 bg-green-500 rounded-full
+                         animate-pulse flex-shrink-0"></span>
+                <span class="text-xs font-mono font-semibold text-green-600
+                         dark:text-green-400"
+                    id="timer-count-{{ $card->id }}">
+                    {{ $isRunning ? gmdate('H:i:s', $elapsedSeconds) : '00:00:00' }}
+                </span>
+            </div>
+        </div>
+        @endif
         {{-- ── Footer row ───────────────────────────────────── --}}
         <div class="flex items-center justify-between gap-2">
 
@@ -138,6 +194,42 @@
                     {{ $attachCount }}
                 </span>
                 @endif
+
+                {{-- Total time badge --}}
+@if($card->total_time_seconds > 0)
+    <span class="inline-flex items-center gap-1 text-xs
+                 text-purple-600 dark:text-purple-400
+                 bg-purple-50 dark:bg-purple-900/20
+                 px-1.5 py-0.5 rounded-md font-medium"
+          id="total-time-badge-{{ $card->id }}"
+          title="Total time tracked">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor"
+             viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span id="total-time-text-{{ $card->id }}">
+            {{ $card->total_time_formatted }}
+        </span>
+    </span>
+@else
+    {{-- Hidden badge shown by JS after first time log --}}
+    <span class="hidden inline-flex items-center gap-1 text-xs
+                 text-purple-600 dark:text-purple-400
+                 bg-purple-50 dark:bg-purple-900/20
+                 px-1.5 py-0.5 rounded-md font-medium"
+          id="total-time-badge-{{ $card->id }}"
+          title="Total time tracked">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor"
+             viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span id="total-time-text-{{ $card->id }}">0m</span>
+    </span>
+@endif
 
             </div>
 

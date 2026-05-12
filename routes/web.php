@@ -12,6 +12,8 @@ use App\Http\Controllers\LabelController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\TimeTrackerController;
+
 
 
 
@@ -104,6 +106,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/conversations/{conversation}/read', [MessageController::class, 'markRead'])->name('messages.read');
         Route::post('/conversations/{conversation}/typing', [MessageController::class, 'typing'])->name('messages.typing');
     });
+
+
+    Route::prefix('cards/{card}/time-tracker')->name('time-tracker.')->group(function () {
+        Route::post('/start', [TimeTrackerController::class, 'start'])->name('start');
+        Route::post('/stop', [TimeTrackerController::class, 'stop'])->name('stop');
+        Route::get('/status', [TimeTrackerController::class, 'status'])->name('status');
+        Route::get('/logs', [TimeTrackerController::class, 'logs'])->name('logs');
+    });
+    Route::get('/boards/{board}/time-tracker/active-sessions', [TimeTrackerController::class, 'boardActiveSessions'])->name('time-tracker.board-sessions');
+    Route::put('/time-logs/{log}/notes', [TimeTrackerController::class, 'updateNotes'])->name('time-tracker.notes');
 });
 
 require __DIR__ . '/auth.php';
