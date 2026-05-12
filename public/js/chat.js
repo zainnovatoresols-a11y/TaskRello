@@ -363,10 +363,7 @@ function buildMessageHTML(msg, isOwnMessage, showAvatar = true, showName = true)
             </span>
         </div>`;
     } else {
-        bodyHtml = `
-        <p class="text-sm leading-relaxed break-words whitespace-pre-wrap text-left">
-            ${escapeHtmlChat(msg.body)}
-        </p>`;
+        bodyHtml = `<p class="text-sm leading-relaxed break-words whitespace-pre-wrap text-left">${escapeHtmlChat(msg.body)}</p>`;
     }
 
     // ── OWN MESSAGE ──────────────────────────────────────────
@@ -402,9 +399,9 @@ function buildMessageHTML(msg, isOwnMessage, showAvatar = true, showName = true)
             </div>
 
             <!-- Bubble -->
-            <div class="max-w-[65%] sm:max-w-[55%]">
+            <div class="max-w-[55%] sm:max-w-[45%] w-fit">
                 ${replyHtml}
-                <div class="bg-blue-600 text-white px-3.5 py-2 rounded-2xl rounded-br-md
+                <div class="bg-blue-600 text-white px-2.5 py-1.5 rounded-2xl rounded-br-md text-left
                             text-sm leading-relaxed break-words">
                     ${bodyHtml}
                 </div>
@@ -445,14 +442,14 @@ function buildMessageHTML(msg, isOwnMessage, showAvatar = true, showName = true)
         </div>` : `<div class="w-7 flex-shrink-0"></div>`}
 
         <!-- Bubble -->
-        <div class="max-w-[65%] sm:max-w-[55%]">
+        <div class="max-w-[55%] sm:max-w-[45%] w-fit">
             ${showName ? `
             <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-0.5 ml-1">
                 ${escapeHtmlChat(msg.sender?.name || '')}
             </p>` : ''}
             ${replyHtml}
-            <div class="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100
-                        px-3.5 py-2 rounded-2xl rounded-bl-md
+            <div class="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 text-left
+                        px-2.5 py-1.5 rounded-2xl rounded-bl-md
                         border border-slate-200 dark:border-slate-600/50
                         text-sm leading-relaxed break-words">
                 ${bodyHtml}
