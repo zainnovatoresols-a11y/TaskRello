@@ -26,7 +26,8 @@ class BoardController extends Controller
     {
         $boards = $this->boardService->getUserBoards($request->user());
 
-        if ($request->wantsJson()) {
+        // Only return JSON for explicit API calls (XMLHttpRequest), not browser navigation
+        if ($request->expectsJson() && $request->isXmlHttpRequest()) {
             return response()->json([
                 'status'=> 'success',
                 'data'=> $boards,
@@ -84,7 +85,7 @@ class BoardController extends Controller
             $board->update(['background_image' => $path]);
         }
 
-        if ($request->wantsJson()) {
+        if ($request->expectsJson() && $request->isXmlHttpRequest()) {
             return response()->json([
                 'status'=> 'created',
                 'message'=> 'Board created successfully!',
@@ -102,7 +103,7 @@ class BoardController extends Controller
         $this->authorize('view', $board);
         $board = $this->boardService->loadBoardWithRelations($board);
 
-        if ($request->wantsJson()) {
+        if ($request->expectsJson() && $request->isXmlHttpRequest()) {
             return response()->json([
                 'success'=> true,
                 'data'=> [
@@ -169,7 +170,7 @@ class BoardController extends Controller
     {
         $this->boardService->update($board, $request->validated());
 
-        if ($request->wantsJson()) {
+        if ($request->expectsJson() && $request->isXmlHttpRequest()) {
             return response()->json([
                 'status'=> 'success',
                 'message'=> 'Board updated.',
@@ -187,7 +188,7 @@ class BoardController extends Controller
         $this->authorize('delete', $board);
         $this->boardService->delete($board);
 
-        if ($request->wantsJson()) {
+        if ($request->expectsJson() && $request->isXmlHttpRequest()) {
             return response()->json([
                 'status'=> 'success',
                 'message'=> 'Board deleted.',
@@ -217,7 +218,7 @@ class BoardController extends Controller
             return $response;
         }
 
-        if ($request->wantsJson()) {
+        if ($request->expectsJson() && $request->isXmlHttpRequest()) {
             return response()->json([
                 'success' => true,
                 'message' => "{$user->name} has been invited to the board.",
@@ -287,7 +288,7 @@ class BoardController extends Controller
         $notificationId = $request->query('notif_id');
 
         if (!$board->hasPendingInvite($user)) {
-            if ($request->wantsJson()) {
+            if ($request->expectsJson() && $request->isXmlHttpRequest()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'No pending invitation found for this board.',
@@ -321,7 +322,7 @@ class BoardController extends Controller
             );
         });
 
-        if ($request->wantsJson()) {
+        if ($request->expectsJson() && $request->isXmlHttpRequest()) {
             return response()->json([
                 'status' => 'success',
                 'message' => 'Invitation declined.',
@@ -343,7 +344,7 @@ class BoardController extends Controller
             return $response;
         }
 
-        if ($request->wantsJson()) {
+        if ($request->expectsJson() && $request->isXmlHttpRequest()) {
             return response()->json([
                 'status' => 'success',
                 'message' => "{$user->name} has been removed from the board.",
