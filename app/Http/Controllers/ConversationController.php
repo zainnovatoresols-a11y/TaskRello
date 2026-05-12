@@ -16,10 +16,6 @@ class ConversationController extends Controller
         private ConversationService $conversationService
     ) {}
 
-    // ──────────────────────────────────────────────────────────
-    // GET /chat
-    // Show inbox — all conversations for the logged in user
-    // ──────────────────────────────────────────────────────────
     public function index(Request $request)
     {
         $inbox = $this->conversationService->getInbox($request->user());
@@ -37,15 +33,10 @@ class ConversationController extends Controller
         ]);
     }
 
-    // ──────────────────────────────────────────────────────────
-    // GET /chat/conversations/{conversation}
-    // Open a specific conversation
-    // ──────────────────────────────────────────────────────────
     public function show(Request $request, Conversation $conversation)
     {
         $user = $request->user();
 
-        // For board conversations, check if user is an accepted member
         if ($conversation->type === 'board') {
             if (!$conversation->board->isMember($user)) {
                 abort(403, 'You are not an accepted member of this board.');
@@ -56,7 +47,6 @@ class ConversationController extends Controller
             }
         }
 
-        // Mark as read when conversation is opened
         $this->conversationService->markAsRead(
             $conversation,
             $request->user()
@@ -93,11 +83,6 @@ class ConversationController extends Controller
         ]);
     }
 
-    // ──────────────────────────────────────────────────────────
-    // POST /chat/conversations/direct
-    // Find or create a direct (1-to-1) conversation
-    // Body: { user_id: 5 }
-    // ──────────────────────────────────────────────────────────
     public function direct(Request $request)
     {
         $request->validate([
@@ -106,7 +91,6 @@ class ConversationController extends Controller
 
         $otherUser = User::findOrFail($request->user_id);
 
-        // Cannot start a conversation with yourself
         if ($otherUser->id === $request->user()->id) {
             return response()->json([
                 'success' => false,
@@ -132,11 +116,6 @@ class ConversationController extends Controller
         return redirect()->route('chat.show', $conversation);
     }
 
-    // ──────────────────────────────────────────────────────────
-    // POST /chat/conversations
-    // Create a new group conversation
-    // Body: { name: "Team Chat", user_ids: [2, 3, 4] }
-    // ──────────────────────────────────────────────────────────
     public function store(Request $request)
     {
         $request->validate([
@@ -164,18 +143,11 @@ class ConversationController extends Controller
         }
 
         return redirect()->route('chat.show', $conversation)
-                         ->with('success', 'Group created.');
+            ->with('success', 'Group created.');
     }
 
-    // ──────────────────────────────────────────────────────────
-    // POST /chat/conversations/{conversation}/members
-    // Add a member to a group conversation
-    // Body: { user_id: 5 }
-    // Only group admins can do this
-    // ──────────────────────────────────────────────────────────
     public function addMember(Request $request, Conversation $conversation)
     {
-        // Only group conversations support adding members
         if ($conversation->type === 'direct') {
             return response()->json([
                 'success' => false,
@@ -183,10 +155,9 @@ class ConversationController extends Controller
             ], 422);
         }
 
-        // Check if requester is an admin of this conversation
         $participant = $conversation->participants()
-                                    ->where('user_id', $request->user()->id)
-                                    ->first();
+            ->where('user_id', $request->user()->id)
+            ->first();
 
         if (!$participant || $participant->role !== 'admin') {
             abort(403, 'Only group admins can add members.');
@@ -198,7 +169,6 @@ class ConversationController extends Controller
 
         $user = User::findOrFail($request->user_id);
 
-        // Check if already a participant
         if ($conversation->hasParticipant($user)) {
             return response()->json([
                 'success' => false,
@@ -212,7 +182,6 @@ class ConversationController extends Controller
             role: 'member'
         );
 
-        // Send system message
         app(MessageService::class)->send(
             $conversation,
             $request->user(),
@@ -235,11 +204,6 @@ class ConversationController extends Controller
         return redirect()->back()->with('success', "{$user->name} added.");
     }
 
-    // ──────────────────────────────────────────────────────────
-    // DELETE /chat/conversations/{conversation}/members/{user}
-    // Remove a member from a group conversation
-    // Only group admins can do this
-    // ──────────────────────────────────────────────────────────
     public function removeMember(
         Request      $request,
         Conversation $conversation,
@@ -253,14 +217,13 @@ class ConversationController extends Controller
         }
 
         $participant = $conversation->participants()
-                                    ->where('user_id', $request->user()->id)
-                                    ->first();
+            ->where('user_id', $request->user()->id)
+            ->first();
 
         if (!$participant || $participant->role !== 'admin') {
             abort(403, 'Only group admins can remove members.');
         }
 
-        // Cannot remove yourself — use leave instead
         if ($user->id === $request->user()->id) {
             return response()->json([
                 'success' => false,
@@ -280,10 +243,6 @@ class ConversationController extends Controller
         return redirect()->back()->with('success', "{$user->name} removed.");
     }
 
-    // ──────────────────────────────────────────────────────────
-    // POST /chat/conversations/{conversation}/mute
-    // Toggle mute for a conversation
-    // ──────────────────────────────────────────────────────────
     public function toggleMute(Request $request, Conversation $conversation)
     {
         if (!$conversation->hasParticipant($request->user())) {
@@ -304,34 +263,29 @@ class ConversationController extends Controller
         ]);
     }
 
-    // ──────────────────────────────────────────────────────────
-    // GET /api/chat/users
-    // Search users to start a conversation with
-    // Body: { query: "ali" }
-    // ──────────────────────────────────────────────────────────
-   public function searchUsers(Request $request)
-{
-    $searchTerm = $request->get('query', '');
+    public function searchUsers(Request $request)
+    {
+        $searchTerm = $request->get('query', '');
 
-    if (empty(trim($searchTerm))) {
+        if (empty(trim($searchTerm))) {
+            return response()->json([
+                'success' => true,
+                'data'    => [],
+            ]);
+        }
+
+        $users = User::where('id', '!=', $request->user()->id)
+            ->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('email', 'like', '%' . $searchTerm . '%');
+            })
+            ->select('id', 'name', 'email', 'avatar')
+            ->limit(10)
+            ->get();
+
         return response()->json([
             'success' => true,
-            'data'    => [],
+            'data'    => $users,
         ]);
     }
-
-    $users = User::where('id', '!=', $request->user()->id)
-                 ->where(function ($q) use ($searchTerm) {
-                     $q->where('name', 'like', '%' . $searchTerm . '%')
-                       ->orWhere('email', 'like', '%' . $searchTerm . '%');
-                 })
-                 ->select('id', 'name', 'email', 'avatar')
-                 ->limit(10)
-                 ->get();
-
-    return response()->json([
-        'success' => true,
-        'data'    => $users,
-    ]);
-}
 }
