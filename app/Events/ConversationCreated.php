@@ -18,13 +18,8 @@ class ConversationCreated implements ShouldBroadcast
     public function __construct(
         public Conversation $conversation,
         public array        $participantIds
-        // IDs of all users who need to know about this new conversation
-        // Each user gets notified on their personal private channel
     ) {}
 
-    // ── Broadcast on EACH participant's personal channel ─────
-    // This fires once per participant so each user's inbox
-    // updates in real time when they are added to a conversation
     public function broadcastOn(): array
     {
         return collect($this->participantIds)
@@ -32,13 +27,11 @@ class ConversationCreated implements ShouldBroadcast
             ->toArray();
     }
 
-    // ── Event name the frontend listens for ───────────────────
     public function broadcastAs(): string
     {
         return 'conversation.created';
     }
 
-    // ── Payload sent to the frontend ──────────────────────────
     public function broadcastWith(): array
     {
         $this->conversation->loadMissing(['users', 'lastMessage', 'creator']);
@@ -62,7 +55,6 @@ class ConversationCreated implements ShouldBroadcast
                     'role'   => $u->pivot->role,
                 ]),
                 'unread_count'    => 0,
-                // New conversation always starts with 0 unread
                 'last_message'    => null,
             ],
         ];

@@ -21,7 +21,6 @@ class UserTyping implements ShouldBroadcast
         public bool         $isTyping
     ) {}
 
-    // ── Broadcast on this channel ─────────────────────────────
     public function broadcastOn(): array
     {
         return [
@@ -31,13 +30,11 @@ class UserTyping implements ShouldBroadcast
         ];
     }
 
-    // ── Event name the frontend listens for ───────────────────
     public function broadcastAs(): string
     {
         return 'user.typing';
     }
 
-    // ── Payload sent to the frontend ──────────────────────────
     public function broadcastWith(): array
     {
         return [
@@ -50,11 +47,6 @@ class UserTyping implements ShouldBroadcast
         ];
     }
 
-    // ── IMPORTANT: This event is ephemeral ────────────────────
-    // Typing indicators are NEVER stored in the database.
-    // They fire on Reverb and disappear after 3 seconds on
-    // the frontend. No queue, no persistence needed.
-    // Use ShouldBroadcastNow so it fires instantly without queue.
     public function broadcastConnection(): string
     {
         return 'reverb';

@@ -20,7 +20,6 @@ class MessageSent implements ShouldBroadcast
         public Conversation $conversation
     ) {}
 
-    // ── Broadcast on this channel ─────────────────────────────
     public function broadcastOn(): array
     {
         return [
@@ -30,13 +29,11 @@ class MessageSent implements ShouldBroadcast
         ];
     }
 
-    // ── Event name the frontend listens for ───────────────────
     public function broadcastAs(): string
     {
         return 'message.sent';
     }
 
-    // ── Payload sent to the frontend ──────────────────────────
     public function broadcastWith(): array
     {
         // Load relationships needed for rendering
@@ -75,11 +72,8 @@ class MessageSent implements ShouldBroadcast
         ];
     }
 
-    // ── Do not broadcast back to the sender ───────────────────
-    // Comment this out if you want sender to also receive
-    // via WebSocket (useful for multi-device support)
-    // public function broadcastToEveryoneElse(): bool
-    // {
-    //     return true;
-    // }
+    public function broadcastToEveryoneElse(): bool
+    {
+        return true;
+    }
 }
