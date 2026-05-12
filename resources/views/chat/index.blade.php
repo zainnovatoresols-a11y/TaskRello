@@ -2,9 +2,6 @@
 
 @section('chat-content')
 
-{{-- ══════════════════════════════════════════════════════════ --}}
-{{-- LEFT SIDEBAR — Conversation list                          --}}
-{{-- ══════════════════════════════════════════════════════════ --}}
 <aside id="conversation-sidebar"
        class="w-full max-w-[28rem] flex-shrink-0 bg-gradient-to-b from-white to-slate-50/50 dark:from-slate-950 dark:to-slate-900/50
               border-r border-slate-200/60 dark:border-slate-800/60
@@ -15,11 +12,11 @@
     {{-- Sidebar header --}}
     <div class="px-4 sm:px-5 py-4 sm:py-5 border-b border-slate-200/50 dark:border-slate-700/50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm">
         <div class="flex items-center justify-between mb-3 sm:mb-4">
-            <h2 class="font-bold text-slate-900 dark:text-white text-base sm:text-lg tracking-tight">
+            <h3 class="font-bold text-slate-900 dark:text-white text-base sm:text-lg tracking-tight">
                 Messages
-            </h2>
+            </h3>
             {{-- New group button --}}
-            <button onclick="openNewGroupModal()"
+            <button onclick="openNewDirectModal()"
                     class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl
                            bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700
                            text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
@@ -182,16 +179,18 @@
 
     {{-- New direct message button --}}
     <div class="px-4 sm:px-5 py-3 sm:py-4 border-t border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-950/60 backdrop-blur-sm">
-        <button onclick="openNewDirectModal()"
+        <button onclick="openNewGroupModal()"
                 class="w-full flex items-center justify-center gap-2 sm:gap-3
                        bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700
                        text-white text-sm font-semibold py-2.5 sm:py-3 rounded-2xl
                        shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]">
-            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
-            New message
+             
+        <!-- Group Chat Icon -->
+        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 20h5v-1a4 4 0 00-5-3.87M17 20H7m10 0v-1c0-.65-.13-1.27-.37-1.82M7 20H2v-1a4 4 0 015-3.87M7 20v-1c0-.65.13-1.27.37-1.82m0 0a5 5 0 019.26 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+            Create a group conversation
         </button>
     </div>
 </aside>

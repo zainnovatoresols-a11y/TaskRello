@@ -2193,7 +2193,15 @@ async function startTimeTracker(cardId) {
             cardModalDirty = true;
 
         } else {
-            showToast(data.message || 'Could not start timer.', 'error');
+            const message = data.message || 'Could not start timer.';
+            if (data.active_card_title) {
+                showToast(
+                    `${message} Current task: ${data.active_card_title}`,
+                    'error'
+                );
+            } else {
+                showToast(message, 'error');
+            }
         }
 
     } catch {
