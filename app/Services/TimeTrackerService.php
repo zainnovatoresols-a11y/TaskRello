@@ -77,21 +77,6 @@ class TimeTrackerService
 
         $stoppedLog = $this->stopSessionById($log);
 
-        $wasCompleted = $card->is_completed;
-
-        if (!$wasCompleted) {
-            $card->update(['is_completed' => true]);
-
-            ActivityLog::log(
-                $user,
-                'completed_card',
-                "{$user->name} completed '{$card->title}' "
-                . "after " . $stoppedLog->duration_formatted,
-                $card->list->board_id,
-                $card->id
-            );
-        }
-
         ActivityLog::log(
             $user,
             'stopped_task',
@@ -103,14 +88,13 @@ class TimeTrackerService
 
         return [
             'success'            => true,
-            'message'            => 'Timer stopped. Card marked as completed.',
+            'message'            => 'Timer stopped. Time logged successfully.',
             'log'                => $this->formatLog($stoppedLog),
             'duration_seconds'   => $stoppedLog->duration,
             'duration_formatted' => $stoppedLog->duration_formatted,
             'total_seconds'      => $card->fresh()->total_time_seconds,
             'total_formatted'    => $card->fresh()->total_time_formatted,
-            'is_completed'       => true,
-            'was_already_completed' => $wasCompleted,
+            'is_completed'       => $card->is_completed,
         ];
     }
 

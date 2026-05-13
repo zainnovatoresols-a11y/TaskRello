@@ -1285,6 +1285,50 @@ async function toggleCardComplete(cardId, checkboxWrapper) {
             }
 
             showToast(response.message || (isCompleted ? 'Card marked as complete.' : 'Card marked as incomplete.'));
+            
+            // Update modal timer button if modal is open
+            const cardModal = document.getElementById('card-modal');
+            if (cardModal && !cardModal.classList.contains('hidden')) {
+                const timerDisplay = document.getElementById(`modal-timer-display-${cardId}`);
+                if (timerDisplay) {
+                    const timerButtonElement = timerDisplay.nextElementSibling;
+                    
+                    if (isCompleted) {
+                        // Stop timer if running
+                        if (!timerDisplay.classList.contains('hidden')) {
+                            stopTimeTracker(cardId);
+                        }
+                        // Replace with "Task completed" div
+                        const completedDiv = document.createElement('div');
+                        completedDiv.className = 'flex items-center gap-2 bg-gray-50 dark:bg-gray-700/50 rounded-xl px-3 py-2.5';
+                        completedDiv.innerHTML = `
+                            <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Task completed</span>
+                        `;
+                        if (timerButtonElement) {
+                            timerButtonElement.replaceWith(completedDiv);
+                        }
+                    } else {
+                        // Replace with "Start Task" button
+                        const startButton = document.createElement('button');
+                        startButton.id = `modal-timer-btn-${cardId}`;
+                        startButton.onclick = () => startTimeTracker(cardId);
+                        startButton.className = 'w-full inline-flex items-center justify-center gap-2 text-sm font-medium bg-green-600 hover:bg-green-700 text-white px-3 py-2.5 rounded-xl transition shadow-sm';
+                        startButton.innerHTML = `
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                            </svg>
+                            Start Task
+                        `;
+                        if (timerButtonElement) {
+                            timerButtonElement.replaceWith(startButton);
+                        }
+                    }
+                }
+            }
+            
             applyBoardFilters();
             cardModalDirty = true;
         }
@@ -2226,12 +2270,8 @@ async function stopTimeTracker(cardId) {
                 data.total_seconds
             );
 
-            if (data.is_completed) {
-                markCardCompleteInUI(cardId);
-            }
-
             showToast(
-                `Task completed. Time logged: ${data.duration_formatted}`
+                `Time logged: ${data.duration_formatted}`
             );
 
             cardModalDirty = true;
