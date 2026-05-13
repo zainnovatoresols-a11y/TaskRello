@@ -1253,12 +1253,13 @@ function prependConversationToSidebar(conv) {
     const html = `
     <a href="/chat/conversations/${conv.id}"
        id="conv-item-${conv.id}"
-       class="conv-item flex items-center gap-3 px-4 py-3 cursor-pointer
-              hover:bg-gray-50 dark:hover:bg-gray-700/50 transition
-              border-b border-gray-50 dark:border-gray-700/50"
+       class="conv-item flex items-center gap-3 py-2.5 cursor-pointer
+              my-0.5 rounded-xl transition-all duration-200
+              hover:bg-slate-100/80 dark:hover:bg-slate-800/50
+              border border-transparent hover:border-slate-200/50 dark:hover:border-slate-700/50"
        data-name="${escapeHtmlChat((conv.name || '').toLowerCase())}">
-        <div class="w-10 h-10 rounded-full bg-blue-700 flex items-center
-                    justify-center text-white font-bold text-sm flex-shrink-0">
+        <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center
+                    justify-center text-white font-bold text-xs flex-shrink-0">
             ${initial}
         </div>
         <div class="flex-1 min-w-0">
