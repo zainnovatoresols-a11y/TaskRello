@@ -172,8 +172,8 @@
         @endforelse
     </div>
 
-    {{-- Sidebar footer — fixed height h-[64px] to match main input bar --}}
-    <div class="h-[64px] px-3 flex items-center
+    {{-- Sidebar footer — fixed height min-h-[64px] to match main input bar --}}
+    <div class="min-h-[64px] px-3 flex items-center
                 border-t border-slate-200/50 dark:border-slate-700/50
                 bg-white/60 dark:bg-slate-950/60 backdrop-blur-sm flex-shrink-0">
         <button onclick="openNewGroupModal()"
@@ -365,8 +365,8 @@
         </button>
     </div>
 
-    {{-- ── Message input — fixed height h-[64px] to match sidebar footer --}}
-    <div class="h-[64px] px-3 sm:px-4 flex items-center gap-2.5
+    {{-- ── Message input bar ─────────────────────────────── --}}
+    <div class="min-h-[64px] px-3 sm:px-4 flex items-center gap-2.5
                     bg-white/90 dark:bg-slate-950/90
                     border-t border-slate-200/60 dark:border-slate-800/60
                     flex-shrink-0 backdrop-blur-xl ">
@@ -405,7 +405,7 @@
                                  placeholder-slate-400 dark:placeholder-slate-500
                                  focus:outline-none focus:ring-2 focus:ring-blue-500/40
                                  transition-all duration-200
-                                 max-h-20 overflow-y-auto leading-snug"></textarea>
+                                 max-h-32 overflow-y-auto leading-snug"></textarea>
         </div>
 
         {{-- Send button --}}

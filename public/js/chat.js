@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (input) {
         input.addEventListener('input', function () {
             this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 128) + 'px';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px'; // 120px = ~5 lines
         });
     }
 });
@@ -488,13 +488,13 @@ function appendMessage(msg, isHistoryLoad = false) {
     const isOwn = msg.sender?.id === CURRENT_USER_ID;
 
     // Check if previous message is from same sender (for grouping)
-    const allMsgs     = container.querySelectorAll('[id^="msg-"]');
-    const lastMsgEl   = allMsgs[allMsgs.length - 1];
+    const allMsgs = container.querySelectorAll('[id^="msg-"]');
+    const lastMsgEl = allMsgs[allMsgs.length - 1];
     const lastSenderId = lastMsgEl?.dataset.senderId;
     const isSameSender = lastSenderId && String(lastSenderId) === String(msg.sender?.id);
 
     // Check if we need a date separator
-    const msgDate  = msg.created_at ? new Date(msg.created_at).toDateString() : null;
+    const msgDate = msg.created_at ? new Date(msg.created_at).toDateString() : null;
     const lastDate = container.dataset.lastDate || null;
 
     if (msgDate && msgDate !== lastDate) {
@@ -510,7 +510,7 @@ function appendMessage(msg, isHistoryLoad = false) {
 
     // Show avatar/name only if last in a group or different sender
     const showAvatar = true; // always show for simplicity; set false for grouping
-    const showName   = !isSameSender;
+    const showName = !isSameSender;
     const html = buildMessageHTML(msg, isOwn, showAvatar, showName);
 
     // Add spacing between groups (different senders)
@@ -527,12 +527,12 @@ function appendMessage(msg, isHistoryLoad = false) {
 
 function getDateLabel(dateStr) {
     if (!dateStr) return '';
-    const d     = new Date(dateStr);
+    const d = new Date(dateStr);
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
 
-    if (d.toDateString() === today.toDateString())     return 'Today';
+    if (d.toDateString() === today.toDateString()) return 'Today';
     if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
     return d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
 }
