@@ -95,8 +95,8 @@ $elapsedSeconds = $activeSession?->elapsed_seconds ?? 0;
             {{ $card->title }}
         </p>
         {{-- ── Time tracker button + live timer ──────────────── --}}
-        @if(!$card->is_completed)
-        <div class="flex items-center justify-between mb-2"
+        <div id="timer-section-{{ $card->id }}"
+            class="flex items-center justify-between mb-2 {{ $card->is_completed ? 'hidden' : '' }}"
             onclick="event.stopPropagation()">
 
             {{-- Start / End Task button --}}
@@ -141,7 +141,6 @@ $elapsedSeconds = $activeSession?->elapsed_seconds ?? 0;
                 </span>
             </div>
         </div>
-        @endif
         {{-- ── Footer row ───────────────────────────────────── --}}
         <div class="flex items-center justify-between gap-2">
 

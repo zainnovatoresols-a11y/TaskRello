@@ -1268,6 +1268,10 @@ async function toggleCardComplete(cardId, checkboxWrapper) {
 
                 badge?.classList.remove('hidden');
                 tile?.setAttribute('data-completed', 'true');
+                
+                // Hide timer section when task is completed
+                const timerSection = document.getElementById(`timer-section-${cardId}`);
+                timerSection?.classList.add('hidden');
             } else {
                 circle?.classList.add(
                     'bg-white/80', 'dark:bg-gray-700/80',
@@ -1282,6 +1286,10 @@ async function toggleCardComplete(cardId, checkboxWrapper) {
 
                 badge?.classList.add('hidden');
                 tile?.setAttribute('data-completed', 'false');
+                
+                // Show timer section when task is marked incomplete
+                const timerSection = document.getElementById(`timer-section-${cardId}`);
+                timerSection?.classList.remove('hidden');
             }
 
             showToast(response.message || (isCompleted ? 'Card marked as complete.' : 'Card marked as incomplete.'));
