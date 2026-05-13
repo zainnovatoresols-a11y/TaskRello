@@ -42,5 +42,5 @@ export default {
     },
 
     // Keep existing plugin
-    plugins: [forms],
+    plugins: [forms, require('tailwind-scrollbar'),],
 };

@@ -287,7 +287,7 @@
     </div>
 
     {{-- ── Message thread ──────────────────────────────── --}}
-    <div class="flex-1 overflow-y-auto px-4 sm:px-5 py-4 space-y-3
+    <div class="flex-1 overflow-y-auto px-4 scrollbar scrollbar-track-slate-950 scrollbar-thumb-slate-800 sm:px-5 py-4 space-y-3
                     bg-white dark:bg-slate-900
                     border-x border-slate-200/40 dark:border-slate-800/40"
         id="message-thread"
