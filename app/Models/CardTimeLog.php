@@ -77,12 +77,23 @@ class CardTimeLog extends Model
 
         $hours   = intdiv($seconds, 3600);
         $minutes = intdiv($seconds % 3600, 60);
+        $seconds = $seconds % 60;
+
+        $parts = [];
 
         if ($hours > 0) {
-            return $hours . 'h ' . $minutes . 'm';
+            $parts[] = $hours . 'h';
         }
 
-        return $minutes . 'm';
+        if ($minutes > 0) {
+            $parts[] = $minutes . 'm';
+        }
+
+        if ($seconds > 0 || empty($parts)) {
+            $parts[] = $seconds . 's';
+        }
+
+        return implode(' ', $parts);
     }
 
     public static function getActiveSession(User $user): ?self

@@ -22,17 +22,6 @@ class TimeTrackerService
             ];
         }
 
-        $activeElsewhere = CardTimeLog::getActiveSession($user);
-
-        if ($activeElsewhere) {
-            return [
-                'success'           => false,
-                'message'           => 'Please stop or complete your current running task before starting a new one.',
-                'active_card_id'    => $activeElsewhere->card_id,
-                'active_card_title' => $activeElsewhere->card?->title,
-            ];
-        }
-
         if ($card->is_completed) {
             return [
                 'success' => false,
