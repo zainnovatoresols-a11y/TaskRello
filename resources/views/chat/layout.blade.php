@@ -10,8 +10,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/echo.js'])
 </head>
 
-<body class="min-h-screen bg-gray-100 dark:bg-gray-900 font-sans antialiased">
-
+<body class="h-screen flex flex-col bg-gray-100 dark:bg-gray-900 font-sans antialiased overflow-hidden">
    {{-- ── Top navbar (compact height) ──────────────────────── --}}
 <nav class="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 
             dark:from-blue-800 dark:via-blue-900 dark:to-indigo-900 
@@ -80,8 +79,7 @@
     </nav>
 
     {{-- ── Main chat layout (3 panels) ────────────────────────── --}}
-    <div class="flex h-[calc(100vh-64px)] sm:h-[calc(100vh-80px)] bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 relative">
-
+<div class="flex h-[calc(100vh-48px)] bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 relative">
         {{-- Mobile overlay backdrop --}}
         <div id="mobile-sidebar-backdrop"
             class="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden hidden"
