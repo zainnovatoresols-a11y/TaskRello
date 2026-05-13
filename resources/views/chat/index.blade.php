@@ -175,9 +175,9 @@
     {{-- Sidebar footer — fixed height h-[64px] to match main input bar --}}
     <div class="h-[64px] px-3 flex items-center
                 border-t border-slate-200/50 dark:border-slate-700/50
-                bg-white/60 dark:bg-slate-950/60 backdrop-blur-sm flex-shrink-0 mb-0 pb-0">
+                bg-white/60 dark:bg-slate-950/60 backdrop-blur-sm flex-shrink-0">
         <button onclick="openNewGroupModal()"
-            class="w-full flex items-center justify-center gap-2
+            class="w-full flex h-11 w-11 items-center justify-center gap-2
                        bg-blue-600 hover:bg-blue-700
                        text-white text-xs font-semibold py-2.5 rounded-xl
                        transition-colors duration-200">
@@ -369,10 +369,10 @@
     <div class="h-[64px] px-3 sm:px-4 flex items-center gap-2.5
                     bg-white/90 dark:bg-slate-950/90
                     border-t border-slate-200/60 dark:border-slate-800/60
-                    flex-shrink-0 backdrop-blur-xl mb-0 pb-0 ">
+                    flex-shrink-0 backdrop-blur-xl ">
 
         {{-- Attachment button --}}
-        <label class="flex-shrink-0 w-8 h-8 flex items-center justify-center
+        <label class="flex-shrink-0 w-11 h-11 flex items-center justify-center
                           rounded-lg text-slate-500 hover:text-blue-600
                           dark:text-slate-300 dark:hover:text-blue-400
                           bg-slate-100 dark:bg-slate-900
@@ -391,7 +391,7 @@
         </label>
 
         {{-- Textarea --}}
-        <div class="flex-1">
+        <div class="flex-1 mt-1.5">
             <textarea id="message-input"
                 placeholder="Type a message..."
                 rows="1"
@@ -399,7 +399,7 @@
                 onkeydown="handleMessageKeydown(event, {{ $activeConversation->id }})"
                 oninput="handleTypingInput({{ $activeConversation->id }})"
                 class="w-full border scrollbar scrollbar-track-slate-950 scrollbar-thumb-slate-800 border-slate-200/60 dark:border-slate-700/60
-                                 rounded-xl px-3.5 py-2.5 text-sm resize-none
+                                 rounded-xl px-3 py-3 text-sm resize-none
                                  bg-slate-50 dark:bg-slate-900
                                  text-slate-900 dark:text-slate-100
                                  placeholder-slate-400 dark:placeholder-slate-500
@@ -410,7 +410,7 @@
 
         {{-- Send button --}}
         <button onclick="sendMessage({{ $activeConversation->id }})"
-            class="flex-shrink-0 w-8 h-8 flex items-center justify-center
+            class="flex-shrink-0 w-11 h-11 flex items-center justify-center
                bg-blue-600 hover:bg-blue-700
                text-white rounded-lg transition-colors duration-200 ml-auto">
             <svg class="w-4 h-4 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
