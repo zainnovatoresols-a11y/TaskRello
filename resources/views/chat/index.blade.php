@@ -11,7 +11,7 @@
               transition-transform duration-300 ease-in-out lg:transition-none">
 
     {{-- Sidebar header — search + plus button in one row --}}
-    <div class="h-[56px] px-1 flex items-center gap-2
+    <div class="h-[56px] px-1 ml-1 mr-1 flex items-center gap-2
             border-b border-slate-200/50 dark:border-slate-700/50
             bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm flex-shrink-0">
 
@@ -49,7 +49,7 @@
         </button>
     </div>
     {{-- Conversation list --}}
-    <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent py-1"
+    <div class="flex-1 ml-2 mr-2 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent py-1"
         id="conversation-list">
 
         @forelse($conversations as $conv)
@@ -217,7 +217,7 @@
             @php
             $convName = $activeConversation->getDisplayNameFor(auth()->user());
             @endphp
-            <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center
+            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center
                             justify-center text-white font-bold text-xs flex-shrink-0">
                 {{ strtoupper(substr($convName, 0, 2)) }}
             </div>
