@@ -17,17 +17,17 @@ class NotificationController extends Controller
             ->latest('created_at')
             ->take(30)
             ->get();
-
-        return response()->json([
-            'success'       => true,
-            'notifications' => $notifications,
-            'unread_count'  => $request->user()
-                ->notifications()
-                ->where('is_read', false)
-                ->count(),
-        ]);
+        if ($request->expectsJson() && $request->isXmlHttpRequest()) {
+            return response()->json([
+                'success'       => true,
+                'notifications' => $notifications,
+                'unread_count'  => $request->user()
+                    ->notifications()
+                    ->where('is_read', false)
+                    ->count(),
+            ]);
+        }
     }
-
     public function markRead(Request $request, Notification $notification)
     {
         if ($notification->user_id !== $request->user()->id) {
@@ -77,5 +77,4 @@ class NotificationController extends Controller
             'notification_id' => $notification->id,
         ]);
     }
-
 }
