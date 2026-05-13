@@ -369,7 +369,7 @@
     <div class="h-[64px] px-3 sm:px-4 flex items-center gap-2.5
                     bg-white/90 dark:bg-slate-950/90
                     border-t border-slate-200/60 dark:border-slate-800/60
-                    flex-shrink-0 backdrop-blur-xl mb-0 pb-0">
+                    flex-shrink-0 backdrop-blur-xl mb-0 pb-0 ">
 
         {{-- Attachment button --}}
         <label class="flex-shrink-0 w-8 h-8 flex items-center justify-center
@@ -398,7 +398,7 @@
                 data-conversation-id="{{ $activeConversation->id }}"
                 onkeydown="handleMessageKeydown(event, {{ $activeConversation->id }})"
                 oninput="handleTypingInput({{ $activeConversation->id }})"
-                class="w-full border border-slate-200/60 dark:border-slate-700/60
+                class="w-full border scrollbar scrollbar-track-slate-950 scrollbar-thumb-slate-800 border-slate-200/60 dark:border-slate-700/60
                                  rounded-xl px-3.5 py-2.5 text-sm resize-none
                                  bg-slate-50 dark:bg-slate-900
                                  text-slate-900 dark:text-slate-100
