@@ -434,19 +434,12 @@
                              3.582 9 8z" />
             </svg>
         </div>
-        <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">
-            Your messages
-        </h2>
+        
         <p class="text-sm text-slate-500 dark:text-slate-400 max-w-xs mb-6 leading-relaxed">
             Send private messages or start group conversations
             with your team members to collaborate effectively
         </p>
-        <button onclick="openNewDirectModal()"
-            class="bg-blue-600 hover:bg-blue-700
-                           text-white text-sm font-semibold px-5 py-2.5 rounded-xl
-                           transition-colors duration-200">
-            Start a conversation
-        </button>
+        
     </div>
 
     @endif
