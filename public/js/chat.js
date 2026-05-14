@@ -828,6 +828,55 @@ async function toggleMute(conversationId) {
 function openNewDirectModal() {
     document.getElementById('new-direct-modal')?.classList.remove('hidden');
     document.getElementById('user-search-input')?.focus();
+    loadDirectBoardMembers();
+}
+
+async function loadDirectBoardMembers() {
+    try {
+        const res = await fetch('/chat/users/board-members', {
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': chatCsrf,
+            },
+        });
+
+        const data = await res.json();
+        const container = document.getElementById('user-search-results');
+
+        if (!data.data?.length) {
+            container.innerHTML = `
+                <p class="text-sm text-gray-400 text-center py-4 italic">
+                    No users from your boards
+                </p>`;
+            return;
+        }
+
+        container.innerHTML = data.data.map(u => `
+            <button onclick="startDirectChat(${u.id})"
+                    class="w-full flex items-center gap-4 px-4 py-3.5
+                           rounded-2xl hover:bg-slate-50/80 dark:hover:bg-slate-700/50
+                           transition-all duration-200 text-left group">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center
+                            justify-center text-white font-bold text-sm flex-shrink-0 shadow-lg">
+                    ${u.name.charAt(0).toUpperCase()}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        ${escapeHtmlChat(u.name)}
+                    </p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
+                        ${escapeHtmlChat(u.email)}
+                    </p>
+                </div>
+                <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>`
+        ).join('');
+
+    } catch (error) {
+        console.error('Failed to load board members:', error);
+    }
 }
 
 function closeNewDirectModal() {
@@ -845,10 +894,7 @@ function searchUsers(query) {
     clearTimeout(userSearchTimer);
 
     if (!query.trim()) {
-        document.getElementById('user-search-results').innerHTML = `
-            <p class="text-sm text-gray-400 dark:text-gray-500 text-center py-6 italic">
-                Start typing to search users
-            </p>`;
+        loadDirectBoardMembers();
         return;
     }
 
@@ -934,6 +980,52 @@ async function startDirectChat(userId) {
 function openNewGroupModal() {
     document.getElementById('new-group-modal')?.classList.remove('hidden');
     document.getElementById('group-name-input')?.focus();
+    loadBoardMembers();
+}
+
+async function loadBoardMembers() {
+    try {
+        const res = await fetch('/chat/users/board-members', {
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': chatCsrf,
+            },
+        });
+
+        const data = await res.json();
+        const container = document.getElementById('group-user-results');
+
+        if (!data.data?.length) {
+            container.innerHTML = `
+                <p class="text-xs text-gray-400 text-center py-3 italic">
+                    No users from your boards
+                </p>`;
+            return;
+        }
+
+        container.innerHTML = data.data.map(u => `
+            <button onclick="toggleGroupMember(${u.id}, '${escapeHtmlChat(u.name)}')"
+                    id="group-user-btn-${u.id}"
+                    class="w-full flex items-center gap-4 px-4 py-3
+                           rounded-2xl hover:bg-slate-50/80 dark:hover:bg-slate-700/50
+                           transition-all duration-200 text-left group
+                           ${groupSelectedUsers[u.id] ? 'bg-blue-50/50 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-800/50' : ''}">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center
+                            justify-center text-white font-bold text-sm flex-shrink-0 shadow-md">
+                    ${u.name.charAt(0).toUpperCase()}
+                </div>
+                <span class="text-sm text-slate-900 dark:text-white flex-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    ${escapeHtmlChat(u.name)}
+                </span>
+                ${groupSelectedUsers[u.id]
+                ? '<div class="w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></div>'
+                : '<div class="w-6 h-6 border-2 border-slate-300 dark:border-slate-600 rounded-full group-hover:border-blue-400 transition-colors"></div>'}
+            </button>`
+        ).join('');
+
+    } catch (error) {
+        console.error('Failed to load board members:', error);
+    }
 }
 
 function closeNewGroupModal() {
@@ -950,7 +1042,7 @@ let groupSearchTimer = null;
 function searchGroupUsers(query) {
     clearTimeout(groupSearchTimer);
     if (!query.trim()) {
-        document.getElementById('group-user-results').innerHTML = '';
+        loadBoardMembers();
         return;
     }
 

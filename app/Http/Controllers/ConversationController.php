@@ -288,4 +288,24 @@ class ConversationController extends Controller
             'data'    => $users,
         ]);
     }
+
+    public function getBoardMembers(Request $request)
+    {
+        $user = $request->user();
+
+        // Get all users from boards created by the current user
+        $users = User::distinct()
+            ->join('board_user', 'users.id', '=', 'board_user.user_id')
+            ->join('boards', 'board_user.board_id', '=', 'boards.id')
+            ->where('boards.user_id', $user->id)
+            ->where('users.id', '!=', $user->id)
+            ->where('board_user.status', 'accepted')
+            ->select('users.id', 'users.name', 'users.email', 'users.avatar')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $users,
+        ]);
+    }
 }

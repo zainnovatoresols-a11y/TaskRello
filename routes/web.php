@@ -93,6 +93,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [ConversationController::class, 'index'])->name('index');
 
         Route::get('/users/search', [ConversationController::class, 'searchUsers'])->name('users.search');
+        Route::get('/users/board-members', [ConversationController::class, 'getBoardMembers'])->name('users.board-members');
         Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
         Route::post('/conversations/direct', [ConversationController::class, 'direct'])->name('conversations.direct');
         Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('show');
