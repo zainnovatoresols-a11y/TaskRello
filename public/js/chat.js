@@ -1034,6 +1034,7 @@ function closeNewGroupModal() {
     document.getElementById('group-user-search').value = '';
     document.getElementById('group-user-results').innerHTML = '';
     document.getElementById('selected-members').innerHTML = '';
+    document.getElementById('selected-members').classList.add('hidden');
     Object.keys(groupSelectedUsers).forEach(k => delete groupSelectedUsers[k]);
 }
 
@@ -1104,20 +1105,28 @@ function toggleGroupMember(userId, userName) {
 
     // Refresh selected members chips
     const chips = document.getElementById('selected-members');
-    chips.innerHTML = Object.entries(groupSelectedUsers).map(([id, name]) => `
-        <span class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40
-                     text-blue-700 dark:text-blue-300 text-sm font-medium
-                     px-3 py-2 rounded-2xl shadow-sm border border-blue-200/50 dark:border-blue-800/50">
-            <div class="w-5 h-5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
-                ${name.charAt(0).toUpperCase()}
-            </div>
-            ${escapeHtmlChat(name)}
-            <button onclick="toggleGroupMember(${id}, '${escapeHtmlChat(name)}')"
-                    class="ml-1 hover:text-blue-900 dark:hover:text-blue-100 text-lg hover:scale-110 transition-transform">
-                &times;
-            </button>
-        </span>`
-    ).join('');
+    
+    if (Object.keys(groupSelectedUsers).length === 0) {
+        chips.classList.add('hidden');
+        chips.innerHTML = '';
+    } else {
+        chips.classList.remove('hidden');
+        chips.classList.add('mb-3', 'p-2');
+        chips.innerHTML = Object.entries(groupSelectedUsers).map(([id, name]) => `
+            <span class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40
+                         text-blue-700 dark:text-blue-300 text-sm font-medium
+                         px-3 py-2 rounded-2xl shadow-sm border border-blue-200/50 dark:border-blue-800/50">
+                <div class="w-5 h-5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                    ${name.charAt(0).toUpperCase()}
+                </div>
+                ${escapeHtmlChat(name)}
+                <button onclick="toggleGroupMember(${id}, '${escapeHtmlChat(name)}')"
+                        class="ml-1 hover:text-blue-900 dark:hover:text-blue-100 text-lg hover:scale-110 transition-transform">
+                    &times;
+                </button>
+            </span>`
+        ).join('');
+    }
 
     // Re-render search results to show updated state
     searchGroupUsers(document.getElementById('group-user-search').value);

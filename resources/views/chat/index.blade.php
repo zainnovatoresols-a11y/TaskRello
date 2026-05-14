@@ -522,9 +522,9 @@
 
         {{-- Selected members --}}
         <div id="selected-members"
-            class="flex flex-wrap gap-1.5 mb-3 min-h-[36px] p-2 rounded-xl
+            class="flex flex-wrap gap-1.5 rounded-xl
                     bg-slate-50 dark:bg-slate-900/50
-                    border border-slate-200/50 dark:border-slate-700/50">
+                    border border-slate-200/50 dark:border-slate-700/50 hidden">
         </div>
 
         {{-- Member search --}}

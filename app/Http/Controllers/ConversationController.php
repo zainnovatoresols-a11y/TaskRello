@@ -266,6 +266,7 @@ class ConversationController extends Controller
     public function searchUsers(Request $request)
     {
         $searchTerm = $request->get('query', '');
+        $user = $request->user();
 
         if (empty(trim($searchTerm))) {
             return response()->json([
@@ -274,12 +275,18 @@ class ConversationController extends Controller
             ]);
         }
 
-        $users = User::where('id', '!=', $request->user()->id)
+        // Search only within board members
+        $users = User::distinct()
+            ->join('board_user', 'users.id', '=', 'board_user.user_id')
+            ->join('boards', 'board_user.board_id', '=', 'boards.id')
+            ->where('boards.user_id', $user->id)
+            ->where('users.id', '!=', $user->id)
+            ->where('board_user.status', 'accepted')
             ->where(function ($q) use ($searchTerm) {
-                $q->where('name', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('email', 'like', '%' . $searchTerm . '%');
+                $q->where('users.name', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('users.email', 'like', '%' . $searchTerm . '%');
             })
-            ->select('id', 'name', 'email', 'avatar')
+            ->select('users.id', 'users.name', 'users.email', 'users.avatar')
             ->limit(10)
             ->get();
 
