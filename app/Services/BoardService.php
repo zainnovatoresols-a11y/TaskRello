@@ -121,6 +121,7 @@ class BoardService
 
     public function removeMember(Board $board, User $actor, User $user, Request $request): mixed
     {
+        $wasPendingInvite = $board->hasPendingInvite($user);
 
         if ($board->user_id === $user->id) {
             if ($request->wantsJson()) {
@@ -148,7 +149,7 @@ class BoardService
                 ->with('error', 'You cannot remove yourself from the board.');
         }
 
-        DB::transaction(function () use ($board, $actor, $user) {
+        DB::transaction(function () use ($board, $actor, $user, $wasPendingInvite) {
 
             $this->boardRepository->unassignFromAllCards($board, $user->id);
             $this->boardRepository->detachMember($board, $user->id);
@@ -157,22 +158,29 @@ class BoardService
             app(\App\Services\ConversationService::class)
                 ->syncBoardParticipant($board, $user, 'remove');
 
-            Notification::notify(
-                userId: $user->id,
-                actor: $actor,
-                type: 'removed_from_board',
-                message: "{$actor->name} removed you from the board \"{$board->name}\"",
-                boardId: $board->id,
-                cardId: null,
-                url: route('boards.index')
-            );
+            if ($wasPendingInvite) {
+                Notification::where('user_id', $user->id)
+                    ->where('type', 'board_invite')
+                    ->where('board_id', $board->id)
+                    ->delete();
+            } else {
+                Notification::notify(
+                    userId: $user->id,
+                    actor: $actor,
+                    type: 'removed_from_board',
+                    message: "{$actor->name} removed you from the board \"{$board->name}\"",
+                    boardId: $board->id,
+                    cardId: null,
+                    url: route('boards.index')
+                );
 
-            ActivityLog::log(
-                $actor,
-                'removed_member',
-                "{$actor->name} removed {$user->name} from the board",
-                $board->id
-            );
+                ActivityLog::log(
+                    $actor,
+                    'removed_member',
+                    "{$actor->name} removed {$user->name} from the board",
+                    $board->id
+                );
+            }
         });
 
         return null;
