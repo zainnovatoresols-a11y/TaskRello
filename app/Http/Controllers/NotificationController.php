@@ -17,7 +17,7 @@ class NotificationController extends Controller
             ->latest('created_at')
             ->take(30)
             ->get();
-        if ($request->expectsJson() && $request->isXmlHttpRequest()) {
+        if ($request->expectsJson()) {
             return response()->json([
                 'success'       => true,
                 'notifications' => $notifications,
