@@ -7,10 +7,16 @@ use App\Models\Board;
 use App\Models\Conversation;
 use App\Models\ConversationParticipant;
 use App\Models\User;
+use App\Repositories\Contracts\ConversationRepositoryInterface;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ConversationService
 {
+    public function __construct(
+        private ConversationRepositoryInterface $conversationRepository
+    ) {}
+
     // ──────────────────────────────────────────────────────────
     // Find existing direct conversation OR create a new one
     // Called when user clicks "Message" on another user's profile
@@ -302,5 +308,29 @@ class ConversationService
         } else {
             $this->removeParticipant($conversation, $user);
         }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // Load conversation with relations
+    // ──────────────────────────────────────────────────────────
+    public function loadWithRelations(Conversation $conversation): Conversation
+    {
+        return $this->conversationRepository->loadWithRelations($conversation);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // Search board members by name or email
+    // ──────────────────────────────────────────────────────────
+    public function searchBoardMembers(User $user, string $searchTerm): Collection
+    {
+        return $this->conversationRepository->searchBoardMembers($user, $searchTerm);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // Get all board members for the current user's boards
+    // ──────────────────────────────────────────────────────────
+    public function getBoardMembers(User $user): Collection
+    {
+        return $this->conversationRepository->getBoardMembers($user);
     }
 }

@@ -52,7 +52,7 @@ class ConversationController extends Controller
             $request->user()
         );
 
-        $conversation->load(['users', 'board']);
+        $conversation = $this->conversationService->loadWithRelations($conversation);
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -266,7 +266,7 @@ class ConversationController extends Controller
     public function searchUsers(Request $request)
     {
         $searchTerm = $request->get('query', '');
-        $user = $request->user();
+        $user       = $request->user();
 
         if (empty(trim($searchTerm))) {
             return response()->json([
@@ -275,20 +275,7 @@ class ConversationController extends Controller
             ]);
         }
 
-        // Search only within board members
-        $users = User::distinct()
-            ->join('board_user', 'users.id', '=', 'board_user.user_id')
-            ->join('boards', 'board_user.board_id', '=', 'boards.id')
-            ->where('boards.user_id', $user->id)
-            ->where('users.id', '!=', $user->id)
-            ->where('board_user.status', 'accepted')
-            ->where(function ($q) use ($searchTerm) {
-                $q->where('users.name', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('users.email', 'like', '%' . $searchTerm . '%');
-            })
-            ->select('users.id', 'users.name', 'users.email', 'users.avatar')
-            ->limit(10)
-            ->get();
+        $users = $this->conversationService->searchBoardMembers($user, $searchTerm);
 
         return response()->json([
             'success' => true,
@@ -298,17 +285,7 @@ class ConversationController extends Controller
 
     public function getBoardMembers(Request $request)
     {
-        $user = $request->user();
-
-        // Get all users from boards created by the current user
-        $users = User::distinct()
-            ->join('board_user', 'users.id', '=', 'board_user.user_id')
-            ->join('boards', 'board_user.board_id', '=', 'boards.id')
-            ->where('boards.user_id', $user->id)
-            ->where('users.id', '!=', $user->id)
-            ->where('board_user.status', 'accepted')
-            ->select('users.id', 'users.name', 'users.email', 'users.avatar')
-            ->get();
+        $users = $this->conversationService->getBoardMembers($request->user());
 
         return response()->json([
             'success' => true,
