@@ -17,20 +17,14 @@ class ConversationService
         private ConversationRepositoryInterface $conversationRepository
     ) {}
 
-    // ──────────────────────────────────────────────────────────
-    // Find existing direct conversation OR create a new one
-    // Called when user clicks "Message" on another user's profile
-    // ──────────────────────────────────────────────────────────
     public function findOrCreateDirect(User $userA, User $userB): Conversation
     {
-        // Check if direct conversation already exists
         $existing = Conversation::findDirect($userA->id, $userB->id);
 
         if ($existing) {
             return $existing;
         }
 
-        // Create new direct conversation inside a transaction
         return DB::transaction(function () use ($userA, $userB) {
 
             $conversation = Conversation::create([
@@ -39,7 +33,6 @@ class ConversationService
                 'created_by' => $userA->id,
             ]);
 
-            // Add both users as participants
             $this->addParticipant(
                 $conversation,
                 $userA,
@@ -51,10 +44,6 @@ class ConversationService
                 $userB,
                 role: 'admin'
             );
-            // Both are admin in direct chats
-            // because both can manage the conversation
-
-            // Notify both users via their personal channels
             broadcast(new ConversationCreated(
                 $conversation,
                 [$userA->id, $userB->id]
@@ -64,9 +53,6 @@ class ConversationService
         });
     }
 
-    // ──────────────────────────────────────────────────────────
-    // Create a new group conversation
-    // ──────────────────────────────────────────────────────────
     public function createGroup(
         User   $creator,
         array  $userIds,
@@ -81,14 +67,12 @@ class ConversationService
                 'created_by' => $creator->id,
             ]);
 
-            // Add creator as admin
             $this->addParticipant(
                 $conversation,
                 $creator,
                 role: 'admin'
             );
 
-            // Add all other members
             $allParticipantIds = [$creator->id];
 
             foreach ($userIds as $userId) {
@@ -101,7 +85,6 @@ class ConversationService
                 $allParticipantIds[] = $userId;
             }
 
-            // Notify all participants on their personal channels
             broadcast(new ConversationCreated(
                 $conversation,
                 $allParticipantIds
@@ -111,13 +94,8 @@ class ConversationService
         });
     }
 
-    // ──────────────────────────────────────────────────────────
-    // Create or get board conversation
-    // Called automatically when a board is created
-    // ──────────────────────────────────────────────────────────
     public function findOrCreateBoardConversation(Board $board): Conversation
     {
-        // Return existing if already created
         $existing = $board->conversation;
         if ($existing) {
             return $existing;
@@ -132,7 +110,6 @@ class ConversationService
                 'created_by' => $board->user_id,
             ]);
 
-            // Add all current board members as participants
             $participantIds = [];
 
             foreach ($board->members as $member) {
@@ -145,16 +122,12 @@ class ConversationService
         });
     }
 
-    // ──────────────────────────────────────────────────────────
-    // Add a single participant to a conversation
-    // ──────────────────────────────────────────────────────────
     public function addParticipant(
         Conversation $conversation,
         User         $user,
         string       $role = 'member'
     ): ConversationParticipant {
 
-        // Use firstOrCreate to prevent duplicates
         return ConversationParticipant::firstOrCreate(
             [
                 'conversation_id' => $conversation->id,
@@ -167,9 +140,6 @@ class ConversationService
         );
     }
 
-    // ──────────────────────────────────────────────────────────
-    // Remove a participant from a conversation
-    // ──────────────────────────────────────────────────────────
     public function removeParticipant(
         Conversation $conversation,
         User         $user
@@ -180,10 +150,6 @@ class ConversationService
                                ->delete();
     }
 
-    // ──────────────────────────────────────────────────────────
-    // Mark all messages as read for a user in a conversation
-    // Updates last_read_at timestamp on the participant record
-    // ──────────────────────────────────────────────────────────
     public function markAsRead(Conversation $conversation, User $user): void
     {
         ConversationParticipant::where('conversation_id', $conversation->id)
@@ -191,10 +157,6 @@ class ConversationService
                                ->update(['last_read_at' => now()]);
     }
 
-    // ──────────────────────────────────────────────────────────
-    // Get all conversations for a user (inbox)
-    // Ordered by most recent activity
-    // ──────────────────────────────────────────────────────────
     public function getInbox(User $user): \Illuminate\Support\Collection
     {
         return $user->conversations()
@@ -207,7 +169,6 @@ class ConversationService
                     ->orderByDesc('last_message_at')
                     ->get()
                     ->filter(function (Conversation $conv) use ($user) {
-                        // For board conversations, only include if user is accepted member
                         if ($conv->type === 'board' && $conv->board) {
                             return $conv->board->isMember($user);
                         }
@@ -239,10 +200,6 @@ class ConversationService
                     });
     }
 
-    // ──────────────────────────────────────────────────────────
-    // Get total unread count across all conversations
-    // Used for the navbar badge
-    // ──────────────────────────────────────────────────────────
     public function getTotalUnread(User $user): int
     {
         return ConversationParticipant::where('user_id', $user->id)
@@ -251,7 +208,6 @@ class ConversationService
             ->sum(function ($participant) use ($user) {
                 $conversation = $participant->conversation;
 
-                // For board conversations, only count if user is accepted member
                 if ($conversation->type === 'board' && $conversation->board) {
                     if (!$conversation->board->isMember($user)) {
                         return 0;
@@ -273,9 +229,6 @@ class ConversationService
             });
     }
 
-    // ──────────────────────────────────────────────────────────
-    // Toggle mute for a conversation
-    // ──────────────────────────────────────────────────────────
     public function toggleMute(Conversation $conversation, User $user): bool
     {
         $participant = ConversationParticipant::where('conversation_id', $conversation->id)
@@ -290,10 +243,6 @@ class ConversationService
         return $newMuteState;
     }
 
-    // ──────────────────────────────────────────────────────────
-    // Sync board members with board conversation
-    // Called when a member is added or removed from a board
-    // ──────────────────────────────────────────────────────────
     public function syncBoardParticipant(
         Board  $board,
         User   $user,
@@ -310,25 +259,16 @@ class ConversationService
         }
     }
 
-    // ──────────────────────────────────────────────────────────
-    // Load conversation with relations
-    // ──────────────────────────────────────────────────────────
     public function loadWithRelations(Conversation $conversation): Conversation
     {
         return $this->conversationRepository->loadWithRelations($conversation);
     }
 
-    // ──────────────────────────────────────────────────────────
-    // Search board members by name or email
-    // ──────────────────────────────────────────────────────────
     public function searchBoardMembers(User $user, string $searchTerm): Collection
     {
         return $this->conversationRepository->searchBoardMembers($user, $searchTerm);
     }
 
-    // ──────────────────────────────────────────────────────────
-    // Get all board members for the current user's boards
-    // ──────────────────────────────────────────────────────────
     public function getBoardMembers(User $user): Collection
     {
         return $this->conversationRepository->getBoardMembers($user);
