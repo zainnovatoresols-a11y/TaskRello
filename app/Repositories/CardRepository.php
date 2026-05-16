@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\BoardList;
 use App\Models\Card;
+use App\Models\CardDescriptionImage;
 use App\Repositories\Contracts\CardRepositoryInterface;
 
 class CardRepository implements CardRepositoryInterface
@@ -40,7 +41,7 @@ class CardRepository implements CardRepositoryInterface
             'activityLogs.user',
             'list.board.members',
             'descriptionImages',
-             'timeLogs.user',  
+            'timeLogs.user',
         ]);
     }
 
@@ -95,4 +96,23 @@ class CardRepository implements CardRepositoryInterface
             ->get();
     }
 
+    public function uploadCoverImage(Card $card, string $path): void
+    {
+        $card->update(['cover_image' => $path]);
+    }
+
+    public function removeCoverImage(Card $card): void
+    {
+        $card->update(['cover_image' => null]);
+    }
+
+    public function createDescriptionImage(array $data): CardDescriptionImage
+    {
+        return CardDescriptionImage::create($data);
+    }
+
+    public function deleteDescriptionImage(CardDescriptionImage $image): void
+    {
+        $image->delete();
+    }
 }

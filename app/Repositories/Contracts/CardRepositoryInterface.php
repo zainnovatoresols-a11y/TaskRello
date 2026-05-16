@@ -4,6 +4,7 @@ namespace App\Repositories\Contracts;
 
 use App\Models\BoardList;
 use App\Models\Card;
+use App\Models\CardDescriptionImage;
 
 interface CardRepositoryInterface
 {
@@ -19,4 +20,8 @@ interface CardRepositoryInterface
     public function toggleAssignee(Card $card, int $userId): bool;
     public function toggleComplete(Card $card): Card;
     public function getByList(BoardList $list);
+    public function uploadCoverImage(Card $card, string $path): void;
+    public function removeCoverImage(Card $card): void;
+    public function createDescriptionImage(array $data): CardDescriptionImage;
+    public function deleteDescriptionImage(CardDescriptionImage $image): void;
 }

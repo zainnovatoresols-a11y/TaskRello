@@ -6,12 +6,10 @@ use App\Http\Requests\StoreCardRequest;
 use App\Http\Requests\UpdateCardRequest;
 use App\Models\BoardList;
 use App\Models\Card;
+use App\Models\CardDescriptionImage;
 use App\Services\CardService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
-use App\Models\ActivityLog;
-use App\Models\CardDescriptionImage;
-use Illuminate\Support\Facades\Storage;
 
 class CardController extends Controller
 {
@@ -24,7 +22,7 @@ class CardController extends Controller
         $board = $list->board;
         $this->authorize('view', $board);
         $cards = $this->cardService->getCardsByList($list);
-        
+
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
@@ -46,7 +44,7 @@ class CardController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Card created successfully.',
-                'card'    => $this->formatCard($card), 
+                'card'    => $this->formatCard($card),
             ], 201);
         }
 
@@ -193,33 +191,6 @@ class CardController extends Controller
         return redirect()->route('boards.show', $board)->with('success', $message);
     }
 
-    private function formatCard(Card $card): array
-    {
-        return [
-            'id'           => $card->id,
-            'title'        => $card->title,
-            'description'  => $card->description,
-            'position'     => $card->position,
-            'due_date'     => $card->due_date?->toDateString(),
-            'cover_color'  => $card->cover_color,
-            'is_completed' => $card->is_completed,
-            'is_archived'  => $card->is_archived,
-            'is_overdue'   => $card->isOverdue(),
-            'is_due_soon'  => $card->isDueSoon(),
-            'list_id'      => $card->list_id,
-            'created_at'   => $card->created_at->toDateTimeString(),
-            'assignees'    => $card->assignees->map(fn($u) => [
-                'id' => $u->id,
-                'name' => $u->name
-            ])->toArray(),
-            'labels'       => $card->labels->map(fn($l) => [
-                'id' => $l->id,
-                'name' => $l->name,
-                'color' => $l->color
-            ])->toArray(),
-        ];
-    }
-
     public function uploadCoverImage(Request $request, Card $card)
     {
         $this->authorize('update', $card);
@@ -233,30 +204,12 @@ class CardController extends Controller
             ],
         ]);
 
-        if ($card->cover_image) {
-           Storage::disk('public')
-                ->delete($card->cover_image);
-        }
-
-        $path = $request->file('image')->store(
-            'cover-images/card-' . $card->id,
-            'public'
-        );
-
-        $card->update(['cover_image' => $path]);
-
-        ActivityLog::log(
-            $request->user(),
-            'added_cover_image',
-            "{$request->user()->name} added a cover image to '{$card->title}'",
-            $card->list->board_id,
-            $card->id
-        );
+        $card = $this->cardService->uploadCoverImage($card, $request->file('image'), $request->user());
 
         return response()->json([
             'success'         => true,
             'message'         => 'Cover image uploaded.',
-            'cover_image_url' => $card->fresh()->cover_image_url,
+            'cover_image_url' => $card->cover_image_url,
         ]);
     }
 
@@ -264,20 +217,7 @@ class CardController extends Controller
     {
         $this->authorize('update', $card);
 
-        if ($card->cover_image) {
-            Storage::disk('public')
-                ->delete($card->cover_image);
-        }
-
-        $card->update(['cover_image' => null]);
-
-        ActivityLog::log(
-            $request->user(),
-            'removed_cover_image',
-            "{$request->user()->name} removed the cover image from '{$card->title}'",
-            $card->list->board_id,
-            $card->id
-        );
+        $this->cardService->removeCoverImage($card, $request->user());
 
         return response()->json([
             'success' => true,
@@ -298,17 +238,7 @@ class CardController extends Controller
             ],
         ]);
 
-        $path = $request->file('image')->store(
-            'description-images/card-' . $card->id,
-            'public'
-        );
-
-        $image = CardDescriptionImage::create([
-            'card_id'    => $card->id,
-            'user_id'    => $request->user()->id,
-            'image_path' => $path,
-            'created_at' => now(),
-        ]);
+        $image = $this->cardService->uploadDescriptionImage($card, $request->file('image'), $request->user());
 
         return response()->json([
             'success' => true,
@@ -323,14 +253,38 @@ class CardController extends Controller
     {
         $this->authorize('update', $card);
 
-        Storage::disk('public')
-            ->delete($image->image_path);
-
-        $image->delete();
+        $this->cardService->removeDescriptionImage($card, $image);
 
         return response()->json([
             'success' => true,
             'message' => 'Image removed.',
         ]);
+    }
+
+    private function formatCard(Card $card): array
+    {
+        return [
+            'id'           => $card->id,
+            'title'        => $card->title,
+            'description'  => $card->description,
+            'position'     => $card->position,
+            'due_date'     => $card->due_date?->toDateString(),
+            'cover_color'  => $card->cover_color,
+            'is_completed' => $card->is_completed,
+            'is_archived'  => $card->is_archived,
+            'is_overdue'   => $card->isOverdue(),
+            'is_due_soon'  => $card->isDueSoon(),
+            'list_id'      => $card->list_id,
+            'created_at'   => $card->created_at->toDateTimeString(),
+            'assignees'    => $card->assignees->map(fn($u) => [
+                'id'   => $u->id,
+                'name' => $u->name
+            ])->toArray(),
+            'labels'       => $card->labels->map(fn($l) => [
+                'id'    => $l->id,
+                'name'  => $l->name,
+                'color' => $l->color
+            ])->toArray(),
+        ];
     }
 }

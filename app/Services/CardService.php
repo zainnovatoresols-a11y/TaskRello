@@ -4,10 +4,13 @@ namespace App\Services;
 
 use App\Models\BoardList;
 use App\Models\Card;
+use App\Models\CardDescriptionImage;
 use App\Models\User;
 use App\Models\ActivityLog;
 use App\Models\Notification;
 use App\Repositories\Contracts\CardRepositoryInterface;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 
 class CardService
@@ -49,11 +52,11 @@ class CardService
 
         foreach ($data as $field => $value) {
             $description = match($field) {
-                'title' => "{$user->name} changed the title to '{$value}'",
-                'description' => "{$user->name} updated the description",
-                'due_date' => $value ? "{$user->name} set the due date to " . \Carbon\Carbon::parse($value)->format('M j, Y') : "{$user->name} removed the due date",
-                'cover_color' => $value ? "{$user->name} changed the cover color" : "{$user->name} removed the cover",
-                default => null,
+                'title'        => "{$user->name} changed the title to '{$value}'",
+                'description'  => "{$user->name} updated the description",
+                'due_date'     => $value ? "{$user->name} set the due date to " . \Carbon\Carbon::parse($value)->format('M j, Y') : "{$user->name} removed the due date",
+                'cover_color'  => $value ? "{$user->name} changed the cover color" : "{$user->name} removed the cover",
+                default        => null,
             };
 
             if ($description) {
@@ -176,6 +179,70 @@ class CardService
         return $card;
     }
 
+    public function uploadCoverImage(Card $card, UploadedFile $image, User $user): Card
+    {
+        if ($card->cover_image) {
+            Storage::disk('public')->delete($card->cover_image);
+        }
+
+        $path = $image->store('cover-images/card-' . $card->id, 'public');
+
+        $this->cardRepository->uploadCoverImage($card, $path);
+
+        ActivityLog::log(
+            $user,
+            'added_cover_image',
+            "{$user->name} added a cover image to '{$card->title}'",
+            $card->list->board_id,
+            $card->id
+        );
+
+        return $card->fresh();
+    }
+
+    public function removeCoverImage(Card $card, User $user): void
+    {
+        if ($card->cover_image) {
+            Storage::disk('public')->delete($card->cover_image);
+        }
+
+        $this->cardRepository->removeCoverImage($card);
+
+        ActivityLog::log(
+            $user,
+            'removed_cover_image',
+            "{$user->name} removed the cover image from '{$card->title}'",
+            $card->list->board_id,
+            $card->id
+        );
+    }
+
+    public function uploadDescriptionImage(Card $card, UploadedFile $image, User $user): CardDescriptionImage
+    {
+        $path = $image->store('description-images/card-' . $card->id, 'public');
+
+        return $this->cardRepository->createDescriptionImage([
+            'card_id'    => $card->id,
+            'user_id'    => $user->id,
+            'image_path' => $path,
+            'created_at' => now(),
+        ]);
+    }
+
+    public function removeDescriptionImage(Card $card, CardDescriptionImage $image): void
+    {
+        Storage::disk('public')->delete($image->image_path);
+
+        $this->cardRepository->deleteDescriptionImage($image);
+    }
+
+    public function getCardsByList(BoardList $list): \Illuminate\Support\Collection
+    {
+        $cards = $this->cardRepository->getByList($list);
+
+        return $cards->map(fn($card) => $this->formatCard($card));
+    }
+
     private function notifyMoveCard(Card $card, $newList, $board, User $actor): void
     {
         $notified = [$actor->id];
@@ -234,13 +301,7 @@ class CardService
             );
         }
     }
-    
-    public function getCardsByList(BoardList $list): \Illuminate\Support\Collection
-    {
-        $cards = $this->cardRepository->getByList($list);
 
-        return $cards->map(fn($card) => $this->formatCard($card));
-    }
     private function formatCard(Card $card): array
     {
         return [
@@ -257,12 +318,12 @@ class CardService
             'list_id'      => $card->list_id,
             'created_at'   => $card->created_at->toDateTimeString(),
             'assignees'    => $card->assignees->map(fn($u) => [
-                'id' => $u->id,
+                'id'   => $u->id,
                 'name' => $u->name
             ])->toArray(),
             'labels'       => $card->labels->map(fn($l) => [
-                'id' => $l->id,
-                'name' => $l->name,
+                'id'    => $l->id,
+                'name'  => $l->name,
                 'color' => $l->color
             ])->toArray(),
         ];
