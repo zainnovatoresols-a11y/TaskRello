@@ -27,6 +27,8 @@ use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
 use App\Services\ConversationService;
 use App\Services\MessageService;
+use App\Repositories\ActivityRepository;
+use App\Repositories\Contracts\ActivityRepositoryInterface;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -49,6 +51,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ConversationService::class);
         $this->app->singleton(MessageService::class);
         $this->app->singleton(TimeTrackerService::class);
+
+
+$this->app->bind(ActivityRepositoryInterface::class, ActivityRepository::class);
     }
 
     /**
