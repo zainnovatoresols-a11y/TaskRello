@@ -6,7 +6,6 @@ use App\Models\Card;
 use App\Models\Attachment;
 use App\Services\AttachmentService;
 use Illuminate\Http\Request;
-use App\Models\ActivityLog;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Requests\StoreAttachmentRequest;
 
@@ -27,10 +26,7 @@ class AttachmentController extends Controller
             abort(403, 'You must be a board member to view attachments.');
         }
 
-        $attachments = $card->attachments()
-            ->with('uploader')
-            ->latest()
-            ->get();
+        $attachments = $this->attachmentService->getByCard($card);
 
         return response()->json([
             'success' => true,

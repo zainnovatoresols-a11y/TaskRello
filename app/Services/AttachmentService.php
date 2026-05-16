@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\ActivityLog;
 use App\Repositories\Contracts\AttachmentRepositoryInterface;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -17,6 +18,11 @@ class AttachmentService
     public function __construct(
         private AttachmentRepositoryInterface $attachmentRepository
     ) {}
+
+    public function getByCard(Card $card): Collection
+    {
+        return $this->attachmentRepository->getByCard($card);
+    }
 
     public function store(Card $card, UploadedFile $file, int $userId): Attachment
     {
