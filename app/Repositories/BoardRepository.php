@@ -37,7 +37,7 @@ class BoardRepository implements BoardRepositoryInterface
     public function attachMember(Board $board, int $userId, string $role, string $status = 'accepted'): void
     {
         $board->allMembers()->attach($userId, [
-            'role' => $role,
+            'role'   => $role,
             'status' => $status,
         ]);
     }
@@ -65,5 +65,20 @@ class BoardRepository implements BoardRepositoryInterface
                 $card->assignees()->detach($userId);
             });
         });
+    }
+
+    public function updateMemberPivot(Board $board, int $userId, array $data): void
+    {
+        $board->allMembers()->updateExistingPivot($userId, $data);
+    }
+
+    public function uploadBackgroundImage(Board $board, string $path): void
+    {
+        $board->update(['background_image' => $path]);
+    }
+
+    public function removeBackgroundImage(Board $board): void
+    {
+        $board->update(['background_image' => null]);
     }
 }

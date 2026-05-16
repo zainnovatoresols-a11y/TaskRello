@@ -16,4 +16,7 @@ interface BoardRepositoryInterface
     public function detachMember(Board $board, int $userId): void;
     public function loadBoardWithRelations(Board $board): Board;
     public function unassignFromAllCards(Board $board, int $userId): void;
+    public function updateMemberPivot(Board $board, int $userId, array $data): void;
+    public function uploadBackgroundImage(Board $board, string $path): void;
+    public function removeBackgroundImage(Board $board): void;
 }
