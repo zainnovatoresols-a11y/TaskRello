@@ -25,10 +25,7 @@ class CommentController extends Controller
             abort(403, 'You must be a board member to view comments.');
         }
 
-        $comments = $card->comments()
-            ->with('author')
-            ->orderBy('created_at')
-            ->get();
+        $comments = $this->commentService->getByCard($card);
 
         return response()->json([
             'success' => true,
@@ -76,5 +73,4 @@ class CommentController extends Controller
 
         return redirect()->route('boards.show', $board)->with('success', 'Comment deleted.');
     }
-
 }

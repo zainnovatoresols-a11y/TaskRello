@@ -8,12 +8,18 @@ use App\Models\User;
 use App\Models\ActivityLog;
 use App\Models\Notification;
 use App\Repositories\Contracts\CommentRepositoryInterface;
+use Illuminate\Support\Collection;
 
 class CommentService
 {
     public function __construct(
         private CommentRepositoryInterface $commentRepository
     ) {}
+
+    public function getByCard(Card $card): Collection
+    {
+        return $this->commentRepository->getByCard($card);
+    }
 
     public function create(Card $card, string $body, User $user): Comment
     {
