@@ -17,10 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'board.member' => \App\Http\Middleware\EnsureBoardMember::class,
         ]);
-        $middleware->trustProxies(
-            at: '*',
-            headers: Request::HEADER_X_FORWARDED_ALL
-        );
+       $middleware->trustProxies(
+    at: '*',
+);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
