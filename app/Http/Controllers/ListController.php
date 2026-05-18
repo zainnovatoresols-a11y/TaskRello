@@ -10,7 +10,6 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class ListController extends Controller
 {
-
     use AuthorizesRequests;
 
     public function __construct(
@@ -21,29 +20,12 @@ class ListController extends Controller
     {
         $this->authorize('view', $board);
 
-        $lists = $board->lists()
-            ->where('is_archived', false)
-            ->orderBy('position')
-            ->withCount('cards')
-            ->get();
+        $lists = $this->listService->getByBoard($board);
 
         return response()->json([
-            'success'=> true,
-            'data'=> $lists->map(fn($list) => $this->formatList($list)),
+            'success' => true,
+            'data'    => $lists->map(fn($list) => $this->formatList($list)),
         ]);
-    }
-
-    private function formatList(BoardList $list): array
-    {
-        return [
-            'id'=> $list->id,
-            'board_id'=> $list->board_id,
-            'name'=> $list->name,
-            'position'=> $list->position,
-            'is_archived'=> $list->is_archived,
-            'cards_count'=> $list->cards_count ?? $list->cards()->count(),
-            'created_at'=> $list->created_at->toDateTimeString(),
-        ];
     }
 
     public function store(Request $request, Board $board)
@@ -51,16 +33,16 @@ class ListController extends Controller
         $this->authorize('update', $board);
 
         $request->validate([
-            'name'=> 'required|string|max:255',
+            'name' => 'required|string|max:255',
         ]);
 
         $list = $this->listService->create($board, $request->name, $request->user());
 
         if ($request->wantsJson()) {
             return response()->json([
-                'success'=> true,
-                'message'=> 'List created successfully',
-                'list'=> $list,
+                'success' => true,
+                'message' => 'List created successfully',
+                'list'    => $list,
             ]);
         }
 
@@ -74,16 +56,16 @@ class ListController extends Controller
         $this->authorize('update', $board);
 
         $request->validate([
-            'name'=> 'sometimes|required|string|max:255',
-            'is_archived'=> 'sometimes|boolean',
+            'name'        => 'sometimes|required|string|max:255',
+            'is_archived' => 'sometimes|boolean',
         ]);
 
         $list = $this->listService->update($list, $request->only(['name', 'is_archived']));
 
         if ($request->wantsJson()) {
             return response()->json([
-                'success'=> true,
-                'list'=> $list,
+                'success' => true,
+                'list'    => $list,
             ]);
         }
 
@@ -100,8 +82,8 @@ class ListController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                'success'=> true,
-                'message'=> 'List deleted.',
+                'success' => true,
+                'message' => 'List deleted.',
             ]);
         }
 
@@ -115,8 +97,8 @@ class ListController extends Controller
         $this->authorize('update', $board);
 
         $request->validate([
-            'lists'=> 'required|array',
-            'lists.*.id'=> 'required|integer|exists:lists,id',
+            'lists'           => 'required|array',
+            'lists.*.id'      => 'required|integer|exists:lists,id',
             'lists.*.position'=> 'required|integer|min:0',
         ]);
 
@@ -124,8 +106,8 @@ class ListController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                'success'=> true,
-                'message'=> 'Lists reordered.',
+                'success' => true,
+                'message' => 'Lists reordered.',
             ]);
         }
 
@@ -134,4 +116,16 @@ class ListController extends Controller
             ->with('success', 'Lists reordered.');
     }
 
+    private function formatList(BoardList $list): array
+    {
+        return [
+            'id'         => $list->id,
+            'board_id'   => $list->board_id,
+            'name'       => $list->name,
+            'position'   => $list->position,
+            'is_archived'=> $list->is_archived,
+            'cards_count'=> $list->cards_count ?? $list->cards()->count(),
+            'created_at' => $list->created_at->toDateTimeString(),
+        ];
+    }
 }

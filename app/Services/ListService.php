@@ -1,5 +1,4 @@
 <?php
-// app/Services/ListService.php
 
 namespace App\Services;
 
@@ -7,12 +6,18 @@ use App\Models\Board;
 use App\Models\BoardList;
 use App\Models\ActivityLog;
 use App\Repositories\Contracts\ListRepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
 
 class ListService
 {
     public function __construct(
         private ListRepositoryInterface $listRepository
     ) {}
+
+    public function getByBoard(Board $board): Collection
+    {
+        return $this->listRepository->getByBoard($board);
+    }
 
     public function create(Board $board, string $name, $user): BoardList
     {

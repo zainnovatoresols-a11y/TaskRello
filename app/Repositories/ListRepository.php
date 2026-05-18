@@ -5,9 +5,19 @@ namespace App\Repositories;
 use App\Models\Board;
 use App\Models\BoardList;
 use App\Repositories\Contracts\ListRepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
 
 class ListRepository implements ListRepositoryInterface
 {
+    public function getByBoard(Board $board): Collection
+    {
+        return $board->lists()
+            ->where('is_archived', false)
+            ->orderBy('position')
+            ->withCount('cards')
+            ->get();
+    }
+
     public function create(Board $board, array $data): BoardList
     {
         return $board->lists()->create($data);
