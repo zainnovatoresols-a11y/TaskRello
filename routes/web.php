@@ -119,4 +119,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/time-logs/{log}/notes', [TimeTrackerController::class, 'updateNotes'])->name('time-tracker.notes');
 });
 
+
 require __DIR__ . '/auth.php';
