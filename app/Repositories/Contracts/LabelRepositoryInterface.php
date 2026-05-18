@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 interface LabelRepositoryInterface
 {
+    public function getByBoard(Board $board): Collection;
     public function create(Board $board, array $data): Label;
     public function update(Label $label, array $data): Label;
     public function delete(Label $label): void;

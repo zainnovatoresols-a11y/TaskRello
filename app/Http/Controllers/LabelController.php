@@ -22,7 +22,7 @@ class LabelController extends Controller
     {
         $this->authorize('view', $board);
 
-        $labels = $board->labels()->get();
+        $labels = $this->labelService->getByBoard($board);
 
         if ($request->wantsJson()) {
             return response()->json([
