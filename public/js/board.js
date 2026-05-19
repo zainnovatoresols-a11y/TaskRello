@@ -1047,24 +1047,37 @@ async function storeCard(listId) {
 
         if (data.success) {
             const container = document.getElementById(`cards-${listId}`);
-            const div = document.createElement('div');
-
-            div.className = 'card-item bg-white dark:bg-gray-800 rounded-lg shadow-sm '
-                + 'border border-gray-200 dark:border-gray-600 cursor-pointer '
-                + 'hover:shadow-md hover:border-gray-300 dark:hover:border-gray-500 '
-                + 'transition-all group';
-            div.dataset.id = data.card.id;
-            div.id = `card-${data.card.id}`;
-            div.setAttribute('onclick', `openCardModal(${data.card.id})`);
-            div.innerHTML = `
-                <div class="p-3">
-                    <p class="text-sm font-medium text-gray-800 dark:text-gray-100 leading-snug
-                              group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
-                        ${escapeHtml(data.card.title)}
-                    </p>
-                </div>`;
-
-            container.appendChild(div);
+            
+            // Fetch the full card partial with all features (timer, badges, etc.)
+            try {
+                const cardHtml = await fetch(`/cards/${data.card.id}/partial`)
+                    .then(r => r.text());
+                
+                const div = document.createElement('div');
+                div.innerHTML = cardHtml;
+                const cardElement = div.firstElementChild;
+                
+                container.appendChild(cardElement);
+            } catch {
+                // Fallback to simple card if partial fetch fails
+                const div = document.createElement('div');
+                div.className = 'card-item bg-white dark:bg-gray-800 rounded-lg shadow-sm '
+                    + 'border border-gray-200 dark:border-gray-600 cursor-pointer '
+                    + 'hover:shadow-md hover:border-gray-300 dark:hover:border-gray-500 '
+                    + 'transition-all group';
+                div.dataset.id = data.card.id;
+                div.id = `card-${data.card.id}`;
+                div.setAttribute('onclick', `openCardModal(${data.card.id})`);
+                div.innerHTML = `
+                    <div class="p-3">
+                        <p class="text-sm font-medium text-gray-800 dark:text-gray-100 leading-snug
+                                  group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
+                            ${escapeHtml(data.card.title)}
+                        </p>
+                    </div>`;
+                container.appendChild(div);
+            }
+            
             textarea.value = '';
             hideAddCardForm(listId);
             showToast('Card added.');

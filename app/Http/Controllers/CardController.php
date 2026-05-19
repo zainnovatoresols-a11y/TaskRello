@@ -113,6 +113,15 @@ class CardController extends Controller
         return view('cards.show-page', compact('card'));
     }
 
+    public function partial(Card $card)
+    {
+        $this->authorize('view', $card);
+
+        $card = $this->cardService->show($card);
+
+        return view('partials._card', compact('card'))->render();
+    }
+
     public function update(UpdateCardRequest $request, Card $card)
     {
         $board       = $card->list->board;

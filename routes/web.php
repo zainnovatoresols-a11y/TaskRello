@@ -55,6 +55,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/lists/{list}/cards', [CardController::class, 'store'])->name('cards.store');
     Route::get('/cards/{card}', [CardController::class, 'show'])->name('cards.show');
+    Route::get('/cards/{card}/partial', [CardController::class, 'partial'])->name('cards.partial');
     Route::put('/cards/{card}', [CardController::class, 'update'])->name('cards.update');
     Route::delete('/cards/{card}', [CardController::class, 'destroy'])->name('cards.destroy');
     Route::post('/cards/{card}/move', [CardController::class, 'move'])->name('cards.move');
