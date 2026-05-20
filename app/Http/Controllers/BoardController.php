@@ -23,7 +23,7 @@ class BoardController extends Controller
         $boards = $this->boardService->getUserBoards($request->user());
 
         // Only return JSON for explicit API calls (XMLHttpRequest), not browser navigation
-        if ($request->expectsJson() && $request->isXmlHttpRequest()) {
+        if ($request->expectsJson()) {
             return response()->json([
                 'status' => 'success',
                 'data'   => $boards,
