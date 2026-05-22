@@ -89,7 +89,10 @@
                 document.addEventListener('submit', function(e) {
                     const form = e.target;
                     if (form && (!form.hasAttribute('target') || form.getAttribute('target') !== '_blank')) {
-                        loader.classList.remove('hidden');
+                        // Skip loader if form has data-skip-loader attribute
+                        if (!form.hasAttribute('data-skip-loader')) {
+                            loader.classList.remove('hidden');
+                        }
                     }
                 });
 
