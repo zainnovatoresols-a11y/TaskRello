@@ -166,7 +166,7 @@
                 Login
             </h1>
 
-            <form method="POST" action="{{ route('login') }}" data-skip-loader="true">
+            <form method="POST" action="{{ route('login') }}">
                 @csrf
 
                 <x-auth-session-status
