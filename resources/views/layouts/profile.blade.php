@@ -153,7 +153,6 @@
             </div>
             <p style="color: rgba(255,255,255,0.5); font-size: 13px;
                   font-family: sans-serif; letter-spacing: 0.05em;">
-                Loading...
             </p>
         </div>
     </div>
