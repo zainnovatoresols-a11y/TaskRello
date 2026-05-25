@@ -7,6 +7,45 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'Trello Clone') }} — @yield('title', 'Dashboard')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/echo.js'])
+
+    <style>
+    .loader {
+        display: flex;
+        align-items: center;
+    }
+
+    .bar {
+        display: inline-block;
+        width: 3px;
+        height: 20px;
+        background-color: rgba(255, 255, 255, .5);
+        border-radius: 10px;
+        animation: scale-up4 1s linear infinite;
+    }
+
+    .bar:nth-child(2) {
+        height: 35px;
+        margin: 0 5px;
+        animation-delay: .25s;
+    }
+
+    .bar:nth-child(3) {
+        animation-delay: .5s;
+    }
+
+    @keyframes scale-up4 {
+        20% {
+            background-color: #ffff;
+            transform: scaleY(1.5);
+        }
+        40% {
+            transform: scaleY(1);
+        }
+    }
+
+
+   
+</style>
 </head>
 
 <body class="h-full bg-gray-100 dark:bg-gray-900 font-sans antialiased">
@@ -234,52 +273,19 @@
     </nav>
 
     <!-- Page Loader -->
-    <div id="page-loader" class="fixed inset-0 z-50 flex items-center justify-center hidden">
-        <!-- Backdrop with blur -->
-        <div class="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm"></div>
-
-        <!-- Loader Container -->
-        <div class="relative flex flex-col items-center gap-6 p-8 bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/20">
-            <!-- Animated Logo/Icon -->
-            <div class="relative">
-                <!-- Outer ring -->
-                <div class="w-16 h-16 border-4 border-blue-200 dark:border-blue-800 rounded-full animate-spin"></div>
-                <!-- Inner ring -->
-                <div class="absolute inset-2 border-4 border-transparent border-t-blue-500 rounded-full animate-spin" style="animation-duration: 0.8s; animation-direction: reverse;"></div>
-                <!-- Center dot -->
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-                </div>
-            </div>
-
-            <!-- Loading Text with Animation -->
-            <div class="flex flex-col items-center gap-2">
-                <p class="text-gray-700 dark:text-gray-300 text-lg font-semibold tracking-wide">Loading</p>
-                <div class="flex gap-1">
-                    <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
-                    <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
-                    <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
-                </div>
-            </div>
-
-            <!-- Progress Bar -->
-            <div class="w-48 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse" style="width: 60%; animation: shimmer 2s infinite;"></div>
-            </div>
+<div id="page-loader" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-gray-900/85 backdrop-blur-sm"></div>
+    <div class="relative flex flex-col items-center gap-4">
+        <div class="loader">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
         </div>
-
-        <style>
-            @keyframes shimmer {
-                0% {
-                    transform: translateX(-100%);
-                }
-
-                100% {
-                    transform: translateX(100%);
-                }
-            }
-        </style>
+        <p style="color: rgba(255,255,255,0.5); font-size: 13px; font-family: sans-serif; letter-spacing: 0.05em;">
+            Loading...
+        </p>
     </div>
+</div>
 
     <!-- Warning Confirmation Modal -->
     <div id="warning-modal" class="fixed inset-0 z-50 hidden" x-data="warningModal()" x-show="isOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
