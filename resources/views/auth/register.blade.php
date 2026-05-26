@@ -83,16 +83,7 @@
         left: 25%;
     }
 
-    .lx-grid {
-        position: absolute;
-        inset: 0;
-        background-image:
-            linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-        background-size: 48px 48px;
-        pointer-events: none;
-    }
-
+    
     /* Left panel */
     .lx-left {
         display: none;
@@ -601,7 +592,6 @@
         <div class="lx-orb lx-orb-1"></div>
         <div class="lx-orb lx-orb-2"></div>
         <div class="lx-orb lx-orb-3"></div>
-        <div class="lx-grid"></div>
 
         {{-- Left panel — identical to login --}}
         <div class="lx-left">
