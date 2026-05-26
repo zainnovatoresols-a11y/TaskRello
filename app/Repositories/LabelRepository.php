@@ -10,6 +10,11 @@ use Illuminate\Database\Eloquent\Collection;
 
 class LabelRepository implements LabelRepositoryInterface
 {
+    public function getByBoard(Board $board): Collection
+    {
+        return $board->labels()->get();
+    }
+
     public function create(Board $board, array $data): Label
     {
         return $board->labels()->create($data);

@@ -55,6 +55,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/lists/{list}/cards', [CardController::class, 'store'])->name('cards.store');
     Route::get('/cards/{card}', [CardController::class, 'show'])->name('cards.show');
+    Route::get('/cards/{card}/partial', [CardController::class, 'partial'])->name('cards.partial');
     Route::put('/cards/{card}', [CardController::class, 'update'])->name('cards.update');
     Route::delete('/cards/{card}', [CardController::class, 'destroy'])->name('cards.destroy');
     Route::post('/cards/{card}/move', [CardController::class, 'move'])->name('cards.move');
@@ -118,5 +119,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/boards/{board}/time-tracker/active-sessions', [TimeTrackerController::class, 'boardActiveSessions'])->name('time-tracker.board-sessions');
     Route::put('/time-logs/{log}/notes', [TimeTrackerController::class, 'updateNotes'])->name('time-tracker.notes');
 });
+
 
 require __DIR__ . '/auth.php';

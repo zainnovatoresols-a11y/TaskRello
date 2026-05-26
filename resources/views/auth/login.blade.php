@@ -196,7 +196,7 @@
                     </div>
                     <x-input-error
                         :messages="$errors->get('email')"
-                        class="text-[0.7rem] font-sans text-red-400 mt-1.5 text-left tracking-[0.03em] block ml-9" />
+                        class="lx-blade-error text-[0.7rem] font-sans text-red-400 mt-1.5 text-left tracking-[0.03em] block ml-9" />
                 </div>
 
                 <div class="lx-field-2 mb-9">
@@ -235,7 +235,7 @@
                     </div>
                     <x-input-error
                         :messages="$errors->get('password')"
-                        class="text-[0.7rem] font-sans text-red-400 mt-1.5 text-left tracking-[0.03em] block ml-9" />
+                        class="lx-blade-error text-[0.7rem] font-sans text-red-400 mt-1.5 text-left tracking-[0.03em] block ml-9" />
                 </div>
 
                 <div class="lx-meta flex items-center justify-between mb-10 font-sans text-xs">
@@ -252,7 +252,7 @@
                 </div>
 
                 <div class="lx-btn-wrap">
-                    <button type="submit"
+                    <button type="submit" id="login-btn"
                         class="block w-full py-4 px-4 bg-transparent border border-neutral-500 text-neutral-200 font-sans text-[0.72rem] font-semibold tracking-[0.28em] uppercase cursor-pointer transition-all duration-300 hover:border-neutral-300 hover:text-white hover:bg-white/[0.04] active:scale-[0.99] rounded-none">
                         {{ __('Login') }}
                     </button>
@@ -275,18 +275,99 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        document.querySelectorAll("input").forEach(input => {
-            input.addEventListener("input", function() {
-                const err = this.closest(".lx-field-1, .lx-field-2")?.querySelector(".text-red-400");
-                if (err) err.style.display = "none";
-            });
-        });
-
-        const togglePassword = document.getElementById("togglePassword");
+        const form = document.querySelector("form");
+        const emailInput = document.getElementById("email");
         const passwordInput = document.getElementById("password");
+        const togglePassword = document.getElementById("togglePassword");
         const eyeOpen = document.getElementById("eyeOpen");
         const eyeClosed = document.getElementById("eyeClosed");
+        const loginBtn = document.getElementById("login-btn");
 
+        function showError(input, message) {
+            const outerWrapper = input.closest(".lx-field-1, .lx-field-2");
+            if (!outerWrapper) return;
+            
+            // Remove existing JS errors
+            outerWrapper.querySelectorAll(".js-error").forEach(e => e.remove());
+            
+            // Show blade error if it exists
+            const bladeError = outerWrapper.querySelector(".lx-blade-error");
+            if (bladeError && bladeError.textContent.trim()) {
+                bladeError.style.display = "block";
+            } else {
+            // Create JS error message
+            const p = document.createElement("p");
+            p.className = "js-error text-[0.7rem] font-sans text-red-400 mt-1.5 text-left tracking-[0.03em] block ml-9";
+            p.innerText = message;
+            outerWrapper.appendChild(p);
+            }
+        }
+
+        function clearErrors(input) {
+            const outerWrapper = input.closest(".lx-field-1, .lx-field-2");
+            if (outerWrapper) {
+                outerWrapper.querySelectorAll(".js-error").forEach(e => e.remove());
+                outerWrapper.querySelector(".lx-blade-error").style.display = "none";
+            }
+        }
+
+        // Real-time email validation
+        emailInput.addEventListener("input", function() {
+            const val = this.value.trim();
+            if (!val) {
+                showError(this, "Email required");
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+                showError(this, "Invalid email");
+            } else {
+                clearErrors(this);
+            }
+        });
+
+        // Real-time password validation
+        passwordInput.addEventListener("input", function() {
+            const val = this.value.trim();
+            if (!val) {
+                showError(this, "Password required");
+            } else {
+                clearErrors(this);
+            }
+        });
+
+        // Form submission validation
+        form.addEventListener("submit", function(e) {
+            let valid = true;
+
+            // Clear all previous errors
+            document.querySelectorAll(".js-error").forEach(el => el.remove());
+
+            // Validate email
+            if (!emailInput.value.trim()) {
+                showError(emailInput, "Email required");
+                valid = false;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value)) {
+                showError(emailInput, "Invalid email");
+                valid = false;
+            }
+
+            // Validate password
+            if (!passwordInput.value.trim()) {
+                showError(passwordInput, "Password required");
+                valid = false;
+            }
+
+            // Prevent submission if validation fails
+            if (!valid) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+
+            // Show loading state only after validation passes
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span class="inline-flex items-center gap-2"><span class="inline-block w-4 h-4 border-2 border-neutral-300 border-t-neutral-500 rounded-full animate-spin"></span>Loading...</span>';
+        }, true);
+
+        // Toggle password visibility
         togglePassword.addEventListener("click", function() {
             const isPassword = passwordInput.type === "password";
             passwordInput.type = isPassword ? "text" : "password";

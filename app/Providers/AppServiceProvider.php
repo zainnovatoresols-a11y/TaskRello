@@ -31,6 +31,7 @@ use App\Repositories\ActivityRepository;
 use App\Repositories\Contracts\ActivityRepositoryInterface;
 use App\Repositories\ConversationRepository;
 use App\Repositories\Contracts\ConversationRepositoryInterface;
+use Illuminate\Support\Facades\URL;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -55,8 +56,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(TimeTrackerService::class);
 
 
-$this->app->bind(ActivityRepositoryInterface::class, ActivityRepository::class);
-$this->app->bind(ConversationRepositoryInterface::class, ConversationRepository::class);
+        $this->app->bind(ActivityRepositoryInterface::class, ActivityRepository::class);
+        $this->app->bind(ConversationRepositoryInterface::class, ConversationRepository::class);
     }
 
     /**
@@ -80,5 +81,9 @@ $this->app->bind(ConversationRepositoryInterface::class, ConversationRepository:
                     'url' => $url,
                 ]);
         });
+
+        if (env('APP_ENV') === 'production') {
+            URL::forceScheme('https');
+        }
     }
 }

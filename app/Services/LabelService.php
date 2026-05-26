@@ -17,6 +17,11 @@ class LabelService
         private LabelRepositoryInterface $labelRepository
     ) {}
 
+    public function getByBoard(Board $board): Collection
+    {
+        return $this->labelRepository->getByBoard($board);
+    }
+
     public function create(Board $board, array $data): Label
     {
         return $this->labelRepository->create($board, [
