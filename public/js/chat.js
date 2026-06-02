@@ -1014,9 +1014,14 @@ async function loadBoardMembers() {
                             justify-center text-white font-bold text-sm flex-shrink-0 shadow-md">
                     ${u.name.charAt(0).toUpperCase()}
                 </div>
-                <span class="text-sm text-slate-900 dark:text-white flex-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    ${escapeHtmlChat(u.name)}
-                </span>
+                <div class="flex-1">
+                    <span class="text-sm text-slate-900 dark:text-white block group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        ${escapeHtmlChat(u.name)}
+                    </span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 block">
+                        ${escapeHtmlChat(u.email)}
+                    </span>
+                </div>
                 ${groupSelectedUsers[u.id]
                 ? '<div class="w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></div>'
                 : '<div class="w-6 h-6 border-2 border-slate-300 dark:border-slate-600 rounded-full group-hover:border-blue-400 transition-colors"></div>'}
@@ -1081,9 +1086,14 @@ function searchGroupUsers(query) {
                                 justify-center text-white font-bold text-sm flex-shrink-0 shadow-md">
                         ${u.name.charAt(0).toUpperCase()}
                     </div>
-                    <span class="text-sm text-slate-900 dark:text-white flex-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                        ${escapeHtmlChat(u.name)}
-                    </span>
+                    <div class="flex-1">
+                        <span class="text-sm text-slate-900 dark:text-white block group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            ${escapeHtmlChat(u.name)}
+                        </span>
+                        <span class="text-xs text-slate-500 dark:text-slate-400 block">
+                            ${escapeHtmlChat(u.email)}
+                        </span>
+                    </div>
                     ${groupSelectedUsers[u.id]
                     ? '<div class="w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></div>'
                     : '<div class="w-6 h-6 border-2 border-slate-300 dark:border-slate-600 rounded-full group-hover:border-blue-400 transition-colors"></div>'}

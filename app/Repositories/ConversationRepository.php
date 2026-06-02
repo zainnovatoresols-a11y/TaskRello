@@ -19,7 +19,17 @@ class ConversationRepository implements ConversationRepositoryInterface
         return User::distinct()
             ->join('board_user', 'users.id', '=', 'board_user.user_id')
             ->join('boards', 'board_user.board_id', '=', 'boards.id')
-            ->where('boards.user_id', $user->id)
+            ->where(function ($q) use ($user) {
+                // Members from boards the user owns
+                $q->where('boards.user_id', $user->id)
+                    // Or members from boards where the user is a participant
+                    ->orWhereIn('board_user.board_id', function ($subquery) use ($user) {
+                        $subquery->select('board_id')
+                            ->from('board_user')
+                            ->where('user_id', $user->id)
+                            ->where('status', 'accepted');
+                    });
+            })
             ->where('users.id', '!=', $user->id)
             ->where('board_user.status', 'accepted')
             ->where(function ($q) use ($searchTerm) {
@@ -36,7 +46,17 @@ class ConversationRepository implements ConversationRepositoryInterface
         return User::distinct()
             ->join('board_user', 'users.id', '=', 'board_user.user_id')
             ->join('boards', 'board_user.board_id', '=', 'boards.id')
-            ->where('boards.user_id', $user->id)
+            ->where(function ($q) use ($user) {
+                // Members from boards the user owns
+                $q->where('boards.user_id', $user->id)
+                    // Or members from boards where the user is a participant
+                    ->orWhereIn('board_user.board_id', function ($subquery) use ($user) {
+                        $subquery->select('board_id')
+                            ->from('board_user')
+                            ->where('user_id', $user->id)
+                            ->where('status', 'accepted');
+                    });
+            })
             ->where('users.id', '!=', $user->id)
             ->where('board_user.status', 'accepted')
             ->select('users.id', 'users.name', 'users.email', 'users.avatar')
