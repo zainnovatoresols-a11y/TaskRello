@@ -1182,16 +1182,99 @@ async function createGroup() {
 // ADD MEMBER MODAL (group conversations)
 // ============================================================
 
+let currentGroupMemberIds = [];
+
 function openAddMemberModal(conversationId) {
     document.getElementById('add-member-conv-id').value = conversationId;
     document.getElementById('add-member-modal')?.classList.remove('hidden');
     document.getElementById('add-member-search')?.focus();
+    
+    // Fetch current conversation participants and load available users
+    fetchConversationParticipants(conversationId);
+}
+
+async function fetchConversationParticipants(conversationId) {
+    try {
+        const res = await fetch(`/chat/conversations/${conversationId}`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': chatCsrf,
+            },
+        });
+        const data = await res.json();
+        if (data.success && data.data?.participants) {
+            currentGroupMemberIds = data.data.participants.map(p => p.id);
+            // Load available users for the add member modal
+            loadAvailableAddMembers();
+        }
+    } catch (error) {
+        console.error('Failed to fetch conversation participants:', error);
+    }
+}
+
+async function loadAvailableAddMembers() {
+    try {
+        const res = await fetch('/chat/users/board-members', {
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': chatCsrf,
+            },
+        });
+
+        const data = await res.json();
+        const container = document.getElementById('add-member-results');
+        const convId = document.getElementById('add-member-conv-id').value;
+
+        if (!data.data?.length) {
+            container.innerHTML = `
+                <p class="text-xs text-gray-400 text-center py-3 italic">
+                    No users available
+                </p>`;
+            return;
+        }
+
+        // Filter out already added members
+        const availableUsers = data.data.filter(u => !currentGroupMemberIds.includes(u.id));
+
+        if (!availableUsers.length) {
+            container.innerHTML = `
+                <p class="text-xs text-gray-400 text-center py-3 italic">
+                    All users are already members
+                </p>`;
+            return;
+        }
+
+        container.innerHTML = availableUsers.map(u => `
+            <button onclick="addMemberToConversation(${convId}, ${u.id}, '${escapeHtmlChat(u.name)}')"
+                    class="w-full flex items-center gap-4 px-4 py-3.5
+                           rounded-2xl hover:bg-slate-50/80 dark:hover:bg-slate-700/50
+                           transition-all duration-200 text-left group">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center
+                            justify-center text-white font-bold text-sm flex-shrink-0 shadow-md">
+                    ${u.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        ${escapeHtmlChat(u.name)}
+                    </p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">${escapeHtmlChat(u.email)}</p>
+                </div>
+                <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+            </button>`
+        ).join('');
+
+    } catch (error) {
+        console.error('Failed to load available members:', error);
+    }
 }
 
 function closeAddMemberModal() {
     document.getElementById('add-member-modal')?.classList.add('hidden');
     document.getElementById('add-member-search').value = '';
     document.getElementById('add-member-results').innerHTML = '';
+    currentGroupMemberIds = [];
 }
 
 let addMemberTimer = null;
@@ -1199,7 +1282,8 @@ let addMemberTimer = null;
 function searchAddMember(query) {
     clearTimeout(addMemberTimer);
     if (!query.trim()) {
-        document.getElementById('add-member-results').innerHTML = '';
+        // If search is cleared, show the available members again
+        loadAvailableAddMembers();
         return;
     }
 
@@ -1227,7 +1311,18 @@ function searchAddMember(query) {
                 return;
             }
 
-            container.innerHTML = data.data.map(u => `
+            // Filter out already added members
+            const availableUsers = data.data.filter(u => !currentGroupMemberIds.includes(u.id));
+
+            if (!availableUsers.length) {
+                container.innerHTML = `
+                    <p class="text-xs text-gray-400 text-center py-3 italic">
+                        All matching users are already members
+                    </p>`;
+                return;
+            }
+
+            container.innerHTML = availableUsers.map(u => `
                 <button onclick="addMemberToConversation(${convId}, ${u.id}, '${escapeHtmlChat(u.name)}')"
                         class="w-full flex items-center gap-4 px-4 py-3.5
                                rounded-2xl hover:bg-slate-50/80 dark:hover:bg-slate-700/50
