@@ -6,6 +6,18 @@
         background-repeat: no-repeat;
         background-position: right 8px center;
         padding-right: 28px !important;
+        position: relative;
+        z-index: 50;
+        border-radius: 0.5rem;
+    }
+    
+    .modal-select option {
+        border-radius: 0.5rem;
+    }
+    
+    .card-modal-scrollbar {
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 </style>
 

@@ -255,11 +255,11 @@
 
 {{-- ── Card detail modal ─────────────────────────────────────── --}}
 <div id="card-modal"
-    class="hidden fixed inset-0 z-50 flex items-start justify-center pt-12 px-4 pb-4"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center px-2 md:px-4 py-4"
     style="background-color: rgba(0,0,0,0.55);">
 
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl
-                overflow-hidden relative" onclick="event.stopPropagation()">
+                overflow-hidden relative max-h-[90vh]" onclick="event.stopPropagation()">
 
         {{-- Close button --}}
         <button onclick="closeCardModal()"
