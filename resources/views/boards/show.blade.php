@@ -186,6 +186,61 @@
                 </div>
             </div>
 
+            {{-- Label filter dropdown --}}
+            <div class="relative" id="label-filter-dropdown">
+                <button onclick="toggleLabelDropdown()"
+                    id="filter-label-btn"
+                    class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
+                       text-white/80 hover:text-white text-xs font-medium
+                       px-3 py-1.5 rounded-lg transition border border-white/20
+                       whitespace-nowrap">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                    <span id="label-filter-label">Labels</span>
+                </button>
+
+                <div id="label-dropdown-menu"
+                    class="hidden absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800
+                            rounded-xl shadow-lg border border-gray-100
+                            dark:border-gray-700 py-1 z-30">
+
+                    {{-- Clear filter option --}}
+                    <button onclick="clearLabelFilter(); closeLabelDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        All Labels
+                    </button>
+
+                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
+
+                    {{-- Label list --}}
+                    @php
+                    $allLabels = $board->labels ?? collect([]);
+                    @endphp
+                    @if($allLabels->isNotEmpty())
+                        @foreach($allLabels as $label)
+                        <button onclick="selectLabelFilter({{ $label->id }}, '{{ addslashes($label->name) }}'); closeLabelDropdown()"
+                            class="w-full text-left px-4 py-2 text-sm
+                                       text-gray-700 dark:text-gray-200
+                                       hover:bg-gray-50 dark:hover:bg-gray-700 transition
+                                       flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full flex-shrink-0"
+                                  style="background-color: {{ $label->color }}"></span>
+                            <span>{{ $label->name }}</span>
+                        </button>
+                        @endforeach
+                    @else
+                        <button class="w-full text-left px-4 py-2 text-sm
+                                       text-gray-400 dark:text-gray-500">
+                            No labels yet
+                        </button>
+                    @endif
+                </div>
+            </div>
+
         </div>
 
         {{-- Right side actions --}}

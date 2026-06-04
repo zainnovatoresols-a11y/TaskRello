@@ -1360,6 +1360,7 @@ async function toggleCardComplete(cardId, checkboxWrapper) {
 let activeFilter = null;
 let currentSearch = '';
 let selectedMemberId = null;
+let selectedLabelId = null;
 
 function applyBoardFilters() {
     const cards = document.querySelectorAll('.card-item');
@@ -1370,11 +1371,18 @@ function applyBoardFilters() {
         const description = card.dataset.description || '';
         const completed = card.dataset.completed === 'true';
         const assigneesStr = card.dataset.assignees || '[]';
+        const labelsStr = card.dataset.labels || '[]';
         let assignees = [];
+        let labels = [];
         try {
             assignees = JSON.parse(assigneesStr);
         } catch (e) {
             assignees = [];
+        }
+        try {
+            labels = JSON.parse(labelsStr);
+        } catch (e) {
+            labels = [];
         }
 
         const searchMatch = currentSearch === ''
@@ -1390,7 +1398,12 @@ function applyBoardFilters() {
             memberMatch = assignees.includes(selectedMemberId);
         }
 
-        card.style.display = (searchMatch && filterMatch && memberMatch) ? '' : 'none';
+        let labelMatch = true;
+        if (selectedLabelId !== null) {
+            labelMatch = labels.includes(selectedLabelId);
+        }
+
+        card.style.display = (searchMatch && filterMatch && memberMatch && labelMatch) ? '' : 'none';
     });
 
     listColumns.forEach(col => {
@@ -1402,11 +1415,11 @@ function applyBoardFilters() {
         const countBadge = col.querySelector('.list-column > div > span:nth-child(2)');
         if (countBadge) {
             // Show filtered count when filters are active, otherwise show total count
-            const displayCount = (currentSearch !== '' || activeFilter || selectedMemberId !== null) ? visibleCards.length : totalCards;
+            const displayCount = (currentSearch !== '' || activeFilter || selectedMemberId !== null || selectedLabelId !== null) ? visibleCards.length : totalCards;
             countBadge.textContent = displayCount;
         }
 
-        if (visibleCards.length === 0 && (currentSearch !== '' || activeFilter || selectedMemberId !== null)) {
+        if (visibleCards.length === 0 && (currentSearch !== '' || activeFilter || selectedMemberId !== null || selectedLabelId !== null)) {
             if (!emptyMsg) {
                 emptyMsg = document.createElement('div');
                 emptyMsg.className = 'list-empty-search-msg text-xs text-center '
@@ -1569,6 +1582,53 @@ function closeMemberDropdown() {
 }
 
 
+function toggleLabelDropdown() {
+    const menu = document.getElementById('label-dropdown-menu');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
+    event.stopPropagation();
+}
+
+
+function closeLabelDropdown() {
+    const menu = document.getElementById('label-dropdown-menu');
+    if (menu) {
+        menu.classList.add('hidden');
+    }
+}
+
+
+function selectLabelFilter(labelId, labelName) {
+    selectedLabelId = labelId;
+    const label = document.getElementById('label-filter-label');
+    if (label) {
+        label.textContent = labelName;
+    }
+    const btn = document.getElementById('filter-label-btn');
+    if (btn) {
+        btn.classList.remove('bg-white/20', 'text-white/80');
+        btn.classList.add('bg-white/40', 'text-white', 'font-semibold');
+    }
+    applyBoardFilters();
+}
+
+
+function clearLabelFilter() {
+    selectedLabelId = null;
+    const label = document.getElementById('label-filter-label');
+    if (label) {
+        label.textContent = 'Labels';
+    }
+    const btn = document.getElementById('filter-label-btn');
+    if (btn) {
+        btn.classList.remove('bg-white/40', 'text-white', 'font-semibold');
+        btn.classList.add('bg-white/20', 'text-white/80');
+    }
+    applyBoardFilters();
+}
+
+
 // Close dropdowns when clicking outside
 document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(event) {
@@ -1576,6 +1636,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const statusMenu = document.getElementById('status-dropdown-menu');
         const memberDropdown = document.getElementById('member-filter-dropdown');
         const memberMenu = document.getElementById('member-dropdown-menu');
+        const labelDropdown = document.getElementById('label-filter-dropdown');
+        const labelMenu = document.getElementById('label-dropdown-menu');
         
         if (statusDropdown && !statusDropdown.contains(event.target)) {
             if (statusMenu) {
@@ -1586,6 +1648,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (memberDropdown && !memberDropdown.contains(event.target)) {
             if (memberMenu) {
                 memberMenu.classList.add('hidden');
+            }
+        }
+        
+        if (labelDropdown && !labelDropdown.contains(event.target)) {
+            if (labelMenu) {
+                labelMenu.classList.add('hidden');
             }
         }
     });
