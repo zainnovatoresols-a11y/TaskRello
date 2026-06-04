@@ -20,6 +20,7 @@ $elapsedSeconds = $activeSession?->elapsed_seconds ?? 0;
     data-is-running="{{ $isRunning ? 'true' : 'false' }}"
     data-elapsed="{{ $elapsedSeconds }}"
     data-total-time="{{ $card->total_time_seconds }}"
+    data-assignees="{{ json_encode($card->assignees->pluck('id')->toArray()) }}"
     id="card-{{ $card->id }}">
 
     {{-- ── Completion checkbox (top-right on hover) ──────────── --}}

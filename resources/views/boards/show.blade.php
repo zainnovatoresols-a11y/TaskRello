@@ -4,7 +4,7 @@
 @section('content')
 
 {{-- ── Board header bar ─────────────────────────────────────── --}}
-<div class="px-6 py-3 flex items-center gap-4 flex-wrap relative overflow-hidden"
+<div class="px-6 py-3 flex items-center gap-4 flex-wrap relative overflow-visible"
     id="board-show-state"
     data-board-id="{{ $board->id }}"
     style="{{ $board->background_image_url
@@ -80,35 +80,111 @@
                 </button>
             </div>
 
-            {{-- Completed filter button --}}
-            <button id="filter-completed"
-                onclick="toggleFilter('completed')"
-                data-active="false"
-                class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
-                   text-white/80 hover:text-white text-xs font-medium
-                   px-3 py-1.5 rounded-lg transition border border-white/20
-                   whitespace-nowrap">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                Completed
-            </button>
+            {{-- Status filter dropdown --}}
+            <div class="relative" id="status-filter-dropdown">
+                <button onclick="toggleStatusDropdown()"
+                    id="filter-status-btn"
+                    class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
+                       text-white/80 hover:text-white text-xs font-medium
+                       px-3 py-1.5 rounded-lg transition border border-white/20
+                       whitespace-nowrap">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span id="status-filter-label">Status</span>
+                </button>
 
-            {{-- Incomplete filter button --}}
-            <button id="filter-incomplete"
-                onclick="toggleFilter('incomplete')"
-                data-active="false"
-                class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
-                   text-white/80 hover:text-white text-xs font-medium
-                   px-3 py-1.5 rounded-lg transition border border-white/20
-                   whitespace-nowrap">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Incomplete
-            </button>
+                <div id="status-dropdown-menu"
+                    class="hidden absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800
+                            rounded-xl shadow-lg border border-gray-100
+                            dark:border-gray-700 py-1 z-30">
+
+                    {{-- All Tasks option --}}
+                    <button onclick="selectStatusFilter(null, 'Status'); closeStatusDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        All Tasks
+                    </button>
+
+                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
+
+                    {{-- Completed option --}}
+                    <button onclick="selectStatusFilter('completed', 'Completed'); closeStatusDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition
+                                   flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Completed</span>
+                    </button>
+
+                    {{-- Incomplete option --}}
+                    <button onclick="selectStatusFilter('incomplete', 'Incomplete'); closeStatusDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition
+                                   flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Incomplete</span>
+                    </button>
+                </div>
+            </div>
+
+            {{-- Member filter dropdown --}}
+            <div class="relative" id="member-filter-dropdown">
+                <button onclick="toggleMemberDropdown()"
+                    id="filter-member-btn"
+                    class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
+                       text-white/80 hover:text-white text-xs font-medium
+                       px-3 py-1.5 rounded-lg transition border border-white/20
+                       whitespace-nowrap">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 12H9m6 0a6 6 0 11-12 0 6 6 0 0112 0z" />
+                    </svg>
+                    <span id="member-filter-label">Members</span>
+                </button>
+
+                <div id="member-dropdown-menu"
+                    class="hidden absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800
+                            rounded-xl shadow-lg border border-gray-100
+                            dark:border-gray-700 py-1 z-30">
+
+                    {{-- Clear filter option --}}
+                    <button onclick="clearMemberFilter(); closeMemberDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        All Members
+                    </button>
+
+                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
+
+                    {{-- Member list --}}
+                    @foreach($board->members as $member)
+                    <button onclick="selectMemberFilter({{ $member->id }}, '{{ addslashes($member->name) }}'); closeMemberDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition
+                                   flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-full bg-blue-700 flex-shrink-0
+                                    flex items-center justify-center
+                                    text-white text-xs font-bold">
+                            {{ strtoupper(substr($member->name, 0, 1)) }}
+                        </div>
+                        <span>{{ $member->name }}</span>
+                    </button>
+                    @endforeach
+                </div>
+            </div>
 
         </div>
 

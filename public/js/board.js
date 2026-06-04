@@ -1359,6 +1359,7 @@ async function toggleCardComplete(cardId, checkboxWrapper) {
 
 let activeFilter = null;
 let currentSearch = '';
+let selectedMemberId = null;
 
 function applyBoardFilters() {
     const cards = document.querySelectorAll('.card-item');
@@ -1368,6 +1369,13 @@ function applyBoardFilters() {
         const title = card.dataset.title || '';
         const description = card.dataset.description || '';
         const completed = card.dataset.completed === 'true';
+        const assigneesStr = card.dataset.assignees || '[]';
+        let assignees = [];
+        try {
+            assignees = JSON.parse(assigneesStr);
+        } catch (e) {
+            assignees = [];
+        }
 
         const searchMatch = currentSearch === ''
             || title.includes(currentSearch)
@@ -1377,7 +1385,12 @@ function applyBoardFilters() {
         if (activeFilter === 'completed') filterMatch = completed;
         if (activeFilter === 'incomplete') filterMatch = !completed;
 
-        card.style.display = (searchMatch && filterMatch) ? '' : 'none';
+        let memberMatch = true;
+        if (selectedMemberId !== null) {
+            memberMatch = assignees.includes(selectedMemberId);
+        }
+
+        card.style.display = (searchMatch && filterMatch && memberMatch) ? '' : 'none';
     });
 
     listColumns.forEach(col => {
@@ -1389,11 +1402,11 @@ function applyBoardFilters() {
         const countBadge = col.querySelector('.list-column > div > span:nth-child(2)');
         if (countBadge) {
             // Show filtered count when filters are active, otherwise show total count
-            const displayCount = (currentSearch !== '' || activeFilter) ? visibleCards.length : totalCards;
+            const displayCount = (currentSearch !== '' || activeFilter || selectedMemberId !== null) ? visibleCards.length : totalCards;
             countBadge.textContent = displayCount;
         }
 
-        if (visibleCards.length === 0 && (currentSearch !== '' || activeFilter)) {
+        if (visibleCards.length === 0 && (currentSearch !== '' || activeFilter || selectedMemberId !== null)) {
             if (!emptyMsg) {
                 emptyMsg = document.createElement('div');
                 emptyMsg.className = 'list-empty-search-msg text-xs text-center '
@@ -1470,6 +1483,113 @@ function toggleFilter(type) {
 
     applyBoardFilters();
 }
+
+
+function toggleStatusDropdown() {
+    const menu = document.getElementById('status-dropdown-menu');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
+    event.stopPropagation();
+}
+
+
+function closeStatusDropdown() {
+    const menu = document.getElementById('status-dropdown-menu');
+    if (menu) {
+        menu.classList.add('hidden');
+    }
+}
+
+
+function selectStatusFilter(status, statusLabel) {
+    activeFilter = status;
+    const label = document.getElementById('status-filter-label');
+    if (label) {
+        label.textContent = statusLabel;
+    }
+    const btn = document.getElementById('filter-status-btn');
+    if (btn) {
+        if (status === null) {
+            btn.classList.remove('bg-white/40', 'text-white', 'font-semibold');
+            btn.classList.add('bg-white/20', 'text-white/80');
+        } else {
+            btn.classList.remove('bg-white/20', 'text-white/80');
+            btn.classList.add('bg-white/40', 'text-white', 'font-semibold');
+        }
+    }
+    applyBoardFilters();
+}
+
+
+function selectMemberFilter(memberId, memberName) {
+    selectedMemberId = memberId;
+    const label = document.getElementById('member-filter-label');
+    if (label) {
+        label.textContent = memberName;
+    }
+    const btn = document.getElementById('filter-member-btn');
+    if (btn) {
+        btn.classList.remove('bg-white/20', 'text-white/80');
+        btn.classList.add('bg-white/40', 'text-white', 'font-semibold');
+    }
+    applyBoardFilters();
+}
+
+
+function clearMemberFilter() {
+    selectedMemberId = null;
+    const label = document.getElementById('member-filter-label');
+    if (label) {
+        label.textContent = 'Members';
+    }
+    const btn = document.getElementById('filter-member-btn');
+    if (btn) {
+        btn.classList.remove('bg-white/40', 'text-white', 'font-semibold');
+        btn.classList.add('bg-white/20', 'text-white/80');
+    }
+    applyBoardFilters();
+}
+
+
+function toggleMemberDropdown() {
+    const menu = document.getElementById('member-dropdown-menu');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
+    event.stopPropagation();
+}
+
+
+function closeMemberDropdown() {
+    const menu = document.getElementById('member-dropdown-menu');
+    if (menu) {
+        menu.classList.add('hidden');
+    }
+}
+
+
+// Close dropdowns when clicking outside
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', function(event) {
+        const statusDropdown = document.getElementById('status-filter-dropdown');
+        const statusMenu = document.getElementById('status-dropdown-menu');
+        const memberDropdown = document.getElementById('member-filter-dropdown');
+        const memberMenu = document.getElementById('member-dropdown-menu');
+        
+        if (statusDropdown && !statusDropdown.contains(event.target)) {
+            if (statusMenu) {
+                statusMenu.classList.add('hidden');
+            }
+        }
+        
+        if (memberDropdown && !memberDropdown.contains(event.target)) {
+            if (memberMenu) {
+                memberMenu.classList.add('hidden');
+            }
+        }
+    });
+});
 
 
 async function deleteLabel(labelId, boardId) {
