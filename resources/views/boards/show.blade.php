@@ -478,6 +478,43 @@
 select option {
     border-radius: 0.5rem;
 }
+
+@media (max-width: 640px) {
+
+  /* 1. Stack the header into two rows */
+  #board-show-state .relative.z-10 {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* 2. Search + filters row: make it scrollable horizontally */
+  #board-show-state .flex.items-center.gap-2.ml-auto {
+    margin-left: 0;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    flex-wrap: nowrap;
+  }
+
+  /* 3. Search input full width */
+  #board-card-search {
+    width: 140px;
+  }
+
+  /* 4. Right-side actions (Settings/Labels/Chat) — scroll row */
+  #board-show-state .ml-auto.flex.items-center.gap-3 {
+    margin-left: 0;
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  /* 5. Hide the separator pipe on mobile */
+  #board-show-state .text-white\/30 {
+    display: none;
+  }
+}
 </style>
 
 {{-- ── Card detail modal ─────────────────────────────────────── --}}
