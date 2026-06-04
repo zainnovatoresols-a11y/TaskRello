@@ -204,7 +204,7 @@
             </div>
 
             {{-- Activity log --}}
-            <div>
+            <div class="max-h-64 overflow-y-auto card-modal-scrollbar pr-2 -mr-2">
                 {{-- ── Time log history ───────────────────────────────── --}}
                 @if($card->timeLogs->isNotEmpty())
                 <div class="mb-4">
