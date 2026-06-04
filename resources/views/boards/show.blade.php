@@ -251,15 +251,32 @@
             background: #6b7280;
         }
     }
+
+    .modal-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 28px !important;
+    border-radius: 0.5rem;
+    max-width: 100%;
+}
+
+select option {
+    border-radius: 0.5rem;
+}
 </style>
 
 {{-- ── Card detail modal ─────────────────────────────────────── --}}
 <div id="card-modal"
-    class="hidden fixed inset-0 z-50 flex items-center justify-center px-2 md:px-4 py-4"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center p-3"
     style="background-color: rgba(0,0,0,0.55);">
 
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl
-                overflow-hidden relative max-h-[90vh]" onclick="event.stopPropagation()">
+            overflow-hidden relative max-h-[90vh]"
+     style="max-width: min(42rem, calc(100vw - 1.5rem));"
+     onclick="event.stopPropagation()">
 
         {{-- Close button --}}
         <button onclick="closeCardModal()"

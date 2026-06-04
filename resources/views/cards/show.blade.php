@@ -10,11 +10,11 @@
         z-index: 50;
         border-radius: 0.5rem;
     }
-    
+
     .modal-select option {
         border-radius: 0.5rem;
     }
-    
+
     .card-modal-scrollbar {
         overflow-y: auto;
         overflow-x: hidden;
@@ -381,17 +381,33 @@
                     </div>
                     @endif
                 </div>
-                <select onchange="assignUser({{ $card->id }}, this.value); this.selectedIndex=0;"
-                    class="modal-select w-full border border-gray-200 dark:border-gray-600 rounded-lg
-                           px-2 py-1.5 text-xs bg-white dark:bg-gray-700
-                           text-gray-700 dark:text-gray-200
-                           focus:outline-none focus:ring-2 focus:ring-blue-500
-                           focus:border-transparent transition cursor-pointer">
-                    <option value="" disabled selected hidden>Assign member...</option>
-                    @foreach($card->list->board->members as $member)
-                    <option value="{{ $member->id }}">{{ $member->name }}{{ $card->assignees->contains($member->id) ? ' ✓' : '' }}</option>
-                    @endforeach
-                </select>
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open"
+                        class="w-full flex items-center justify-between
+               border border-gray-200 dark:border-gray-600 rounded-lg
+               px-2 py-1.5 text-xs bg-white dark:bg-gray-700
+               text-gray-500 dark:text-gray-400 transition cursor-pointer">
+                        <span>Assign member...</span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6" />
+                        </svg>
+                    </button>
+                    <div x-show="open"
+                        @click.away="open = false"
+                        class="absolute z-50 w-full mt-1 bg-white dark:bg-gray-700
+                border border-gray-200 dark:border-gray-600
+                rounded-lg shadow-lg overflow-hidden">
+                        @foreach($card->list->board->members as $member)
+                        <button @click="open = false"
+                            onclick="assignUser({{ $card->id }}, {{ $member->id }})"
+                            class="w-full text-left px-3 py-2 text-xs
+                   text-gray-700 dark:text-gray-200
+                   hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                            {{ $member->name }}{{ $card->assignees->contains($member->id) ? ' ✓' : '' }}
+                        </button>
+                        @endforeach
+                    </div>
+                </div>
             </div>
 
             {{-- Divider --}}
@@ -554,18 +570,36 @@
                     </span>
                     @endforeach
                 </div>
-                <select id="card-label-select-{{ $card->id }}"
-                    class="js-label-select modal-select w-full border border-gray-200 dark:border-gray-600 rounded-lg
-                               px-2 py-1.5 text-xs bg-white dark:bg-gray-700
-                               text-gray-700 dark:text-gray-200
-                               focus:outline-none focus:ring-2 focus:ring-blue-500
-                               focus:border-transparent transition cursor-pointer"
-                    onchange="attachLabel({{ $card->id }}, this.value); this.selectedIndex=0;">
-                    <option value="" disabled selected hidden>Add label...</option>
-                    @foreach($card->list->board->labels as $label)
-                    <option value="{{ $label->id }}">{{ $label->name }}</option>
-                    @endforeach
-                </select>
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open"
+                        class="w-full flex items-center justify-between
+               border border-gray-200 dark:border-gray-600 rounded-lg
+               px-2 py-1.5 text-xs bg-white dark:bg-gray-700
+               text-gray-500 dark:text-gray-400 transition cursor-pointer">
+                        <span>Add label...</span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6" />
+                        </svg>
+                    </button>
+                    <div x-show="open"
+                        @click.away="open = false"
+                        class="absolute z-50 w-full mt-1 bg-white dark:bg-gray-700
+                border border-gray-200 dark:border-gray-600
+                rounded-lg shadow-lg overflow-hidden">
+                        @foreach($card->list->board->labels as $label)
+                        <button @click="open = false"
+                            onclick="attachLabel({{ $card->id }}, {{ $label->id }})"
+                            class="w-full text-left px-3 py-2 text-xs
+                   text-gray-700 dark:text-gray-200
+                   hover:bg-gray-100 dark:hover:bg-gray-600 transition
+                   flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full flex-shrink-0"
+                                style="background-color: {{ $label->color }}"></span>
+                            {{ $label->name }}
+                        </button>
+                        @endforeach
+                    </div>
+                </div>
 
             </div>
 
