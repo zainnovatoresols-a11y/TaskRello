@@ -241,6 +241,87 @@
                 </div>
             </div>
 
+            {{-- Date filter dropdown --}}
+            <div class="relative" id="date-filter-dropdown">
+                <button onclick="toggleDateDropdown()"
+                    id="filter-date-btn"
+                    class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
+                       text-white/80 hover:text-white text-xs font-medium
+                       px-3 py-1.5 rounded-lg transition border border-white/20
+                       whitespace-nowrap">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span id="date-filter-label">Date</span>
+                </button>
+
+                <div id="date-dropdown-menu"
+                    class="hidden absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800
+                            rounded-xl shadow-lg border border-gray-100
+                            dark:border-gray-700 py-1 z-30">
+
+                    {{-- All Dates option --}}
+                    <button onclick="selectDateFilter(null, 'Date'); closeDateDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        All Dates
+                    </button>
+
+                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
+
+                    {{-- Date filter options --}}
+                    <button onclick="selectDateFilter('overdue', 'Overdue'); closeDateDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition
+                                   flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Overdue</span>
+                    </button>
+
+                    <button onclick="selectDateFilter('today', 'Today'); closeDateDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition
+                                   flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Today</span>
+                    </button>
+
+                    <button onclick="selectDateFilter('upcoming', 'Upcoming'); closeDateDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition
+                                   flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>This Week</span>
+                    </button>
+
+                    <button onclick="selectDateFilter('month', 'This Month'); closeDateDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition
+                                   flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>This Month</span>
+                    </button>
+                </div>
+            </div>
+
         </div>
 
         {{-- Right side actions --}}

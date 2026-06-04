@@ -22,6 +22,7 @@ $elapsedSeconds = $activeSession?->elapsed_seconds ?? 0;
     data-total-time="{{ $card->total_time_seconds }}"
     data-assignees="{{ json_encode($card->assignees->pluck('id')->toArray()) }}"
     data-labels="{{ json_encode($card->labels->pluck('id')->toArray()) }}"
+    data-due-date="{{ $card->due_date ? $card->due_date->format('Y-m-d') : '' }}"
     id="card-{{ $card->id }}">
 
     {{-- ── Completion checkbox (top-right on hover) ──────────── --}}

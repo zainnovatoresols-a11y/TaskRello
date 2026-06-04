@@ -1361,6 +1361,7 @@ let activeFilter = null;
 let currentSearch = '';
 let selectedMemberId = null;
 let selectedLabelId = null;
+let selectedDateFilter = null;
 
 function applyBoardFilters() {
     const cards = document.querySelectorAll('.card-item');
@@ -1372,6 +1373,7 @@ function applyBoardFilters() {
         const completed = card.dataset.completed === 'true';
         const assigneesStr = card.dataset.assignees || '[]';
         const labelsStr = card.dataset.labels || '[]';
+        const dueDate = card.dataset.dueDate || '';
         let assignees = [];
         let labels = [];
         try {
@@ -1403,7 +1405,12 @@ function applyBoardFilters() {
             labelMatch = labels.includes(selectedLabelId);
         }
 
-        card.style.display = (searchMatch && filterMatch && memberMatch && labelMatch) ? '' : 'none';
+        let dateMatch = true;
+        if (selectedDateFilter !== null) {
+            dateMatch = matchesDateFilter(dueDate, selectedDateFilter);
+        }
+
+        card.style.display = (searchMatch && filterMatch && memberMatch && labelMatch && dateMatch) ? '' : 'none';
     });
 
     listColumns.forEach(col => {
@@ -1415,11 +1422,11 @@ function applyBoardFilters() {
         const countBadge = col.querySelector('.list-column > div > span:nth-child(2)');
         if (countBadge) {
             // Show filtered count when filters are active, otherwise show total count
-            const displayCount = (currentSearch !== '' || activeFilter || selectedMemberId !== null || selectedLabelId !== null) ? visibleCards.length : totalCards;
+            const displayCount = (currentSearch !== '' || activeFilter || selectedMemberId !== null || selectedLabelId !== null || selectedDateFilter !== null) ? visibleCards.length : totalCards;
             countBadge.textContent = displayCount;
         }
 
-        if (visibleCards.length === 0 && (currentSearch !== '' || activeFilter || selectedMemberId !== null || selectedLabelId !== null)) {
+        if (visibleCards.length === 0 && (currentSearch !== '' || activeFilter || selectedMemberId !== null || selectedLabelId !== null || selectedDateFilter !== null)) {
             if (!emptyMsg) {
                 emptyMsg = document.createElement('div');
                 emptyMsg.className = 'list-empty-search-msg text-xs text-center '
@@ -1629,6 +1636,74 @@ function clearLabelFilter() {
 }
 
 
+function matchesDateFilter(dueDateStr, filterType) {
+    if (!dueDateStr) return false;
+    
+    const dueDate = new Date(dueDateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const tomorrowDate = new Date(today);
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    
+    const weekLaterDate = new Date(today);
+    weekLaterDate.setDate(weekLaterDate.getDate() + 7);
+    
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    
+    dueDate.setHours(0, 0, 0, 0);
+    
+    if (filterType === 'overdue') {
+        return dueDate < today;
+    } else if (filterType === 'today') {
+        return dueDate.getTime() === today.getTime();
+    } else if (filterType === 'upcoming') {
+        return dueDate >= tomorrowDate && dueDate <= weekLaterDate;
+    } else if (filterType === 'month') {
+        return dueDate >= today && dueDate <= endOfMonth;
+    }
+    
+    return false;
+}
+
+
+function toggleDateDropdown() {
+    const menu = document.getElementById('date-dropdown-menu');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
+    event.stopPropagation();
+}
+
+
+function closeDateDropdown() {
+    const menu = document.getElementById('date-dropdown-menu');
+    if (menu) {
+        menu.classList.add('hidden');
+    }
+}
+
+
+function selectDateFilter(dateFilter, dateLabel) {
+    selectedDateFilter = dateFilter;
+    const label = document.getElementById('date-filter-label');
+    if (label) {
+        label.textContent = dateLabel;
+    }
+    const btn = document.getElementById('filter-date-btn');
+    if (btn) {
+        if (dateFilter === null) {
+            btn.classList.remove('bg-white/40', 'text-white', 'font-semibold');
+            btn.classList.add('bg-white/20', 'text-white/80');
+        } else {
+            btn.classList.remove('bg-white/20', 'text-white/80');
+            btn.classList.add('bg-white/40', 'text-white', 'font-semibold');
+        }
+    }
+    applyBoardFilters();
+}
+
+
 // Close dropdowns when clicking outside
 document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(event) {
@@ -1638,6 +1713,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const memberMenu = document.getElementById('member-dropdown-menu');
         const labelDropdown = document.getElementById('label-filter-dropdown');
         const labelMenu = document.getElementById('label-dropdown-menu');
+        const dateDropdown = document.getElementById('date-filter-dropdown');
+        const dateMenu = document.getElementById('date-dropdown-menu');
         
         if (statusDropdown && !statusDropdown.contains(event.target)) {
             if (statusMenu) {
@@ -1654,6 +1731,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (labelDropdown && !labelDropdown.contains(event.target)) {
             if (labelMenu) {
                 labelMenu.classList.add('hidden');
+            }
+        }
+        
+        if (dateDropdown && !dateDropdown.contains(event.target)) {
+            if (dateMenu) {
+                dateMenu.classList.add('hidden');
             }
         }
     });
