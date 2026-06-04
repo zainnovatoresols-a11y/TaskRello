@@ -223,13 +223,43 @@
 
 </div>
 
+<style>
+    .card-modal-scrollbar::-webkit-scrollbar {
+        width: 8px;
+    }
+    .card-modal-scrollbar::-webkit-scrollbar-track {
+        background: #ffffff;
+    }
+    .card-modal-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 4px;
+    }
+    .card-modal-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+    }
+    @media (prefers-color-scheme: dark) {
+        .card-modal-scrollbar {
+            scrollbar-color: #4b5563 #1f2937;
+        }
+        .card-modal-scrollbar::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        .card-modal-scrollbar::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+        .card-modal-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    }
+</style>
+
 {{-- ── Card detail modal ─────────────────────────────────────── --}}
 <div id="card-modal"
     class="hidden fixed inset-0 z-50 flex items-start justify-center pt-12 px-4 pb-4"
     style="background-color: rgba(0,0,0,0.55);">
 
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl
-                max-h-[85vh] overflow-y-auto relative" onclick="event.stopPropagation()">
+                overflow-hidden relative" onclick="event.stopPropagation()">
 
         {{-- Close button --}}
         <button onclick="closeCardModal()"
@@ -240,11 +270,15 @@
             &times;
         </button>
 
-        {{-- Modal body — filled by JS via fetch /cards/{id} --}}
-        <div id="card-modal-body" class="p-6">
+        {{-- Scrollable content wrapper --}}
+        <div class="max-h-[85vh] overflow-y-auto card-modal-scrollbar">
+
+            {{-- Modal body — filled by JS via fetch /cards/{id} --}}
+            <div id="card-modal-body" class="p-6">
             <div class="flex items-center justify-center py-12">
                 <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent
                             rounded-full animate-spin"></div>
+            </div>
             </div>
         </div>
     </div>
@@ -255,7 +289,8 @@
     class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
     style="background-color: rgba(0,0,0,0.55);">
 
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 overflow-y-auto max-h-[90vh]">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 overflow-hidden">
+        <div class="overflow-y-auto max-h-[90vh]">
 
         {{-- Header --}}
         <div class="flex items-center justify-between mb-5">
@@ -435,6 +470,7 @@
                            py-2 rounded-lg transition">
                 Create label
             </button>
+        </div>
         </div>
     </div>
 </div>
