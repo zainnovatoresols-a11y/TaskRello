@@ -4,7 +4,7 @@
 @section('content')
 
 {{-- ── Board header bar ─────────────────────────────────────── --}}
-<div class="px-6 py-3 flex items-center gap-4 flex-wrap relative overflow-visible"
+<div class="py-3 flex items-center gap-4 flex-wrap relative overflow-visible"
     id="board-show-state"
     data-board-id="{{ $board->id }}"
     style="{{ $board->background_image_url
@@ -478,41 +478,87 @@
 select option {
     border-radius: 0.5rem;
 }
-
+#board-show-state {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
 @media (max-width: 640px) {
-
-  /* 1. Stack the header into two rows */
-  #board-show-state .relative.z-10 {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  #board-show-state {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
   }
 
-  /* 2. Search + filters row: make it scrollable horizontally */
+  /* Make the inner flex container wrap properly */
+  #board-show-state > div.relative.z-10 {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  /* Filter row — scrollable strip */
   #board-show-state .flex.items-center.gap-2.ml-auto {
-    margin-left: 0;
-    width: 100%;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    flex-wrap: nowrap;
+    margin-left: 0 !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
   }
 
-  /* 3. Search input full width */
-  #board-card-search {
-    width: 140px;
-  }
-
-  /* 4. Right-side actions (Settings/Labels/Chat) — scroll row */
-  #board-show-state .ml-auto.flex.items-center.gap-3 {
-    margin-left: 0;
-    width: 100%;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-  }
-
-  /* 5. Hide the separator pipe on mobile */
-  #board-show-state .text-white\/30 {
+  #board-show-state .flex.items-center.gap-2.ml-auto::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Right side actions row — also scrollable */
+  #board-show-state .ml-auto.flex.items-center.gap-3 {
+    margin-left: 0 !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  #board-show-state .ml-auto.flex.items-center.gap-3::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Search input */
+  #board-card-search {
+    width: 110px !important;
+    min-width: 110px !important;
+  }
+
+  /* Shrink all buttons */
+  #board-show-state button,
+  #board-show-state a.inline-flex {
+    white-space: nowrap !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    font-size: 11px !important;
+  }
+
+  /* Fix dropdown positioning */
+  #status-dropdown-menu,
+  #member-dropdown-menu,
+  #label-dropdown-menu,
+  #date-dropdown-menu {
+    position: fixed !important;
+    top: 120px !important;
+    right: 8px !important;
+    left: 8px !important;
+    width: calc(100vw - 16px) !important;
+    max-height: 60vh !important;
+    overflow-y: auto !important;
+    z-index: 9999 !important;
+  }
+
+  /* Hide separator */
+  #board-show-state .text-white\/30 {
+    display: none !important;
   }
 }
 </style>

@@ -1504,11 +1504,20 @@ function toggleFilter(type) {
     applyBoardFilters();
 }
 
+function closeAllDropdowns() {
+    document.getElementById('status-dropdown-menu')?.classList.add('hidden');
+    document.getElementById('member-dropdown-menu')?.classList.add('hidden');
+    document.getElementById('label-dropdown-menu')?.classList.add('hidden');
+    document.getElementById('date-dropdown-menu')?.classList.add('hidden');
+}
 
 function toggleStatusDropdown() {
     const menu = document.getElementById('status-dropdown-menu');
-    if (menu) {
-        menu.classList.toggle('hidden');
+    const isHidden = menu.classList.contains('hidden');
+    closeAllDropdowns();
+    if (isHidden) {
+        menu.classList.remove('hidden');
+        positionDropdown('status-dropdown-menu', 'filter-status-btn');
     }
     event.stopPropagation();
 }
@@ -1574,8 +1583,11 @@ function clearMemberFilter() {
 
 function toggleMemberDropdown() {
     const menu = document.getElementById('member-dropdown-menu');
-    if (menu) {
-        menu.classList.toggle('hidden');
+    const isHidden = menu.classList.contains('hidden');
+    closeAllDropdowns();
+    if (isHidden) {
+        menu.classList.remove('hidden');
+        positionDropdown('member-dropdown-menu', 'filter-member-btn');
     }
     event.stopPropagation();
 }
@@ -1591,8 +1603,11 @@ function closeMemberDropdown() {
 
 function toggleLabelDropdown() {
     const menu = document.getElementById('label-dropdown-menu');
-    if (menu) {
-        menu.classList.toggle('hidden');
+    const isHidden = menu.classList.contains('hidden');
+    closeAllDropdowns();
+    if (isHidden) {
+        menu.classList.remove('hidden');
+        positionDropdown('label-dropdown-menu', 'filter-label-btn');
     }
     event.stopPropagation();
 }
@@ -1669,8 +1684,11 @@ function matchesDateFilter(dueDateStr, filterType) {
 
 function toggleDateDropdown() {
     const menu = document.getElementById('date-dropdown-menu');
-    if (menu) {
-        menu.classList.toggle('hidden');
+    const isHidden = menu.classList.contains('hidden');
+    closeAllDropdowns();
+    if (isHidden) {
+        menu.classList.remove('hidden');
+        positionDropdown('date-dropdown-menu', 'filter-date-btn');
     }
     event.stopPropagation();
 }
@@ -1707,37 +1725,20 @@ function selectDateFilter(dateFilter, dateLabel) {
 // Close dropdowns when clicking outside
 document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(event) {
-        const statusDropdown = document.getElementById('status-filter-dropdown');
-        const statusMenu = document.getElementById('status-dropdown-menu');
-        const memberDropdown = document.getElementById('member-filter-dropdown');
-        const memberMenu = document.getElementById('member-dropdown-menu');
-        const labelDropdown = document.getElementById('label-filter-dropdown');
-        const labelMenu = document.getElementById('label-dropdown-menu');
-        const dateDropdown = document.getElementById('date-filter-dropdown');
-        const dateMenu = document.getElementById('date-dropdown-menu');
-        
-        if (statusDropdown && !statusDropdown.contains(event.target)) {
-            if (statusMenu) {
-                statusMenu.classList.add('hidden');
-            }
-        }
-        
-        if (memberDropdown && !memberDropdown.contains(event.target)) {
-            if (memberMenu) {
-                memberMenu.classList.add('hidden');
-            }
-        }
-        
-        if (labelDropdown && !labelDropdown.contains(event.target)) {
-            if (labelMenu) {
-                labelMenu.classList.add('hidden');
-            }
-        }
-        
-        if (dateDropdown && !dateDropdown.contains(event.target)) {
-            if (dateMenu) {
-                dateMenu.classList.add('hidden');
-            }
+        const filterBtnIds = [
+            'filter-status-btn',
+            'filter-member-btn',
+            'filter-label-btn',
+            'filter-date-btn'
+        ];
+
+        const clickedAFilterBtn = filterBtnIds.some(id => {
+            const btn = document.getElementById(id);
+            return btn && btn.contains(event.target);
+        });
+
+        if (!clickedAFilterBtn) {
+            closeAllDropdowns();
         }
     });
 });
