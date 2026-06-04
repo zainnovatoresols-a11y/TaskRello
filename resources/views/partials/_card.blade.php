@@ -22,25 +22,28 @@ $elapsedSeconds = $activeSession?->elapsed_seconds ?? 0;
     data-total-time="{{ $card->total_time_seconds }}"
     id="card-{{ $card->id }}">
 
-    {{-- ── Completion checkbox (visible on hover) ──────────── --}}
-    <div class="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100
-                transition-opacity duration-150"
-        onclick="event.stopPropagation(); toggleCardComplete({{ $card->id }}, this)">
-        <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center
-                    transition-all cursor-pointer
-                    {{ $card->is_completed
-                        ? 'bg-green-500 border-green-500'
-                        : 'bg-white/80 dark:bg-gray-700/80 border-gray-400
-                           dark:border-gray-500 hover:border-green-400' }}"
-            id="complete-circle-{{ $card->id }}">
-            <svg class="w-3 h-3 text-white {{ $card->is_completed ? '' : 'hidden' }}"
-                id="complete-tick-{{ $card->id }}"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    stroke-width="3" d="M5 13l4 4L19 7" />
-            </svg>
-        </div>
+    {{-- ── Completion checkbox (top-right on hover) ──────────── --}}
+<div class="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100
+            transition-opacity duration-150"
+    onclick="event.stopPropagation(); toggleCardComplete({{ $card->id }}, this)">
+    <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center
+                transition-all cursor-pointer
+                {{ $card->is_completed
+                    ? 'bg-green-500 border-green-500'
+                    : 'bg-white/80 dark:bg-gray-700/80 border-gray-400
+                       dark:border-gray-500 hover:border-green-400 hover:bg-green-50
+                       dark:hover:bg-green-900/30' }}"
+        id="complete-circle-{{ $card->id }}">
+        <svg class="w-3 h-3 text-white {{ $card->is_completed ? '' : 'hidden' }}"
+            id="complete-tick-{{ $card->id }}"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                stroke-width="3" d="M5 13l4 4L19 7" />
+        </svg>
     </div>
+</div>
+
+{{-- Remove the old left-side checkbox div entirely --}}
 
     {{-- ── Cover image (priority) or color strip ──────────── --}}
     @if($card->cover_image_url)
@@ -195,40 +198,40 @@ $elapsedSeconds = $activeSession?->elapsed_seconds ?? 0;
                 @endif
 
                 {{-- Total time badge --}}
-@if($card->total_time_seconds > 0)
-    <span class="inline-flex items-center gap-1 text-xs
+                @if($card->total_time_seconds > 0)
+                <span class="inline-flex items-center gap-1 text-xs
                  text-purple-600 dark:text-purple-400
                  bg-purple-50 dark:bg-purple-900/20
                  px-1.5 py-0.5 rounded-md font-medium"
-          id="total-time-badge-{{ $card->id }}"
-          title="Total time tracked">
-        <svg class="w-3 h-3" fill="none" stroke="currentColor"
-             viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <span id="total-time-text-{{ $card->id }}">
-            {{ $card->total_time_formatted }}
-        </span>
-    </span>
-@else
-    {{-- Hidden badge shown by JS after first time log --}}
-    <span class="hidden inline-flex items-center gap-1 text-xs
+                    id="total-time-badge-{{ $card->id }}"
+                    title="Total time tracked">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span id="total-time-text-{{ $card->id }}">
+                        {{ $card->total_time_formatted }}
+                    </span>
+                </span>
+                @else
+                {{-- Hidden badge shown by JS after first time log --}}
+                <span class="hidden inline-flex items-center gap-1 text-xs
                  text-purple-600 dark:text-purple-400
                  bg-purple-50 dark:bg-purple-900/20
                  px-1.5 py-0.5 rounded-md font-medium"
-          id="total-time-badge-{{ $card->id }}"
-          title="Total time tracked">
-        <svg class="w-3 h-3" fill="none" stroke="currentColor"
-             viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <span id="total-time-text-{{ $card->id }}">0m</span>
-    </span>
-@endif
+                    id="total-time-badge-{{ $card->id }}"
+                    title="Total time tracked">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span id="total-time-text-{{ $card->id }}">0m</span>
+                </span>
+                @endif
 
             </div>
 
