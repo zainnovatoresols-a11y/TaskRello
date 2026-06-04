@@ -541,19 +541,32 @@ select option {
     font-size: 11px !important;
   }
 
-  /* Fix dropdown positioning */
+ /* Fix dropdown positioning — smaller, screen-aware */
   #status-dropdown-menu,
   #member-dropdown-menu,
   #label-dropdown-menu,
   #date-dropdown-menu {
     position: fixed !important;
-    top: 120px !important;
-    right: 8px !important;
+    top: 130px !important;
     left: 8px !important;
-    width: calc(100vw - 16px) !important;
-    max-height: 60vh !important;
+    right: 8px !important;
+    width: auto !important;
+    max-width: 180px !important;   /* smaller width */
+    max-height: 40vh !important;   /* smaller height */
     overflow-y: auto !important;
     z-index: 9999 !important;
+    font-size: 12px !important;
+  }
+
+  #status-dropdown-menu button,
+  #member-dropdown-menu button,
+  #label-dropdown-menu button,
+  #date-dropdown-menu button {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    font-size: 12px !important;
   }
 
   /* Hide separator */

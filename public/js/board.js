@@ -1511,6 +1511,28 @@ function closeAllDropdowns() {
     document.getElementById('date-dropdown-menu')?.classList.add('hidden');
 }
 
+// ADD THIS NEW FUNCTION RIGHT HERE:
+function positionDropdown(menuId, btnId) {
+    const menu = document.getElementById(menuId);
+    const btn  = document.getElementById(btnId);
+    if (!menu || !btn) return;
+
+    const rect      = btn.getBoundingClientRect();
+    const menuWidth = 180;
+    const viewport  = window.innerWidth;
+
+    menu.style.position = 'fixed';
+    menu.style.top      = (rect.bottom + 6) + 'px';
+
+    let left = rect.right - menuWidth;
+    if (left < 8) left = 8;
+    if (left + menuWidth > viewport - 8) left = viewport - menuWidth - 8;
+
+    menu.style.left  = left + 'px';
+    menu.style.right = 'auto';
+    menu.style.width = menuWidth + 'px';
+}
+
 function toggleStatusDropdown() {
     const menu = document.getElementById('status-dropdown-menu');
     const isHidden = menu.classList.contains('hidden');
