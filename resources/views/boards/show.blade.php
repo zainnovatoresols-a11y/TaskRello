@@ -585,6 +585,33 @@
             display: none !important;
         }
     }
+
+    #labels-modal .overflow-y-auto::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    #labels-modal .overflow-y-auto::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    #labels-modal .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 4px;
+    }
+
+    #labels-modal .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+    }
+
+    #labels-modal .overflow-y-auto {
+        scrollbar-gutter: stable;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        #labels-modal .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+    }
 </style>
 
 {{-- ── Card detail modal ─────────────────────────────────────── --}}
@@ -625,8 +652,8 @@
     class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
     style="background-color: rgba(0,0,0,0.55);">
 
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 overflow-hidden">
-        <div class="overflow-y-auto max-h-[90vh]">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+        <div class="overflow-y-auto max-h-[90vh] p-6 pr-4">
 
             {{-- Header --}}
             <div class="flex items-center justify-between mb-5">
