@@ -612,6 +612,34 @@
             background: #4b5563;
         }
     }
+
+    /* Cards container scrollbar */
+    .cards-container::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .cards-container::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .cards-container::-webkit-scrollbar-thumb {
+        background: #9ca3af;
+        border-radius: 4px;
+    }
+
+    .cards-container::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .cards-container::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+
+        .cards-container::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    }
 </style>
 
 {{-- ── Card detail modal ─────────────────────────────────────── --}}
