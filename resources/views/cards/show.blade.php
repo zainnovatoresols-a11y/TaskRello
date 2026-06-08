@@ -19,6 +19,28 @@
         overflow-y: auto;
         overflow-x: hidden;
     }
+
+    /* Comments scrollbar */
+    [id^="comments-list-"]::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    [id^="comments-list-"]::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    [id^="comments-list-"]::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 4px;
+    }
+
+    [id^="comments-list-"]::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+    }
+
+    .dark [id^="comments-list-"]::-webkit-scrollbar-thumb {
+        background: #4b5563;
+    }
 </style>
 
 <div data-card-id="{{ $card->id }}" data-user-name="{{ auth()->user()->name }}" class="font-sans">
@@ -139,7 +161,7 @@
                 </div>
 
                 {{-- Existing comments --}}
-                <div id="comments-list-{{ $card->id }}" class="space-y-3 mb-4">
+                <div id="comments-list-{{ $card->id }}" class="space-y-3 mb-4 overflow-y-auto pr-1" style="max-height: 250px; scrollbar-gutter: stable;">
                     @forelse($card->comments as $comment)
                     <div class="flex gap-3" id="comment-{{ $comment->id }}">
                         <div class="w-7 h-7 rounded-full bg-blue-600 flex-shrink-0
