@@ -339,7 +339,7 @@
 
         {{-- Invite member form --}}
         @can('manageMember', $board)
-        <div class="border-t border-gray-100 dark:border-gray-700 pt-5">
+        <div class="border-t mb-6 border-gray-100 dark:border-gray-700 pt-5">
             <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                 Invite a member
             </h3>
@@ -367,6 +367,131 @@
                 @enderror
             </form>
         </div>
+
+        {{-- ── Invite Unregistered User ────────────────────────── --}}
+        @can('manageMember', $board)
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100
+            dark:border-gray-700 shadow-sm p-6 mb-6">
+
+            <div class="flex items-center gap-2 mb-1">
+                <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0
+                     002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100">
+                    Invite new user
+                </h2>
+            </div>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mb-5 ml-6">
+                Invite someone who does not have an account yet.
+                They will receive a registration email and be
+                automatically added to this board after signing up.
+            </p>
+
+            {{-- Invite form --}}
+            <form method="POST"
+                action="{{ route('boards.invite', $board) }}">
+                @csrf
+                <div class="flex gap-3">
+                    <input type="email"
+                        name="invite_email"
+                        value="{{ old('invite_email') }}"
+                        placeholder="Enter email address..."
+                        class="flex-1 border border-gray-300 dark:border-gray-600
+                          rounded-lg px-3 py-2.5 text-sm
+                          bg-white dark:bg-gray-900
+                          text-gray-900 dark:text-gray-100
+                          placeholder-gray-400 dark:placeholder-gray-600
+                          focus:outline-none focus:ring-2 focus:ring-blue-500
+                          focus:border-transparent transition">
+                    <button type="submit"
+                        class="inline-flex items-center gap-1.5 bg-blue-700
+                           hover:bg-blue-800 text-white px-4 py-2.5
+                           rounded-lg text-sm font-medium transition
+                           flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2
+                             2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2
+                             2 0 002 2z" />
+                        </svg>
+                        Send Invite
+                    </button>
+                </div>
+
+                @error('invite_email')
+                <p class="text-red-500 text-xs mt-1.5">{{ $message }}</p>
+                @enderror
+            </form>
+
+            {{-- Pending invitations list --}}
+            @php
+            $pendingInvites = \App\Models\BoardInvitation::where('board_id', $board->id)
+            ->where('status', 'pending')
+            ->where('expires_at', '>', now())
+            ->latest()
+            ->get();
+            @endphp
+
+            @if($pendingInvites->isNotEmpty())
+            <div class="mt-5 border-t border-gray-100 dark:border-gray-700 pt-4">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400
+                      uppercase tracking-wider mb-3">
+                    Pending Invitations
+                    <span class="ml-1 bg-yellow-100 dark:bg-yellow-900/30
+                             text-yellow-700 dark:text-yellow-400
+                             px-1.5 py-0.5 rounded-full font-bold">
+                        {{ $pendingInvites->count() }}
+                    </span>
+                </p>
+                <div class="space-y-2.5">
+                    @foreach($pendingInvites as $invite)
+                    <div class="flex items-center justify-between py-2 px-3
+                                bg-yellow-50 dark:bg-yellow-900/10 border
+                                border-yellow-200 dark:border-yellow-800/50
+                                rounded-xl">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            {{-- Email avatar --}}
+                            <div class="w-8 h-8 rounded-full bg-yellow-500
+                                        flex items-center justify-center
+                                        text-white text-xs font-bold flex-shrink-0">
+                                {{ strtoupper(substr($invite->email, 0, 1)) }}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium text-gray-800
+                                          dark:text-gray-100 truncate">
+                                    {{ $invite->email }}
+                                </p>
+                                <p class="text-xs text-gray-400 dark:text-gray-500">
+                                    Invited {{ $invite->created_at->diffForHumans() }}
+                                    · Expires {{ $invite->expires_at->diffForHumans() }}
+                                </p>
+                            </div>
+                        </div>
+
+                        {{-- Pending badge --}}
+                        <span class="inline-flex items-center gap-1 text-xs
+                                     font-medium text-yellow-700
+                                     dark:text-yellow-400 bg-yellow-100
+                                     dark:bg-yellow-900/30 px-2.5 py-1
+                                     rounded-full flex-shrink-0 ml-2">
+                            <span class="w-1.5 h-1.5 bg-yellow-500 rounded-full
+                                         animate-pulse"></span>
+                            Pending
+                        </span>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+        </div>
+        @endcan
         @endcan
     </div>
 
