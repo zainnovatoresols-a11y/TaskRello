@@ -9,6 +9,10 @@ use App\Models\User;
 use App\Services\BoardService;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Mail\BoardInvitationMail;
+use App\Models\BoardInvitation;
+use Illuminate\Support\Facades\Mail;
+
 
 class BoardController extends Controller
 {
@@ -329,5 +333,104 @@ class BoardController extends Controller
             'success' => true,
             'message' => 'Background image removed.',
         ]);
+    }
+
+    public function inviteByEmail(Request $request, Board $board)
+    {
+        $this->authorize('manageMember', $board);
+
+        $request->validate([
+            'invite_email' => ['required', 'email'],
+        ], [
+            'invite_email.required' => 'Please enter an email address.',
+            'invite_email.email'    => 'Please enter a valid email address.',
+        ]);
+
+        $email = strtolower(trim($request->invite_email));
+
+        // Check if user is already registered
+        $existingUser = User::where('email', $email)->first();
+
+        if ($existingUser) {
+            // Already registered — tell them to use the Add Member section
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "{$existingUser->name} is already registered. Use the \"Add Member\" section above to add them directly.",
+                ], 422);
+            }
+
+            return redirect()
+                ->route('boards.edit', $board)
+                ->with('error', "{$existingUser->name} is already registered. Use the Add Member section to add them.");
+        }
+
+        // Check if already a board member by email
+        $alreadyMember = $board->members()
+            ->where('email', $email)
+            ->exists();
+
+        if ($alreadyMember) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This email is already a member of this board.',
+                ], 422);
+            }
+
+            return redirect()
+                ->route('boards.edit', $board)
+                ->with('error', 'This email is already a member of this board.');
+        }
+
+        // Check if invitation already pending for this email on this board
+        $existing = BoardInvitation::where('board_id', $board->id)
+            ->where('email', $email)
+            ->where('status', 'pending')
+            ->where('expires_at', '>', now())
+            ->first();
+
+        if ($existing) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "An invitation was already sent to {$email}. It expires " . $existing->expires_at->diffForHumans() . '.',
+                ], 422);
+            }
+
+            return redirect()
+                ->route('boards.edit', $board)
+                ->with('error', "An invitation was already sent to {$email}.");
+        }
+
+        // Create the invitation
+        $invitation = BoardInvitation::create([
+            'board_id'   => $board->id,
+            'invited_by' => $request->user()->id,
+            'email'      => $email,
+            'token'      => BoardInvitation::generateToken(),
+            'status'     => 'pending',
+            'expires_at' => now()->addDays(7),
+        ]);
+
+        // Send registration email
+        Mail::to($email)->send(
+            new BoardInvitationMail($invitation, $board, $request->user())
+        );
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Invitation sent to {$email}. They will receive a registration link.",
+                'data'    => [
+                    'email'      => $email,
+                    'expires_at' => $invitation->expires_at->format('M j, Y'),
+                ],
+            ]);
+        }
+
+        return redirect()
+            ->route('boards.edit', $board)
+            ->with('success', "Invitation sent to {$email}. They will receive a registration email.");
     }
 }

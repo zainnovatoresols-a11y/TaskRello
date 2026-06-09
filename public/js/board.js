@@ -1359,6 +1359,9 @@ async function toggleCardComplete(cardId, checkboxWrapper) {
 
 let activeFilter = null;
 let currentSearch = '';
+let selectedMemberId = null;
+let selectedLabelId = null;
+let selectedDateFilter = null;
 
 function applyBoardFilters() {
     const cards = document.querySelectorAll('.card-item');
@@ -1368,6 +1371,21 @@ function applyBoardFilters() {
         const title = card.dataset.title || '';
         const description = card.dataset.description || '';
         const completed = card.dataset.completed === 'true';
+        const assigneesStr = card.dataset.assignees || '[]';
+        const labelsStr = card.dataset.labels || '[]';
+        const dueDate = card.dataset.dueDate || '';
+        let assignees = [];
+        let labels = [];
+        try {
+            assignees = JSON.parse(assigneesStr);
+        } catch (e) {
+            assignees = [];
+        }
+        try {
+            labels = JSON.parse(labelsStr);
+        } catch (e) {
+            labels = [];
+        }
 
         const searchMatch = currentSearch === ''
             || title.includes(currentSearch)
@@ -1377,7 +1395,22 @@ function applyBoardFilters() {
         if (activeFilter === 'completed') filterMatch = completed;
         if (activeFilter === 'incomplete') filterMatch = !completed;
 
-        card.style.display = (searchMatch && filterMatch) ? '' : 'none';
+        let memberMatch = true;
+        if (selectedMemberId !== null) {
+            memberMatch = assignees.includes(selectedMemberId);
+        }
+
+        let labelMatch = true;
+        if (selectedLabelId !== null) {
+            labelMatch = labels.includes(selectedLabelId);
+        }
+
+        let dateMatch = true;
+        if (selectedDateFilter !== null) {
+            dateMatch = matchesDateFilter(dueDate, selectedDateFilter);
+        }
+
+        card.style.display = (searchMatch && filterMatch && memberMatch && labelMatch && dateMatch) ? '' : 'none';
     });
 
     listColumns.forEach(col => {
@@ -1389,11 +1422,11 @@ function applyBoardFilters() {
         const countBadge = col.querySelector('.list-column > div > span:nth-child(2)');
         if (countBadge) {
             // Show filtered count when filters are active, otherwise show total count
-            const displayCount = (currentSearch !== '' || activeFilter) ? visibleCards.length : totalCards;
+            const displayCount = (currentSearch !== '' || activeFilter || selectedMemberId !== null || selectedLabelId !== null || selectedDateFilter !== null) ? visibleCards.length : totalCards;
             countBadge.textContent = displayCount;
         }
 
-        if (visibleCards.length === 0 && (currentSearch !== '' || activeFilter)) {
+        if (visibleCards.length === 0 && (currentSearch !== '' || activeFilter || selectedMemberId !== null || selectedLabelId !== null || selectedDateFilter !== null)) {
             if (!emptyMsg) {
                 emptyMsg = document.createElement('div');
                 emptyMsg.className = 'list-empty-search-msg text-xs text-center '
@@ -1470,6 +1503,267 @@ function toggleFilter(type) {
 
     applyBoardFilters();
 }
+
+function closeAllDropdowns() {
+    document.getElementById('status-dropdown-menu')?.classList.add('hidden');
+    document.getElementById('member-dropdown-menu')?.classList.add('hidden');
+    document.getElementById('label-dropdown-menu')?.classList.add('hidden');
+    document.getElementById('date-dropdown-menu')?.classList.add('hidden');
+}
+
+// ADD THIS NEW FUNCTION RIGHT HERE:
+function positionDropdown(menuId, btnId) {
+    const menu = document.getElementById(menuId);
+    const btn  = document.getElementById(btnId);
+    if (!menu || !btn) return;
+
+    const rect      = btn.getBoundingClientRect();
+    const menuWidth = 180;
+    const viewport  = window.innerWidth;
+
+    menu.style.position = 'fixed';
+    menu.style.top      = (rect.bottom + 6) + 'px';
+
+    let left = rect.right - menuWidth;
+    if (left < 8) left = 8;
+    if (left + menuWidth > viewport - 8) left = viewport - menuWidth - 8;
+
+    menu.style.left  = left + 'px';
+    menu.style.right = 'auto';
+    menu.style.width = menuWidth + 'px';
+}
+
+function toggleStatusDropdown() {
+    const menu = document.getElementById('status-dropdown-menu');
+    const isHidden = menu.classList.contains('hidden');
+    closeAllDropdowns();
+    if (isHidden) {
+        menu.classList.remove('hidden');
+        positionDropdown('status-dropdown-menu', 'filter-status-btn');
+    }
+    event.stopPropagation();
+}
+
+
+function closeStatusDropdown() {
+    const menu = document.getElementById('status-dropdown-menu');
+    if (menu) {
+        menu.classList.add('hidden');
+    }
+}
+
+
+function selectStatusFilter(status, statusLabel) {
+    activeFilter = status;
+    const label = document.getElementById('status-filter-label');
+    if (label) {
+        label.textContent = statusLabel;
+    }
+    const btn = document.getElementById('filter-status-btn');
+    if (btn) {
+        if (status === null) {
+            btn.classList.remove('bg-white/40', 'text-white', 'font-semibold');
+            btn.classList.add('bg-white/20', 'text-white/80');
+        } else {
+            btn.classList.remove('bg-white/20', 'text-white/80');
+            btn.classList.add('bg-white/40', 'text-white', 'font-semibold');
+        }
+    }
+    applyBoardFilters();
+}
+
+
+function selectMemberFilter(memberId, memberName) {
+    selectedMemberId = memberId;
+    const label = document.getElementById('member-filter-label');
+    if (label) {
+        label.textContent = memberName;
+    }
+    const btn = document.getElementById('filter-member-btn');
+    if (btn) {
+        btn.classList.remove('bg-white/20', 'text-white/80');
+        btn.classList.add('bg-white/40', 'text-white', 'font-semibold');
+    }
+    applyBoardFilters();
+}
+
+
+function clearMemberFilter() {
+    selectedMemberId = null;
+    const label = document.getElementById('member-filter-label');
+    if (label) {
+        label.textContent = 'Members';
+    }
+    const btn = document.getElementById('filter-member-btn');
+    if (btn) {
+        btn.classList.remove('bg-white/40', 'text-white', 'font-semibold');
+        btn.classList.add('bg-white/20', 'text-white/80');
+    }
+    applyBoardFilters();
+}
+
+
+function toggleMemberDropdown() {
+    const menu = document.getElementById('member-dropdown-menu');
+    const isHidden = menu.classList.contains('hidden');
+    closeAllDropdowns();
+    if (isHidden) {
+        menu.classList.remove('hidden');
+        positionDropdown('member-dropdown-menu', 'filter-member-btn');
+    }
+    event.stopPropagation();
+}
+
+
+function closeMemberDropdown() {
+    const menu = document.getElementById('member-dropdown-menu');
+    if (menu) {
+        menu.classList.add('hidden');
+    }
+}
+
+
+function toggleLabelDropdown() {
+    const menu = document.getElementById('label-dropdown-menu');
+    const isHidden = menu.classList.contains('hidden');
+    closeAllDropdowns();
+    if (isHidden) {
+        menu.classList.remove('hidden');
+        positionDropdown('label-dropdown-menu', 'filter-label-btn');
+    }
+    event.stopPropagation();
+}
+
+
+function closeLabelDropdown() {
+    const menu = document.getElementById('label-dropdown-menu');
+    if (menu) {
+        menu.classList.add('hidden');
+    }
+}
+
+
+function selectLabelFilter(labelId, labelName) {
+    selectedLabelId = labelId;
+    const label = document.getElementById('label-filter-label');
+    if (label) {
+        label.textContent = labelName;
+    }
+    const btn = document.getElementById('filter-label-btn');
+    if (btn) {
+        btn.classList.remove('bg-white/20', 'text-white/80');
+        btn.classList.add('bg-white/40', 'text-white', 'font-semibold');
+    }
+    applyBoardFilters();
+}
+
+
+function clearLabelFilter() {
+    selectedLabelId = null;
+    const label = document.getElementById('label-filter-label');
+    if (label) {
+        label.textContent = 'Labels';
+    }
+    const btn = document.getElementById('filter-label-btn');
+    if (btn) {
+        btn.classList.remove('bg-white/40', 'text-white', 'font-semibold');
+        btn.classList.add('bg-white/20', 'text-white/80');
+    }
+    applyBoardFilters();
+}
+
+
+function matchesDateFilter(dueDateStr, filterType) {
+    if (!dueDateStr) return false;
+    
+    const dueDate = new Date(dueDateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const tomorrowDate = new Date(today);
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    
+    const weekLaterDate = new Date(today);
+    weekLaterDate.setDate(weekLaterDate.getDate() + 7);
+    
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    
+    dueDate.setHours(0, 0, 0, 0);
+    
+    if (filterType === 'overdue') {
+        return dueDate < today;
+    } else if (filterType === 'today') {
+        return dueDate.getTime() === today.getTime();
+    } else if (filterType === 'upcoming') {
+        return dueDate >= tomorrowDate && dueDate <= weekLaterDate;
+    } else if (filterType === 'month') {
+        return dueDate >= today && dueDate <= endOfMonth;
+    }
+    
+    return false;
+}
+
+
+function toggleDateDropdown() {
+    const menu = document.getElementById('date-dropdown-menu');
+    const isHidden = menu.classList.contains('hidden');
+    closeAllDropdowns();
+    if (isHidden) {
+        menu.classList.remove('hidden');
+        positionDropdown('date-dropdown-menu', 'filter-date-btn');
+    }
+    event.stopPropagation();
+}
+
+
+function closeDateDropdown() {
+    const menu = document.getElementById('date-dropdown-menu');
+    if (menu) {
+        menu.classList.add('hidden');
+    }
+}
+
+
+function selectDateFilter(dateFilter, dateLabel) {
+    selectedDateFilter = dateFilter;
+    const label = document.getElementById('date-filter-label');
+    if (label) {
+        label.textContent = dateLabel;
+    }
+    const btn = document.getElementById('filter-date-btn');
+    if (btn) {
+        if (dateFilter === null) {
+            btn.classList.remove('bg-white/40', 'text-white', 'font-semibold');
+            btn.classList.add('bg-white/20', 'text-white/80');
+        } else {
+            btn.classList.remove('bg-white/20', 'text-white/80');
+            btn.classList.add('bg-white/40', 'text-white', 'font-semibold');
+        }
+    }
+    applyBoardFilters();
+}
+
+
+// Close dropdowns when clicking outside
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', function(event) {
+        const filterBtnIds = [
+            'filter-status-btn',
+            'filter-member-btn',
+            'filter-label-btn',
+            'filter-date-btn'
+        ];
+
+        const clickedAFilterBtn = filterBtnIds.some(id => {
+            const btn = document.getElementById(id);
+            return btn && btn.contains(event.target);
+        });
+
+        if (!clickedAFilterBtn) {
+            closeAllDropdowns();
+        }
+    });
+});
 
 
 async function deleteLabel(labelId, boardId) {

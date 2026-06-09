@@ -81,7 +81,8 @@
 
     {{-- ── Cards container (SortableJS target) ─────────────── --}}
     <div class="cards-container flex-1 overflow-y-auto px-2 py-2 space-y-2
-                bg-gray-200 dark:bg-gray-700"
+            bg-gray-200 dark:bg-gray-700"
+    style="min-height: 48px; scrollbar-gutter: stable;"
         id="cards-{{ $list->id }}"
         data-list-id="{{ $list->id }}"
         style="min-height: 48px;">

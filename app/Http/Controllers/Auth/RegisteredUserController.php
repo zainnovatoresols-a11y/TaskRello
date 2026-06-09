@@ -66,7 +66,7 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         Auth::login($user);
-
+        \App\Http\Controllers\InvitationController::acceptPendingForUser($user);
         return redirect(route('boards.index'));
     }
 }

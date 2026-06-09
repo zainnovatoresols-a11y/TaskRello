@@ -9,47 +9,44 @@
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/echo.js'])
 
     <style>
-    .loader {
-        display: flex;
-        align-items: center;
-    }
-
-    .bar {
-        display: inline-block;
-        width: 3px;
-        height: 20px;
-        background-color: rgba(255, 255, 255, .5);
-        border-radius: 10px;
-        animation: scale-up4 1s linear infinite;
-    }
-
-    .bar:nth-child(2) {
-        height: 35px;
-        margin: 0 5px;
-        animation-delay: .25s;
-    }
-
-    .bar:nth-child(3) {
-        animation-delay: .5s;
-    }
-
-    @keyframes scale-up4 {
-        20% {
-            background-color: #ffff;
-            transform: scaleY(1.5);
+        .loader {
+            display: flex;
+            align-items: center;
         }
-        40% {
-            transform: scaleY(1);
+
+        .bar {
+            display: inline-block;
+            width: 3px;
+            height: 20px;
+            background-color: rgba(255, 255, 255, .5);
+            border-radius: 10px;
+            animation: scale-up4 1s linear infinite;
         }
-    }
 
+        .bar:nth-child(2) {
+            height: 35px;
+            margin: 0 5px;
+            animation-delay: .25s;
+        }
 
-   
-</style>
+        .bar:nth-child(3) {
+            animation-delay: .5s;
+        }
+
+        @keyframes scale-up4 {
+            20% {
+                background-color: #ffff;
+                transform: scaleY(1.5);
+            }
+
+            40% {
+                transform: scaleY(1);
+            }
+        }
+    </style>
 </head>
 
-<body class="h-full bg-gray-100 dark:bg-gray-900 font-sans antialiased">
-
+<body class="h-full bg-gray-100 dark:bg-gray-900 font-sans antialiased overflow-x-hidden">
 
     <nav class="bg-gray-700 dark:bg-gray-800 sticky top-0 z-40 shadow-md">
         <div class="max-w-screen-xl mx-auto px-4 flex items-center justify-between h-14">
@@ -136,9 +133,10 @@
                         x-transition:leave="transition ease-in duration-75"
                         x-transition:leave-start="opacity-100 scale-100"
                         x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800
-                rounded-2xl shadow-2xl border border-gray-100
-                dark:border-gray-700 z-50 overflow-hidden">
+                        class="fixed right-2 mt-2 w-80 max-w-[calc(100vw-1rem)] bg-white dark:bg-gray-800
+rounded-2xl shadow-2xl border border-gray-100
+dark:border-gray-700 z-50 overflow-hidden"
+                        style="top: 56px;">
 
                         <div class="flex items-center justify-between px-4 py-3
                     border-b border-gray-100 dark:border-gray-700">
@@ -273,18 +271,18 @@
     </nav>
 
     <!-- Page Loader -->
-<div id="page-loader" class="fixed inset-0 z-50 flex items-center justify-center hidden">
-    <div class="absolute inset-0 bg-gray-900/85 backdrop-blur-sm"></div>
-    <div class="relative flex flex-col items-center gap-4">
-        <div class="loader">
-            <span class="bar"></span>
-            <span class="bar"></span>
-            <span class="bar"></span>
+    <div id="page-loader" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="absolute inset-0 bg-gray-900/85 backdrop-blur-sm"></div>
+        <div class="relative flex flex-col items-center gap-4">
+            <div class="loader">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+            <p style="color: rgba(255,255,255,0.5); font-size: 13px; font-family: sans-serif; letter-spacing: 0.05em;">
+            </p>
         </div>
-        <p style="color: rgba(255,255,255,0.5); font-size: 13px; font-family: sans-serif; letter-spacing: 0.05em;">
-        </p>
     </div>
-</div>
 
     <!-- Warning Confirmation Modal -->
     <div id="warning-modal" class="fixed inset-0 z-50 hidden" x-data="warningModal()" x-show="isOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">

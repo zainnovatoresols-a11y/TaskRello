@@ -4,7 +4,7 @@
 @section('content')
 
 {{-- ── Board header bar ─────────────────────────────────────── --}}
-<div class="px-6 py-3 flex items-center gap-4 flex-wrap relative overflow-hidden"
+<div class="py-3 flex items-center gap-4 flex-wrap relative overflow-visible"
     id="board-show-state"
     data-board-id="{{ $board->id }}"
     style="{{ $board->background_image_url
@@ -62,11 +62,11 @@
                     placeholder="Search cards..."
                     autocomplete="off"
                     class="bg-white/20 hover:bg-white/25 focus:bg-white/30
-                      border border-white/20 rounded-lg
-                      pl-9 pr-8 py-1.5 text-sm text-white
-                      placeholder-white/50
-                      focus:outline-none focus:ring-2 focus:ring-white/30
-                      ">
+  border border-white/20 rounded-lg
+  pl-9 pr-8 py-0 text-sm text-white
+  placeholder-white/50
+  focus:outline-none focus:ring-2 focus:ring-white/30
+  h-[30px] leading-[30px]">
 
                 {{-- Clear button --}}
                 <button id="card-search-clear"
@@ -80,35 +80,247 @@
                 </button>
             </div>
 
-            {{-- Completed filter button --}}
-            <button id="filter-completed"
-                onclick="toggleFilter('completed')"
-                data-active="false"
-                class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
-                   text-white/80 hover:text-white text-xs font-medium
-                   px-3 py-1.5 rounded-lg transition border border-white/20
-                   whitespace-nowrap">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                Completed
-            </button>
+            {{-- Status filter dropdown --}}
+            <div class="relative" id="status-filter-dropdown">
+                <button onclick="toggleStatusDropdown()"
+                    id="filter-status-btn"
+                    class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
+                       text-white/80 hover:text-white text-xs font-medium
+                       px-3 py-1.5 rounded-lg transition border border-white/20
+                       whitespace-nowrap">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span id="status-filter-label">Status</span>
+                </button>
 
-            {{-- Incomplete filter button --}}
-            <button id="filter-incomplete"
-                onclick="toggleFilter('incomplete')"
-                data-active="false"
-                class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
-                   text-white/80 hover:text-white text-xs font-medium
-                   px-3 py-1.5 rounded-lg transition border border-white/20
-                   whitespace-nowrap">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Incomplete
-            </button>
+                <div id="status-dropdown-menu"
+                    class="hidden absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800
+                            rounded-xl shadow-lg border border-gray-100
+                            dark:border-gray-700 py-1 z-30">
+
+                    {{-- All Tasks option --}}
+                    <button onclick="selectStatusFilter(null, 'Status'); closeStatusDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        All Tasks
+                    </button>
+
+                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
+
+                    {{-- Completed option --}}
+                    <button onclick="selectStatusFilter('completed', 'Completed'); closeStatusDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition
+                                   flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Completed</span>
+                    </button>
+
+                    {{-- Incomplete option --}}
+                    <button onclick="selectStatusFilter('incomplete', 'Incomplete'); closeStatusDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition
+                                   flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Incomplete</span>
+                    </button>
+                </div>
+            </div>
+
+            {{-- Member filter dropdown --}}
+            <div class="relative" id="member-filter-dropdown">
+                <button onclick="toggleMemberDropdown()"
+                    id="filter-member-btn"
+                    class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
+                       text-white/80 hover:text-white text-xs font-medium
+                       px-3 py-1.5 rounded-lg transition border border-white/20
+                       whitespace-nowrap">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 12H9m6 0a6 6 0 11-12 0 6 6 0 0112 0z" />
+                    </svg>
+                    <span id="member-filter-label">Members</span>
+                </button>
+
+                <div id="member-dropdown-menu"
+                    class="hidden absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800
+                            rounded-xl shadow-lg border border-gray-100
+                            dark:border-gray-700 py-1 z-30">
+
+                    {{-- Clear filter option --}}
+                    <button onclick="clearMemberFilter(); closeMemberDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        All Members
+                    </button>
+
+                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
+
+                    {{-- Member list --}}
+                    @foreach($board->members as $member)
+                    <button onclick="selectMemberFilter({{ $member->id }}, '{{ addslashes($member->name) }}'); closeMemberDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition
+                                   flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-full bg-blue-700 flex-shrink-0
+                                    flex items-center justify-center
+                                    text-white text-xs font-bold">
+                            {{ strtoupper(substr($member->name, 0, 1)) }}
+                        </div>
+                        <span>{{ $member->name }}</span>
+                    </button>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Label filter dropdown --}}
+            <div class="relative" id="label-filter-dropdown">
+                <button onclick="toggleLabelDropdown()"
+                    id="filter-label-btn"
+                    class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
+                       text-white/80 hover:text-white text-xs font-medium
+                       px-3 py-1.5 rounded-lg transition border border-white/20
+                       whitespace-nowrap">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                    <span id="label-filter-label">Labels</span>
+                </button>
+
+                <div id="label-dropdown-menu"
+                    class="hidden absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800
+                            rounded-xl shadow-lg border border-gray-100
+                            dark:border-gray-700 py-1 z-30">
+
+                    {{-- Clear filter option --}}
+                    <button onclick="clearLabelFilter(); closeLabelDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        All Labels
+                    </button>
+
+                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
+
+                    {{-- Label list --}}
+                    @php
+                    $allLabels = $board->labels ?? collect([]);
+                    @endphp
+                    @if($allLabels->isNotEmpty())
+                    @foreach($allLabels as $label)
+                    <button onclick="selectLabelFilter({{ $label->id }}, '{{ addslashes($label->name) }}'); closeLabelDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                       text-gray-700 dark:text-gray-200
+                                       hover:bg-gray-50 dark:hover:bg-gray-700 transition
+                                       flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full flex-shrink-0"
+                            style="background-color: {{ $label->color }}"></span>
+                        <span>{{ $label->name }}</span>
+                    </button>
+                    @endforeach
+                    @else
+                    <button class="w-full text-left px-4 py-2 text-sm
+                                       text-gray-400 dark:text-gray-500">
+                        No labels yet
+                    </button>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Date filter dropdown --}}
+            <div class="relative" id="date-filter-dropdown">
+                <button onclick="toggleDateDropdown()"
+                    id="filter-date-btn"
+                    class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30
+                       text-white/80 hover:text-white text-xs font-medium
+                       px-3 py-1.5 rounded-lg transition border border-white/20
+                       whitespace-nowrap">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span id="date-filter-label">Date</span>
+                </button>
+
+                <div id="date-dropdown-menu"
+                    class="hidden absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800
+                            rounded-xl shadow-lg border border-gray-100
+                            dark:border-gray-700 py-1 z-30">
+
+                    {{-- All Dates option --}}
+                    <button onclick="selectDateFilter(null, 'Date'); closeDateDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        All Dates
+                    </button>
+
+                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
+
+                    {{-- Date filter options --}}
+                    <button onclick="selectDateFilter('overdue', 'Overdue'); closeDateDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition
+                                   flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Overdue</span>
+                    </button>
+
+                    <button onclick="selectDateFilter('today', 'Today'); closeDateDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition
+                                   flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Today</span>
+                    </button>
+
+                    <button onclick="selectDateFilter('upcoming', 'Upcoming'); closeDateDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition
+                                   flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>This Week</span>
+                    </button>
+
+                    <button onclick="selectDateFilter('month', 'This Month'); closeDateDropdown()"
+                        class="w-full text-left px-4 py-2 text-sm
+                                   text-gray-700 dark:text-gray-200
+                                   hover:bg-gray-50 dark:hover:bg-gray-700 transition
+                                   flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>This Month</span>
+                    </button>
+                </div>
+            </div>
 
         </div>
 
@@ -223,13 +435,222 @@
 
 </div>
 
+<style>
+    .card-modal-scrollbar::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .card-modal-scrollbar::-webkit-scrollbar-track {
+        background: #ffffff;
+    }
+
+    .card-modal-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 4px;
+    }
+
+    .card-modal-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .card-modal-scrollbar {
+            scrollbar-color: #4b5563 #1f2937;
+        }
+
+        .card-modal-scrollbar::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+
+        .card-modal-scrollbar::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+
+        .card-modal-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    }
+
+    .modal-select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        padding-right: 28px !important;
+        border-radius: 0.5rem;
+        max-width: 100%;
+    }
+
+    select option {
+        border-radius: 0.5rem;
+    }
+
+    #board-show-state {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    @media (max-width: 640px) {
+        #board-show-state {
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+            width: 100vw !important;
+            max-width: 100vw !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Make the inner flex container wrap properly */
+        #board-show-state>div.relative.z-10 {
+            flex-wrap: wrap !important;
+            gap: 6px !important;
+        }
+
+        /* Filter row — scrollable strip */
+        #board-show-state .flex.items-center.gap-2.ml-auto {
+            margin-left: 0 !important;
+            width: 100% !important;
+            overflow-x: auto !important;
+            flex-wrap: nowrap !important;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding-bottom: 2px;
+        }
+
+        #board-show-state .flex.items-center.gap-2.ml-auto::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Right side actions row — also scrollable */
+        #board-show-state .ml-auto.flex.items-center.gap-3 {
+            margin-left: 0 !important;
+            width: 100% !important;
+            overflow-x: auto !important;
+            flex-wrap: nowrap !important;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        #board-show-state .ml-auto.flex.items-center.gap-3::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Search input */
+        #board-card-search {
+            width: 110px !important;
+            min-width: 110px !important;
+        }
+
+        /* Shrink all buttons */
+        #board-show-state button,
+        #board-show-state a.inline-flex {
+            white-space: nowrap !important;
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+            font-size: 11px !important;
+        }
+
+        /* Fix dropdown positioning — smaller, screen-aware */
+        #status-dropdown-menu,
+        #member-dropdown-menu,
+        #label-dropdown-menu,
+        #date-dropdown-menu {
+            position: fixed !important;
+            top: 130px !important;
+            left: 8px !important;
+            right: 8px !important;
+            width: auto !important;
+            max-width: 180px !important;
+            /* smaller width */
+            max-height: 40vh !important;
+            /* smaller height */
+            overflow-y: auto !important;
+            z-index: 9999 !important;
+            font-size: 12px !important;
+        }
+
+        #status-dropdown-menu button,
+        #member-dropdown-menu button,
+        #label-dropdown-menu button,
+        #date-dropdown-menu button {
+            padding-top: 6px !important;
+            padding-bottom: 6px !important;
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+            font-size: 12px !important;
+        }
+
+        /* Hide separator */
+        #board-show-state .text-white\/30 {
+            display: none !important;
+        }
+    }
+
+    #labels-modal .overflow-y-auto::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    #labels-modal .overflow-y-auto::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    #labels-modal .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 4px;
+    }
+
+    #labels-modal .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+    }
+
+    #labels-modal .overflow-y-auto {
+        scrollbar-gutter: stable;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        #labels-modal .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+    }
+
+    /* Cards container scrollbar */
+    .cards-container::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .cards-container::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .cards-container::-webkit-scrollbar-thumb {
+        background: #9ca3af;
+        border-radius: 4px;
+    }
+
+    .cards-container::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .cards-container::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+
+        .cards-container::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    }
+</style>
+
 {{-- ── Card detail modal ─────────────────────────────────────── --}}
 <div id="card-modal"
-    class="hidden fixed inset-0 z-50 flex items-start justify-center pt-12 px-4 pb-4"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center p-3"
     style="background-color: rgba(0,0,0,0.55);">
 
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl
-                max-h-[85vh] overflow-y-auto relative" onclick="event.stopPropagation()">
+            overflow-hidden relative max-h-[90vh]"
+        style="max-width: min(42rem, calc(100vw - 1.5rem));"
+        onclick="event.stopPropagation()">
 
         {{-- Close button --}}
         <button onclick="closeCardModal()"
@@ -240,11 +661,15 @@
             &times;
         </button>
 
-        {{-- Modal body — filled by JS via fetch /cards/{id} --}}
-        <div id="card-modal-body" class="p-6">
-            <div class="flex items-center justify-center py-12">
-                <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent
+        {{-- Scrollable content wrapper --}}
+        <div class="max-h-[85vh] overflow-y-auto card-modal-scrollbar">
+
+            {{-- Modal body — filled by JS via fetch /cards/{id} --}}
+            <div id="card-modal-body" class="p-6">
+                <div class="flex items-center justify-center py-12">
+                    <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent
                             rounded-full animate-spin"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -255,104 +680,156 @@
     class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
     style="background-color: rgba(0,0,0,0.55);">
 
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 overflow-y-auto max-h-[90vh]">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+        <div class="overflow-y-auto max-h-[90vh] p-6 pr-4">
 
-        {{-- Header --}}
-        <div class="flex items-center justify-between mb-5">
-            <h3 class="font-semibold text-gray-900 dark:text-white text-base">
-                Board labels
-            </h3>
-            <button onclick="closeLabelsManager()"
-                class="text-gray-400 hover:text-gray-600
+            {{-- Header --}}
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="font-semibold text-gray-900 dark:text-white text-base">
+                    Board labels
+                </h3>
+                <button onclick="closeLabelsManager()"
+                    class="text-gray-400 hover:text-gray-600
                            dark:hover:text-gray-200 text-xl font-bold transition">
-                &times;
-            </button>
-        </div>
+                    &times;
+                </button>
+            </div>
 
-        {{-- Existing labels list --}}
-        <div id="labels-list" class="space-y-2 mb-5">
-            @foreach($board->labels as $label)
-            <div class="flex items-center justify-between py-2 px-3 rounded-lg"
-                style="background-color: {{ $label->color }}20"
-                id="label-row-{{ $label->id }}">
+            {{-- Existing labels list --}}
+            <div id="labels-list" class="space-y-2 mb-5">
+                @foreach($board->labels as $label)
+                <div class="flex items-center justify-between py-2 px-3 rounded-lg"
+                    style="background-color: {{ $label->color }}20"
+                    id="label-row-{{ $label->id }}">
 
-                {{-- Color dot + name --}}
-                <div class="flex items-center gap-2 flex-1 min-w-0">
-                    <span class="w-4 h-4 rounded-full flex-shrink-0"
-                        id="label-dot-{{ $label->id }}"
-                        style="background-color: {{ $label->color }}">
-                    </span>
-                    <span class="text-sm font-medium text-gray-800
+                    {{-- Color dot + name --}}
+                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                        <span class="w-4 h-4 rounded-full flex-shrink-0"
+                            id="label-dot-{{ $label->id }}"
+                            style="background-color: {{ $label->color }}">
+                        </span>
+                        <span class="text-sm font-medium text-gray-800
                                      dark:text-gray-100 truncate"
-                        id="label-name-{{ $label->id }}">
-                        {{ $label->name }}
-                    </span>
-                </div>
+                            id="label-name-{{ $label->id }}">
+                            {{ $label->name }}
+                        </span>
+                    </div>
 
-                {{-- Action buttons --}}
-                <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                    {{-- Action buttons --}}
+                    <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
 
-                    {{-- Edit button --}}
-                    <button onclick="startEditLabel({{ $label->id }}, '{{ addslashes($label->name) }}', '{{ $label->color }}', {{ $board->id }})"
-                        class="w-6 h-6 flex items-center justify-center
+                        {{-- Edit button --}}
+                        <button onclick="startEditLabel({{ $label->id }}, '{{ addslashes($label->name) }}', '{{ $label->color }}', {{ $board->id }})"
+                            class="w-6 h-6 flex items-center justify-center
                                        rounded text-gray-400 hover:text-blue-600
                                        dark:hover:text-blue-400
                                        hover:bg-white/50 transition"
-                        title="Edit label">
-                        <svg class="w-3.5 h-3.5" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002
+                            title="Edit label">
+                            <svg class="w-3.5 h-3.5" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002
                                          2h11a2 2 0 002-2v-5m-1.414-9.414a2
                                          2 0 112.828 2.828L11.828 15H9v-2.828
                                          l8.586-8.586z" />
-                        </svg>
-                    </button>
+                            </svg>
+                        </button>
 
-                    {{-- Delete button --}}
-                    <button onclick="deleteLabel({{ $label->id }}, {{ $board->id }})"
-                        class="w-6 h-6 flex items-center justify-center
+                        {{-- Delete button --}}
+                        <button onclick="deleteLabel({{ $label->id }}, {{ $board->id }})"
+                            class="w-6 h-6 flex items-center justify-center
                                        rounded text-gray-400 hover:text-red-500
                                        dark:hover:text-red-400
                                        hover:bg-white/50 transition"
-                        title="Delete label">
-                        <svg class="w-3.5 h-3.5" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                            title="Delete label">
+                            <svg class="w-3.5 h-3.5" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                @endforeach
+
+                @if($board->labels->isEmpty())
+                <p class="text-sm text-gray-400 text-center py-3"
+                    id="no-labels-msg">
+                    No labels yet. Create one below.
+                </p>
+                @endif
+            </div>
+
+            {{-- ── Edit label form (hidden by default) ─────────── --}}
+            <div id="edit-label-form"
+                class="hidden border border-blue-200 dark:border-blue-800
+                    bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 mb-4">
+
+                <p class="text-xs font-semibold text-blue-700 dark:text-blue-400
+                      uppercase tracking-wider mb-3">
+                    Edit label
+                </p>
+
+                <input type="hidden" id="edit-label-id">
+                <input type="hidden" id="edit-board-id">
+
+                <input type="text"
+                    id="edit-label-name"
+                    placeholder="Label name..."
+                    maxlength="100"
+                    class="w-full border border-gray-300 dark:border-gray-600
+                          rounded-lg px-3 py-2 text-sm mb-3
+                          bg-white dark:bg-gray-900
+                          text-gray-900 dark:text-gray-100
+                          placeholder-gray-400
+                          focus:outline-none focus:ring-2 focus:ring-blue-500
+                          focus:border-transparent">
+
+                {{-- Color swatches for edit --}}
+                <div class="flex flex-wrap gap-2 mb-3" id="edit-label-colors">
+                    @foreach(['#EB5A46','#F2D600','#61BD4F','#0079BF','#C377E0','#FF9F1A','#00C2E0','#51E898'] as $ec)
+                    <label class="cursor-pointer">
+                        <input type="radio"
+                            name="edit_label_color"
+                            value="{{ $ec }}"
+                            class="sr-only peer">
+                        <span class="block w-7 h-7 rounded-full ring-2
+                                     ring-transparent ring-offset-1
+                                     peer-checked:ring-gray-500 transition"
+                            style="background-color: {{ $ec }}">
+                        </span>
+                    </label>
+                    @endforeach
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="saveEditLabel()"
+                        class="flex-1 bg-blue-700 hover:bg-blue-800
+                               text-white text-sm font-medium
+                               py-2 rounded-lg transition">
+                        Save changes
+                    </button>
+                    <button onclick="cancelEditLabel()"
+                        class="px-3 py-2 text-sm text-gray-500
+                               dark:text-gray-400 hover:bg-gray-100
+                               dark:hover:bg-gray-700 rounded-lg transition">
+                        Cancel
                     </button>
                 </div>
             </div>
-            @endforeach
 
-            @if($board->labels->isEmpty())
-            <p class="text-sm text-gray-400 text-center py-3"
-                id="no-labels-msg">
-                No labels yet. Create one below.
-            </p>
-            @endif
-        </div>
+            {{-- ── Create label form ─────────────────────────────── --}}
+            <div class="border-t border-gray-100 dark:border-gray-700 pt-4">
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3">
+                    Create new label
+                </p>
 
-        {{-- ── Edit label form (hidden by default) ─────────── --}}
-        <div id="edit-label-form"
-            class="hidden border border-blue-200 dark:border-blue-800
-                    bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 mb-4">
-
-            <p class="text-xs font-semibold text-blue-700 dark:text-blue-400
-                      uppercase tracking-wider mb-3">
-                Edit label
-            </p>
-
-            <input type="hidden" id="edit-label-id">
-            <input type="hidden" id="edit-board-id">
-
-            <input type="text"
-                id="edit-label-name"
-                placeholder="Label name..."
-                maxlength="100"
-                class="w-full border border-gray-300 dark:border-gray-600
+                <input type="text"
+                    id="new-label-name"
+                    placeholder="Label name e.g. Bug, Feature..."
+                    maxlength="100"
+                    class="w-full border border-gray-300 dark:border-gray-600
                           rounded-lg px-3 py-2 text-sm mb-3
                           bg-white dark:bg-gray-900
                           text-gray-900 dark:text-gray-100
@@ -360,81 +837,31 @@
                           focus:outline-none focus:ring-2 focus:ring-blue-500
                           focus:border-transparent">
 
-            {{-- Color swatches for edit --}}
-            <div class="flex flex-wrap gap-2 mb-3" id="edit-label-colors">
-                @foreach(['#EB5A46','#F2D600','#61BD4F','#0079BF','#C377E0','#FF9F1A','#00C2E0','#51E898'] as $ec)
-                <label class="cursor-pointer">
-                    <input type="radio"
-                        name="edit_label_color"
-                        value="{{ $ec }}"
-                        class="sr-only peer">
-                    <span class="block w-7 h-7 rounded-full ring-2
+                {{-- Color swatches for create --}}
+                <div class="flex flex-wrap gap-2 mb-3" id="label-color-picker">
+                    @foreach(['#EB5A46','#F2D600','#61BD4F','#0079BF','#C377E0','#FF9F1A','#00C2E0','#51E898'] as $lc)
+                    <label class="cursor-pointer">
+                        <input type="radio"
+                            name="label_color"
+                            value="{{ $lc }}"
+                            class="sr-only peer"
+                            {{ $loop->first ? 'checked' : '' }}>
+                        <span class="block w-7 h-7 rounded-full ring-2
                                      ring-transparent ring-offset-1
                                      peer-checked:ring-gray-500 transition"
-                        style="background-color: {{ $ec }}">
-                    </span>
-                </label>
-                @endforeach
-            </div>
+                            style="background-color: {{ $lc }}">
+                        </span>
+                    </label>
+                    @endforeach
+                </div>
 
-            <div class="flex gap-2">
-                <button onclick="saveEditLabel()"
-                    class="flex-1 bg-blue-700 hover:bg-blue-800
-                               text-white text-sm font-medium
-                               py-2 rounded-lg transition">
-                    Save changes
-                </button>
-                <button onclick="cancelEditLabel()"
-                    class="px-3 py-2 text-sm text-gray-500
-                               dark:text-gray-400 hover:bg-gray-100
-                               dark:hover:bg-gray-700 rounded-lg transition">
-                    Cancel
-                </button>
-            </div>
-        </div>
-
-        {{-- ── Create label form ─────────────────────────────── --}}
-        <div class="border-t border-gray-100 dark:border-gray-700 pt-4">
-            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3">
-                Create new label
-            </p>
-
-            <input type="text"
-                id="new-label-name"
-                placeholder="Label name e.g. Bug, Feature..."
-                maxlength="100"
-                class="w-full border border-gray-300 dark:border-gray-600
-                          rounded-lg px-3 py-2 text-sm mb-3
-                          bg-white dark:bg-gray-900
-                          text-gray-900 dark:text-gray-100
-                          placeholder-gray-400
-                          focus:outline-none focus:ring-2 focus:ring-blue-500
-                          focus:border-transparent">
-
-            {{-- Color swatches for create --}}
-            <div class="flex flex-wrap gap-2 mb-3" id="label-color-picker">
-                @foreach(['#EB5A46','#F2D600','#61BD4F','#0079BF','#C377E0','#FF9F1A','#00C2E0','#51E898'] as $lc)
-                <label class="cursor-pointer">
-                    <input type="radio"
-                        name="label_color"
-                        value="{{ $lc }}"
-                        class="sr-only peer"
-                        {{ $loop->first ? 'checked' : '' }}>
-                    <span class="block w-7 h-7 rounded-full ring-2
-                                     ring-transparent ring-offset-1
-                                     peer-checked:ring-gray-500 transition"
-                        style="background-color: {{ $lc }}">
-                    </span>
-                </label>
-                @endforeach
-            </div>
-
-            <button onclick="createLabel({{ $board->id }})"
-                class="w-full bg-blue-700 hover:bg-blue-800
+                <button onclick="createLabel({{ $board->id }})"
+                    class="w-full bg-blue-700 hover:bg-blue-800
                            text-white text-sm font-medium
                            py-2 rounded-lg transition">
-                Create label
-            </button>
+                    Create label
+                </button>
+            </div>
         </div>
     </div>
 </div>

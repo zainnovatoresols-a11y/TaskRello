@@ -251,21 +251,6 @@
                 </div>
                 @endforeach
             </div>
-
-            {{-- Add member (group only) --}}
-            @if($activeConversation->type === 'group')
-            <button onclick="openAddMemberModal({{ $activeConversation->id }})"
-                class="w-8 h-8 flex items-center justify-center rounded-lg
-                                   text-slate-500 hover:text-slate-700 dark:hover:text-slate-200
-                                   hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200"
-                title="Add member">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0
-                                     11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                </svg>
-            </button>
-            @endif
         </div>
     </div>
 

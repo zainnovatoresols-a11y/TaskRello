@@ -59,130 +59,175 @@
             No boards match your search.
         </p>
     </div>
+    @php
+    $myPendingInvites = \App\Models\BoardInvitation::getPendingForEmail(
+    auth()->user()->email
+    );
+    @endphp
 
+    @if($myPendingInvites->isNotEmpty())
+    <div class="mb-8">
+        <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300
+                   uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+            Board Invitations
+        </h2>
+        <div class="space-y-2">
+            @foreach($myPendingInvites as $inv)
+            <div class="flex items-center justify-between
+                            bg-blue-50 dark:bg-blue-900/20
+                            border border-blue-200 dark:border-blue-800
+                            rounded-xl px-5 py-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex-shrink-0"
+                        style="background-color:
+                                {{ $inv->board->background_color ?? '#1d4ed8' }}">
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900
+                                      dark:text-white">
+                            {{ $inv->board->name }}
+                        </p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                            Invited by {{ $inv->inviter->name }}
+                            · Expires {{ $inv->expires_at->diffForHumans() }}
+                        </p>
+                    </div>
+                </div>
+                <a href="{{ route('invitations.accept', $inv->token) }}"
+                    class="inline-flex items-center gap-1.5 bg-blue-700
+                              hover:bg-blue-800 text-white text-sm font-medium
+                              px-4 py-2 rounded-lg transition flex-shrink-0 ml-4">
+                    Accept →
+                </a>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
     {{-- ── Boards state --─────────────────────────────────────── --}}
     <div id="boards-state">
         <div id="boards-empty-state" class="flex flex-col items-center justify-center py-28 text-center {{ $boards->isEmpty() ? '' : 'hidden' }}">
             <div class="w-20 h-20 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mb-5">
-            <svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                    d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 0a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
+                <svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 0a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+            </div>
+            <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                No boards yet
+            </h2>
+            <p class="text-gray-400 dark:text-gray-500 text-sm mb-6 max-w-xs">
+                Create your first board to start organising your work like a pro
+            </p>
+            <a href="{{ route('boards.create') }}"
+                class="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Create your first board
+            </a>
         </div>
-        <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
-            No boards yet
-        </h2>
-        <p class="text-gray-400 dark:text-gray-500 text-sm mb-6 max-w-xs">
-            Create your first board to start organising your work like a pro
-        </p>
-        <a href="{{ route('boards.create') }}"
-            class="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Create your first board
-        </a>
-    </div>
 
-    <div id="boards-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 {{ $boards->isEmpty() ? 'hidden' : '' }}">
-        @foreach($boards as $board)
-        <a href="{{ route('boards.show', $board) }}"
-            class="board-tile group relative rounded-xl p-5 min-h-[130px] flex flex-col
+        <div id="boards-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 {{ $boards->isEmpty() ? 'hidden' : '' }}">
+            @foreach($boards as $board)
+            <a href="{{ route('boards.show', $board) }}"
+                class="board-tile group relative rounded-xl p-5 min-h-[130px] flex flex-col
           justify-between hover:opacity-90 hover:shadow-lg transition-all
           shadow-sm overflow-hidden"
-            data-board-id="{{ $board->id }}"
-            data-name="{{ strtolower($board->name) }}"
-            style="{{ $board->background_image_url
+                data-board-id="{{ $board->id }}"
+                data-name="{{ strtolower($board->name) }}"
+                style="{{ $board->background_image_url
        ? 'background-image: url(' . $board->background_image_url . '); background-size: cover; background-position: center;'
        : 'background-color: ' . $board->background_color }}">
 
-        @if($board->background_image_url)
-        <div class="absolute inset-0 bg-black/35 rounded-xl"></div>
-        @endif
-
-        <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity rounded-xl"></div>
-
-        <h2 class="relative text-white font-bold text-base leading-snug">
-            {{ $board->name }}
-        </h2>
-
-        <div class="relative mt-4 space-y-1">
-            <div class="flex items-center -space-x-1.5 mb-2">
-                @foreach($board->members->take(4) as $member)
-                <div class="w-6 h-6 rounded-full bg-white/30 ring-2 ring-white/50
-                                        flex items-center justify-center text-white text-xs font-bold"
-                    title="{{ $member->name }}">
-                    {{ strtoupper(substr($member->name, 0, 1)) }}
-                </div>
-                @endforeach
-                @if($board->members->count() > 4)
-                <div class="w-6 h-6 rounded-full bg-black/20 ring-2 ring-white/50
-                                        flex items-center justify-center text-white text-xs font-bold">
-                    +{{ $board->members->count() - 4 }}
-                </div>
+                @if($board->background_image_url)
+                <div class="absolute inset-0 bg-black/35 rounded-xl"></div>
                 @endif
-            </div>
 
-            <div class="flex items-center justify-between">
-                <span class="text-white/80 text-xs">
-                    {{ $board->members_count }}
-                    {{ Str::plural('member', $board->members_count) }}
-                </span>
-                <span class="text-white/70 text-xs truncate max-w-[90px]">
-                    {{ $board->owner->name }}
-                </span>
-            </div>
-        </div>
-        </a>
-        @endforeach
+                <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity rounded-xl"></div>
 
-        <a href="{{ route('boards.create') }}"
-            class="rounded-xl p-5 min-h-[130px] flex flex-col items-center justify-center gap-2
+                <h2 class="relative text-white font-bold text-base leading-snug">
+                    {{ $board->name }}
+                </h2>
+
+                <div class="relative mt-4 space-y-1">
+                    <div class="flex items-center -space-x-1.5 mb-2">
+                        @foreach($board->members->take(4) as $member)
+                        <div class="w-6 h-6 rounded-full bg-white/30 ring-2 ring-white/50
+                                        flex items-center justify-center text-white text-xs font-bold"
+                            title="{{ $member->name }}">
+                            {{ strtoupper(substr($member->name, 0, 1)) }}
+                        </div>
+                        @endforeach
+                        @if($board->members->count() > 4)
+                        <div class="w-6 h-6 rounded-full bg-black/20 ring-2 ring-white/50
+                                        flex items-center justify-center text-white text-xs font-bold">
+                            +{{ $board->members->count() - 4 }}
+                        </div>
+                        @endif
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-white/80 text-xs">
+                            {{ $board->members_count }}
+                            {{ Str::plural('member', $board->members_count) }}
+                        </span>
+                        <span class="text-white/70 text-xs truncate max-w-[90px]">
+                            {{ $board->owner->name }}
+                        </span>
+                    </div>
+                </div>
+            </a>
+            @endforeach
+
+            <a href="{{ route('boards.create') }}"
+                class="rounded-xl p-5 min-h-[130px] flex flex-col items-center justify-center gap-2
                       bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600
                       transition text-gray-500 dark:text-gray-400 hover:text-gray-700
                       dark:hover:text-gray-200 border-2 border-dashed border-gray-300
                       dark:border-gray-600 group">
-            <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 group-hover:text-gray-600
+                <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 group-hover:text-gray-600
                             dark:group-hover:text-gray-300 transition"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" />
-            </svg>
-            <span class="text-sm font-medium">Create new board</span>
-        </a>
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" />
+                </svg>
+                <span class="text-sm font-medium">Create new board</span>
+            </a>
+        </div>
     </div>
-</div>
-@endsection
+    @endsection
 
-@section('scripts')
-<script>
-    const boardSearchInput = document.getElementById('board-search');
-    const boardClearBtn = document.getElementById('board-search-clear');
-    const noResults = document.getElementById('board-no-results');
+    @section('scripts')
+    <script>
+        const boardSearchInput = document.getElementById('board-search');
+        const boardClearBtn = document.getElementById('board-search-clear');
+        const noResults = document.getElementById('board-no-results');
 
-    boardSearchInput.addEventListener('input', function() {
-        const query = this.value.trim().toLowerCase();
-        const tiles = document.querySelectorAll('.board-tile');
-        let visible = 0;
+        boardSearchInput.addEventListener('input', function() {
+            const query = this.value.trim().toLowerCase();
+            const tiles = document.querySelectorAll('.board-tile');
+            let visible = 0;
 
-        tiles.forEach(tile => {
-            const name = tile.dataset.name || '';
-            const show = name.includes(query);
-            tile.style.display = show ? '' : 'none';
-            if (show) visible++;
+            tiles.forEach(tile => {
+                const name = tile.dataset.name || '';
+                const show = name.includes(query);
+                tile.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            // Toggle clear button
+            boardClearBtn.classList.toggle('hidden', query === '');
+
+            // Toggle no results message
+            noResults.classList.toggle('hidden', visible > 0 || query === '');
         });
 
-        // Toggle clear button
-        boardClearBtn.classList.toggle('hidden', query === '');
-
-        // Toggle no results message
-        noResults.classList.toggle('hidden', visible > 0 || query === '');
-    });
-
-    function clearBoardSearch() {
-        boardSearchInput.value = '';
-        boardSearchInput.dispatchEvent(new Event('input'));
-        boardSearchInput.focus();
-    }
-</script>
-<script src="{{ asset('js/board-live.js') }}"></script>
-@endsection
+        function clearBoardSearch() {
+            boardSearchInput.value = '';
+            boardSearchInput.dispatchEvent(new Event('input'));
+            boardSearchInput.focus();
+        }
+    </script>
+    <script src="{{ asset('js/board-live.js') }}"></script>
+    @endsection
